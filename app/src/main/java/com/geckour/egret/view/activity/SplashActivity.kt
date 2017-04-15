@@ -1,4 +1,4 @@
-package com.geckour.egret.activity
+package com.geckour.egret.view.activity
 
 import android.content.Context
 import android.os.Bundle
@@ -18,7 +18,7 @@ class SplashActivity : RxAppCompatActivity() {
     }
 
     fun hasCertified(): Boolean { // FIXME: Ormaの認証情報モデル作って参照する
-        return Math.random() >= 0.5
+        return false
     }
 
     override fun attachBaseContext(newBase: Context?) {

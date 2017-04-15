@@ -1,4 +1,4 @@
-package com.geckour.egret.activity
+package com.geckour.egret.view.activity
 
 import android.content.Context
 import android.content.Intent
