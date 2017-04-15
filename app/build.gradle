@@ -49,10 +49,12 @@ dependencies {
     compile 'io.reactivex.rxjava2:rxjava:2.0.8'
 
     compile "com.trello.rxlifecycle2:rxlifecycle:$rxLifecycle_version"
-    compile "com.trello.rxlifecycle2:rxlifecycle-android:$rxLifecycle_version"
+    compile "com.trello.rxlifecycle2:rxlifecycle-components:$rxLifecycle_version"
     compile "com.trello.rxlifecycle2:rxlifecycle-kotlin:$rxLifecycle_version"
 
     compile 'com.jakewharton.timber:timber:4.5.1'
+
+    compile 'uk.co.chrisjenx:calligraphy:2.2.0'
 }
 repositories {
     mavenCentral()
