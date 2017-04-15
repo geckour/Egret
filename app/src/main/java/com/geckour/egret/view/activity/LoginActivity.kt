@@ -42,6 +42,10 @@ class LoginActivity : RxAppCompatActivity() {
                 .commit()
     }
 
+    fun showMainActivity() {
+        startActivity(MainActivity.getIntent(this))
+    }
+
     /**
      * Shows the progress UI and hides the login form.
      */

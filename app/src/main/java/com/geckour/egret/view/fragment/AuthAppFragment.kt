@@ -200,6 +200,7 @@ class AuthAppFragment: RxFragment() {
                 .compose(bindToLifecycle())
                 .subscribe( { value ->
                     Timber.d("$value")
+                    (activity as LoginActivity).showMainActivity()
                 }, Throwable::printStackTrace )
     }
 

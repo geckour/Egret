@@ -3,6 +3,7 @@ package com.geckour.egret.view.activity
 import android.content.Context
 import android.os.Bundle
 import com.geckour.egret.R
+import com.geckour.egret.util.OrmaProvider
 import com.trello.rxlifecycle2.components.support.RxAppCompatActivity
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper
 
@@ -17,8 +18,8 @@ class SplashActivity : RxAppCompatActivity() {
         startActivity(intent)
     }
 
-    fun hasCertified(): Boolean { // FIXME: Ormaの認証情報モデル作って参照する
-        return false
+    fun hasCertified(): Boolean {
+        return !OrmaProvider.db.selectFromAccessToken().isEmpty
     }
 
     override fun attachBaseContext(newBase: Context?) {
