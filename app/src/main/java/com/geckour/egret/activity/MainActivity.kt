@@ -1,5 +1,7 @@
 package com.geckour.egret.activity
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.Snackbar
@@ -15,6 +17,13 @@ import android.view.MenuItem
 import com.geckour.egret.R
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+
+    companion object {
+        fun getIntent(context: Context): Intent {
+            val intent = Intent(context, MainActivity::class.java)
+            return intent
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -31,6 +31,8 @@ import android.widget.TextView
 import java.util.ArrayList
 
 import android.Manifest.permission.READ_CONTACTS
+import android.content.Context
+import android.content.Intent
 import com.geckour.egret.R
 
 /**
@@ -310,6 +312,11 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
          * TODO: remove after connecting to a real authentication system.
          */
         private val DUMMY_CREDENTIALS = arrayOf("foo@example.com:hello", "bar@example.com:world")
+
+        fun getIntent(context: Context): Intent {
+            val intent = Intent(context, LoginActivity::class.java)
+            return intent
+        }
     }
 }
 

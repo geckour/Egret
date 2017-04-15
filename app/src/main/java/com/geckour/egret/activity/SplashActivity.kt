@@ -12,6 +12,13 @@ class SplashActivity : RxAppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_splash)
+
+        val intent = if (hasCertified()) MainActivity.getIntent(this) else LoginActivity.getIntent(this)
+        startActivity(intent)
+    }
+
+    fun hasCertified(): Boolean { // FIXME: Ormaの認証情報モデル作って参照する
+        return Math.random() >= 0.5
     }
 
     override fun attachBaseContext(newBase: Context?) {
