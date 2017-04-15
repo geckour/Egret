@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.databinding.DataBindingUtil
 import android.net.Uri
-import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.provider.ContactsContract
@@ -17,15 +16,23 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import com.geckour.egret.R
+import com.geckour.egret.api.MastodonClient
+import com.geckour.egret.api.model.InstanceAccess
+import com.geckour.egret.databinding.FragmentLoginInstanceBinding
+import com.geckour.egret.model.AccessToken
+import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.LoginActivity
 import com.trello.rxlifecycle2.components.support.RxFragment
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
+import timber.log.Timber
 import java.util.ArrayList
 
 class AuthAppFragment: RxFragment() {
 
     companion object {
-        fun newInstance(): AccessInstanceFragment {
-            val fragment = AccessInstanceFragment()
+        fun newInstance(): AuthAppFragment {
+            val fragment = AuthAppFragment()
             return fragment
         }
 
@@ -35,7 +42,7 @@ class AuthAppFragment: RxFragment() {
         private val REQUEST_READ_CONTACTS = 0
     }
 
-    private lateinit var binding: FragmentLoginFormBinding
+    private lateinit var binding: FragmentLoginInstanceBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -141,8 +148,7 @@ class AuthAppFragment: RxFragment() {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             (activity as LoginActivity).showProgress(true)
-            mAuthTask = UserLoginTask(email, password)
-            mAuthTask!!.execute(null as Void?)
+            requestAuth(email, password)
         }
     }
 
@@ -170,53 +176,35 @@ class AuthAppFragment: RxFragment() {
     }
 
     fun requestAuth(email: String, password: String) {
-        // TODO: Retrofitのモデル作ってリクエスト書く
+        (activity as LoginActivity).showProgress(true)
+
+        val appInfo = OrmaProvider.db.selectFromInstanceAuthInfo().last()
+        MastodonClient(appInfo.instance).authUser(appInfo.clientId, appInfo.clientSecret, email, password)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe( { value ->
+                    (activity as LoginActivity).showProgress(false)
+                    storeAccessToken(value)
+                }, { throwable ->
+                    (activity as LoginActivity).showProgress(false)
+                    binding.password.error = getString(R.string.error_incorrect_password)
+                    Timber.e(throwable)
+                } )
     }
 
-    /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
-     */
-    inner class UserLoginTask internal constructor(private val mEmail: String, private val mPassword: String) : AsyncTask<Void, Void, Boolean>() {
+    fun storeAccessToken(value: InstanceAccess) {
+        OrmaProvider.db.relationOfAccessToken().upsertAsSingle(createAccessToken(value))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe( { value ->
+                    Timber.d("$value")
+                }, Throwable::printStackTrace )
+    }
 
-        override fun doInBackground(vararg params: Void): Boolean? {
-            // TODO: attempt authentication against a network service.
-
-            try {
-                // Simulate network access.
-                Thread.sleep(2000)
-            } catch (e: InterruptedException) {
-                return false
-            }
-
-            for (credential in DUMMY_CREDENTIALS) {
-                val pieces = credential.split(":".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray()
-                if (pieces[0] == mEmail) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1] == mPassword
-                }
-            }
-
-            // TODO: register the new account here.
-            return true
-        }
-
-        override fun onPostExecute(success: Boolean?) {
-            mAuthTask = null
-            showProgress(false)
-
-            if (success!!) {
-                finish()
-            } else {
-                mPasswordView!!.error = getString(R.string.error_incorrect_password)
-                mPasswordView!!.requestFocus()
-            }
-        }
-
-        override fun onCancelled() {
-            mAuthTask = null
-            showProgress(false)
-        }
+    fun createAccessToken(value: InstanceAccess): AccessToken {
+        return AccessToken(-1L, value.accessToken)
     }
 
     fun getEmailsFromContact(): List<String> {

@@ -53,8 +53,13 @@ dependencies {
     compile "com.trello.rxlifecycle2:rxlifecycle-kotlin:$rxLifecycle_version"
 
     kapt 'com.github.gfx.android.orma:orma-processor:4.2.3'
+    compile 'com.github.gfx.android.orma:orma:4.2.3'
 
     compile 'com.squareup.retrofit2:retrofit:2.2.0'
+    compile 'com.squareup.retrofit2:adapter-rxjava2:2.2.0'
+    compile 'com.squareup.retrofit2:converter-gson:2.2.0'
+    compile 'com.squareup.okhttp3:okhttp:3.6.0'
+    compile 'com.squareup.okhttp3:logging-interceptor:3.6.0'
 
     compile 'com.jakewharton.timber:timber:4.5.1'
 

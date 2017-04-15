@@ -12,6 +12,7 @@ import android.view.View
 import com.geckour.egret.R
 import com.geckour.egret.databinding.ActivityLoginBinding
 import com.geckour.egret.view.fragment.AccessInstanceFragment
+import com.geckour.egret.view.fragment.AuthAppFragment
 import com.trello.rxlifecycle2.components.support.RxAppCompatActivity
 
 class LoginActivity : RxAppCompatActivity() {
@@ -31,7 +32,13 @@ class LoginActivity : RxAppCompatActivity() {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_login)
 
         supportFragmentManager.beginTransaction()
-                .add(AccessInstanceFragment.newInstance(), AccessInstanceFragment.TAG)
+                .replace(R.id.login_form, AccessInstanceFragment.newInstance())
+                .commit()
+    }
+
+    fun showAuthAppFragment() {
+        supportFragmentManager.beginTransaction()
+                .replace(R.id.login_form, AuthAppFragment.newInstance())
                 .commit()
     }
 

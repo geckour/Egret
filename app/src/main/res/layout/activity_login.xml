@@ -19,9 +19,12 @@
             android:layout_marginBottom="8dp"
             android:visibility="gone"/>
 
-        <include android:id="@+id/login_form"
-                 layout="@layout/fragment_login_instance"
-                 android:layout_width="match_parent"
-                 android:layout_height="match_parent" />
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/login_form">
+
+
+        </FrameLayout>
     </LinearLayout>
 </layout>
