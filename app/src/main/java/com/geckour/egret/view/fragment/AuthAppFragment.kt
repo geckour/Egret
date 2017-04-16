@@ -24,7 +24,6 @@ import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.LoginActivity
 import com.trello.rxlifecycle2.components.support.RxFragment
-import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
@@ -243,6 +242,7 @@ class AuthAppFragment: RxFragment() {
         while (cursor.moveToNext()) {
             emails.add(cursor.getString(ProfileQuery.ADDRESS))
         }
+        cursor.close()
 
         return emails
     }

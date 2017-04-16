@@ -2,6 +2,7 @@ package com.geckour.egret.view.fragment
 
 import android.databinding.DataBindingUtil
 import android.os.Bundle
+import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -49,9 +50,10 @@ class AccessInstanceFragment: RxFragment() {
         binding.button.setOnClickListener { attemptChoseInstance() }
     }
 
-    fun attemptChoseInstance() { // TODO: URLのバリデーション
+    fun attemptChoseInstance() {
         val domain = binding.editText.text.toString()
-        requestResister(domain)
+        if (Patterns.WEB_URL.matcher(domain).matches()) requestResister(domain)
+        else binding.editText.error = getString(R.string.error_incorrect_domain)
     }
 
     fun requestResister(domain: String) {
@@ -66,6 +68,7 @@ class AccessInstanceFragment: RxFragment() {
                     storeInstanceInfo(domain, value)
                 }, { throwable ->
                     (activity as LoginActivity).showProgress(false)
+                    binding.editText.error = getString(R.string.error_incorrect_domain)
                     Timber.e(throwable)
                 } )
     }
