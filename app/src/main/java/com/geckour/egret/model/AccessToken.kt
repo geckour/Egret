@@ -8,5 +8,6 @@ import com.github.gfx.android.orma.annotation.Table
 @Table
 class AccessToken(
         @Setter("id") @PrimaryKey(autoincrement = true) val id: Long = -1L,
-        @Setter("access_token") @Column val token: String = ""
+        @Setter("access_token") @Column val token: String = "",
+        @Setter("is_current") @Column var isCurrent: Boolean = false
 )

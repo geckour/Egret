@@ -1,5 +1,6 @@
 package com.geckour.egret.api
 
+import com.geckour.egret.api.model.Account
 import com.geckour.egret.api.model.InstanceAccess
 import com.geckour.egret.api.model.UserSpecificApp
 import com.geckour.egret.api.service.MastodonService
@@ -16,7 +17,7 @@ class MastodonClient(baseUrl: String) {
             .client(OkHttpProvider.client)
             .baseUrl("https://$baseUrl/")
             .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().setDateFormat("yyyy/MM/dd HH:mm:ss").create()))
+            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").create()))
             .build()
             .create(MastodonService::class.java)
 
@@ -28,4 +29,6 @@ class MastodonClient(baseUrl: String) {
             username: String,
             password: String
     ): Single<InstanceAccess> = service.authUser(clientId, clientSecret, username, password)
+
+    fun getAccount(): Single<Account> = service.getSelfInfo()
 }

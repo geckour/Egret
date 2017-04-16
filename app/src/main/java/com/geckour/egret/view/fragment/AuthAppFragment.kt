@@ -20,9 +20,11 @@ import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.InstanceAccess
 import com.geckour.egret.databinding.FragmentLoginInstanceBinding
 import com.geckour.egret.model.AccessToken
+import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.LoginActivity
 import com.trello.rxlifecycle2.components.support.RxFragment
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
@@ -194,18 +196,30 @@ class AuthAppFragment: RxFragment() {
     }
 
     fun storeAccessToken(value: InstanceAccess) {
-        OrmaProvider.db.relationOfAccessToken().upsertAsSingle(createAccessToken(value))
+        OrmaProvider.db.updateAccessToken().isCurrent(false).executeAsSingle()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
-                .subscribe( { value ->
-                    Timber.d("$value")
-                    (activity as LoginActivity).showMainActivity()
+                .subscribe( { rowCount ->
+                    Timber.d("updated rows: $rowCount")
+
+                    OrmaProvider.db.relationOfAccessToken().upsertAsSingle(createAccessToken(value))
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .compose(bindToLifecycle())
+                            .subscribe( { value ->
+                                Timber.d("$value")
+                                Common().hasCertified(object: Common.IListener {
+                                    override fun onCheckCertify(hasCertified: Boolean) {
+                                        if (hasCertified) (activity as LoginActivity).showMainActivity()
+                                    }
+                                })
+                            }, Throwable::printStackTrace )
                 }, Throwable::printStackTrace )
     }
 
     fun createAccessToken(value: InstanceAccess): AccessToken {
-        return AccessToken(-1L, value.accessToken)
+        return AccessToken(-1L, value.accessToken, true)
     }
 
     fun getEmailsFromContact(): List<String> {

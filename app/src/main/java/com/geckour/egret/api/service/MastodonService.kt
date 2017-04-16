@@ -1,5 +1,6 @@
 package com.geckour.egret.api.service
 
+import com.geckour.egret.api.model.Account
 import com.geckour.egret.api.model.InstanceAccess
 import com.geckour.egret.api.model.UserSpecificApp
 import io.reactivex.Single
@@ -19,7 +20,7 @@ interface MastodonService {
             authorityScope: String = "read write follow"
     ): Single<UserSpecificApp>
 
-    @POST("/oauth/token")
+    @POST("oauth/token")
     fun authUser(
             @Query("client_id")
             clientId: String,
@@ -36,4 +37,7 @@ interface MastodonService {
             @Query("grant_type")
             grantType: String = "password"
     ): Single<InstanceAccess>
+
+    @GET("api/v1/accounts/verify_credentials")
+    fun getSelfInfo(): Single<Account>
 }

@@ -3,7 +3,7 @@ package com.geckour.egret.view.activity
 import android.content.Context
 import android.os.Bundle
 import com.geckour.egret.R
-import com.geckour.egret.util.OrmaProvider
+import com.geckour.egret.util.Common
 import com.trello.rxlifecycle2.components.support.RxAppCompatActivity
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper
 
@@ -14,12 +14,12 @@ class SplashActivity : RxAppCompatActivity() {
 
         setContentView(R.layout.activity_splash)
 
-        val intent = if (hasCertified()) MainActivity.getIntent(this) else LoginActivity.getIntent(this)
-        startActivity(intent)
-    }
-
-    fun hasCertified(): Boolean {
-        return !OrmaProvider.db.selectFromAccessToken().isEmpty
+        Common().hasCertified(object: Common.IListener {
+            override fun onCheckCertify(hasCertified: Boolean) {
+                val intent = if (hasCertified) MainActivity.getIntent(this@SplashActivity) else LoginActivity.getIntent(this@SplashActivity)
+                startActivity(intent)
+            }
+        })
     }
 
     override fun attachBaseContext(newBase: Context?) {
