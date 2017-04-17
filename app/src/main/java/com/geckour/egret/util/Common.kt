@@ -1,5 +1,6 @@
 package com.geckour.egret.util
 
+import android.util.Log
 import com.geckour.egret.api.MastodonClient
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -14,15 +15,15 @@ class Common {
     fun hasCertified(listener: IListener) {
         val accessTokenList = OrmaProvider.db.selectFromAccessToken()
         if (!accessTokenList.isEmpty) {
-            val instanceAuthInfoList = OrmaProvider.db.selectFromInstanceAuthInfo()
+            val instanceAuthInfoList = OrmaProvider.db.selectFromInstanceAuthInfo().orderBy("createdAt DESC")
             if (!instanceAuthInfoList.isEmpty) {
-                OkHttpProvider.authInterceptor.setToken(accessTokenList.last().token)
+                OkHttpProvider.authInterceptor.setToken(accessTokenList.first().token)
 
-                MastodonClient(instanceAuthInfoList.last().instance).getAccount()
+                MastodonClient(instanceAuthInfoList.first().instance).getAccount()
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({ account ->
-                            Timber.d("id: ${account.id}")
+                            Log.d("hasCertified", "id: ${account.id}")
                             listener.onCheckCertify(true)
                         }, { throwable ->
                             Timber.e(throwable)

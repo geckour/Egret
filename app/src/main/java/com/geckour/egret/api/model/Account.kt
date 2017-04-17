@@ -34,13 +34,13 @@ class Account(
         val url: URL,
 
         @SerializedName("avatar")
-        val avatarUrl: URL,
+        val avatarUrl: String,
 
         @SerializedName("avatar_static")
         val avatarImg: String,
 
         @SerializedName("header")
-        val headerUrl: URL,
+        val headerUrl: String,
 
         @SerializedName("header_static")
         val headerImg: String

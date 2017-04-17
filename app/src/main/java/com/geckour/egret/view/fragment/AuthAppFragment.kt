@@ -154,8 +154,7 @@ class AuthAppFragment: RxFragment() {
     }
 
     private fun isEmailValid(email: String): Boolean {
-        //TODO: Replace this with your own logic
-        return email.contains("@")
+        return email.matches(Regex(".+@.+\\..+"))
     }
 
     private fun addEmailsToAutoComplete(emailAddressCollection: List<String>) {
@@ -179,14 +178,14 @@ class AuthAppFragment: RxFragment() {
     fun requestAuth(email: String, password: String) {
         (activity as LoginActivity).showProgress(true)
 
-        val appInfo = OrmaProvider.db.selectFromInstanceAuthInfo().last()
+        val appInfo = OrmaProvider.db.selectFromInstanceAuthInfo().orderBy("createdAt DESC").first()
         MastodonClient(appInfo.instance).authUser(appInfo.clientId, appInfo.clientSecret, email, password)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe( { value ->
                     (activity as LoginActivity).showProgress(false)
-                    storeAccessToken(value)
+                    storeAccessToken(appInfo.id, value)
                 }, { throwable ->
                     (activity as LoginActivity).showProgress(false)
                     binding.password.error = getString(R.string.error_incorrect_password)
@@ -194,7 +193,7 @@ class AuthAppFragment: RxFragment() {
                 } )
     }
 
-    fun storeAccessToken(value: InstanceAccess) {
+    fun storeAccessToken(instanceId: Long, value: InstanceAccess) {
         OrmaProvider.db.updateAccessToken().isCurrent(false).executeAsSingle()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -202,23 +201,23 @@ class AuthAppFragment: RxFragment() {
                 .subscribe( { rowCount ->
                     Timber.d("updated rows: $rowCount")
 
-                    OrmaProvider.db.relationOfAccessToken().upsertAsSingle(createAccessToken(value))
+                    OrmaProvider.db.relationOfAccessToken().upsertAsSingle(createAccessToken(instanceId, value))
                             .subscribeOn(Schedulers.newThread())
                             .observeOn(AndroidSchedulers.mainThread())
                             .compose(bindToLifecycle())
-                            .subscribe( { value ->
+                            .subscribe({ value ->
                                 Timber.d("$value")
-                                Common().hasCertified(object: Common.IListener {
+                                Common().hasCertified(object : Common.IListener {
                                     override fun onCheckCertify(hasCertified: Boolean) {
                                         if (hasCertified) (activity as LoginActivity).showMainActivity()
                                     }
                                 })
-                            }, Throwable::printStackTrace )
-                }, Throwable::printStackTrace )
+                            }, Throwable::printStackTrace)
+                }, Throwable::printStackTrace)
     }
 
-    fun createAccessToken(value: InstanceAccess): AccessToken {
-        return AccessToken(-1L, value.accessToken, true)
+    fun createAccessToken(instanceId: Long, value: InstanceAccess): AccessToken {
+        return AccessToken(-1L, value.accessToken, instanceId, true)
     }
 
     fun getEmailsFromContact(): List<String> {
