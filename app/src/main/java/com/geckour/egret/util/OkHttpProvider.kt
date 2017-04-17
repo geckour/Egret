@@ -1,6 +1,7 @@
 package com.geckour.egret.util
 
-import android.util.Log
+import com.facebook.stetho.okhttp3.StethoInterceptor
+import com.geckour.egret.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 
@@ -10,8 +11,12 @@ object OkHttpProvider {
     val authInterceptor = AuthInterceptor()
 
     fun init() {
-        val logging = HttpLoggingInterceptor( { message -> Log.d("OkHttp", message) } )
-        logging.level = HttpLoggingInterceptor.Level.BODY
-        client = OkHttpClient.Builder().addInterceptor(logging).addInterceptor(authInterceptor).build()
+        val builder : OkHttpClient.Builder = OkHttpClient.Builder();
+        if (BuildConfig.DEBUG) {
+            builder.addNetworkInterceptor(StethoInterceptor())
+            builder.addNetworkInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+        }
+
+        client = builder.addInterceptor(authInterceptor).build()
     }
 }
