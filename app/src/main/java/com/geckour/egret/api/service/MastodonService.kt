@@ -2,7 +2,9 @@ package com.geckour.egret.api.service
 
 import com.geckour.egret.api.model.Account
 import com.geckour.egret.api.model.InstanceAccess
+import com.geckour.egret.api.model.Status
 import com.geckour.egret.api.model.UserSpecificApp
+import io.reactivex.Observable
 import io.reactivex.Single
 import retrofit2.http.*
 
@@ -40,4 +42,8 @@ interface MastodonService {
 
     @GET("api/v1/accounts/verify_credentials")
     fun getSelfInfo(): Single<Account>
+
+    @Streaming
+    @GET("api/v1/streaming/public")
+    fun getPublicTimeline(): Observable<List<Status>>
 }

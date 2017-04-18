@@ -15,6 +15,7 @@ import android.support.v7.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
 import com.geckour.egret.R
+import com.geckour.egret.view.fragment.TimelineFragment
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
@@ -45,6 +46,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         val navigationView = findViewById(R.id.nav_view) as NavigationView
         navigationView.setNavigationItemSelectedListener(this)
+
+        val fragment = TimelineFragment.newInstance()
+        supportFragmentManager.beginTransaction().replace(R.id.container, fragment, TimelineFragment.TAG).commit()
     }
 
     override fun onBackPressed() {

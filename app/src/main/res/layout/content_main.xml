@@ -9,14 +9,13 @@
     tools:context=".view.activity.MainActivity"
     tools:showIn="@layout/app_bar_main">
 
-    <android.support.v7.widget.RecyclerView
-        android:layout_width="0dp"
+    <include android:layout_width="0dp"
         android:layout_height="0dp"
+        android:id="@+id/container"
+        layout="@layout/fragment_timeline"
+        tools:layout="@layout/fragment_timeline"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:listitem="@layout/item_recycle_timeline">
-
-    </android.support.v7.widget.RecyclerView>
+        app:layout_constraintTop_toTopOf="parent" />
 </android.support.constraint.ConstraintLayout>
