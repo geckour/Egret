@@ -2,6 +2,7 @@ package com.geckour.egret.view.fragment
 
 import android.databinding.DataBindingUtil
 import android.os.Bundle
+import android.support.design.widget.FloatingActionButton
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,15 +10,19 @@ import android.view.View
 import android.view.ViewGroup
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
+import com.geckour.egret.api.model.Status
 import com.geckour.egret.databinding.FragmentTimelineBinding
 import com.geckour.egret.model.AccessToken
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.adapter.TimelineFragmentAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.trello.rxlifecycle2.components.support.RxFragment
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import timber.log.Timber
 
 class TimelineFragment: RxFragment() { // TODO: Timelineを取得、RecyclerViewを使って表示
 
@@ -47,6 +52,8 @@ class TimelineFragment: RxFragment() { // TODO: Timelineを取得、RecyclerView
         super.onViewCreated(view, savedInstanceState)
 
         showPublicTimeline()
+
+        (activity.findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showPublicTimeline() }
     }
 
     fun showPublicTimeline() {
@@ -56,11 +63,14 @@ class TimelineFragment: RxFragment() { // TODO: Timelineを取得、RecyclerView
                 .compose(bindToLifecycle())
                 .subscribe({ response ->
                     val contents: ArrayList<TimelineContent> = ArrayList()
-                    response.body().map {
+
+                    val type = object: TypeToken<ArrayList<Status>>() {}.type
+                    Gson().fromJson<ArrayList<Status>>(response.string(), type).map {
                         val content = TimelineContent(it.account.avatarUrl, it.account.displayName, it.account.username, it.createdAt.time, it.content)
                         Log.d("showPublicTimeline", "body: ${it.content}")
                         contents.add(content)
                     }
+
                     adapter.addAllContents(contents)
                 })
     }
