@@ -72,6 +72,6 @@ class TimelineFragment: RxFragment() { // TODO: Timelineを取得、RecyclerView
                     }
 
                     adapter.addAllContents(contents)
-                })
+                }, Throwable::printStackTrace)
     }
 }
