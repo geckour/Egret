@@ -6,6 +6,7 @@ import com.geckour.egret.api.model.Status
 import com.geckour.egret.api.model.UserSpecificApp
 import io.reactivex.Observable
 import io.reactivex.Single
+import retrofit2.Response
 import retrofit2.http.*
 
 interface MastodonService {
@@ -45,5 +46,5 @@ interface MastodonService {
 
     @Streaming
     @GET("api/v1/streaming/public")
-    fun getPublicTimeline(): Observable<List<Status>>
+    fun getPublicTimeline(): Observable<Response<List<Status>>>
 }

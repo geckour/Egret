@@ -9,6 +9,7 @@ import com.geckour.egret.util.OkHttpProvider
 import com.google.gson.GsonBuilder
 import io.reactivex.Observable
 import io.reactivex.Single
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
@@ -34,5 +35,5 @@ class MastodonClient(baseUrl: String) {
 
     fun getAccount(): Single<Account> = service.getSelfInfo()
 
-    fun getPublicTimeline(): Observable<List<Status>> = service.getPublicTimeline()
+    fun getPublicTimeline(): Observable<Response<List<Status>>> = service.getPublicTimeline()
 }

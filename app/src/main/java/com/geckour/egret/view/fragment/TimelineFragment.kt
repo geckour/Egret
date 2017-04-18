@@ -3,6 +3,7 @@ package com.geckour.egret.view.fragment
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +11,7 @@ import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.databinding.FragmentTimelineBinding
 import com.geckour.egret.model.AccessToken
+import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.adapter.TimelineFragmentAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
@@ -33,33 +35,30 @@ class TimelineFragment: RxFragment() { // TODO: Timelineを取得、RecyclerView
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_timeline, container, false)
+
+        binding.recyclerView.layoutManager = LinearLayoutManager(activity)
+        adapter = TimelineFragmentAdapter()
+        binding.recyclerView.adapter = adapter
+
         return binding.root
     }
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = TimelineFragmentAdapter()
+        showPublicTimeline()
     }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-
-        binding.recyclerView.layoutManager = LinearLayoutManager(activity)
-        binding.recyclerView.adapter = adapter
-    }
-
-    fun getCurrentAccessToken(): AccessToken = OrmaProvider.db.selectFromAccessToken().orderBy("createdAt DESC").first()
 
     fun showPublicTimeline() {
-        MastodonClient(getCurrentAccessToken().token).getPublicTimeline()
+        MastodonClient(Common().resetAuthInfo() ?: return).getPublicTimeline()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
-                .subscribe({ statuses ->
+                .subscribe({ response ->
                     val contents: ArrayList<TimelineContent> = ArrayList()
-                    statuses.map {
+                    response.body().map {
                         val content = TimelineContent(it.account.avatarUrl, it.account.displayName, it.account.username, it.createdAt.time, it.content)
+                        Log.d("showPublicTimeline", "body: ${it.content}")
                         contents.add(content)
                     }
                     adapter.addAllContents(contents)
