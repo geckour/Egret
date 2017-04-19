@@ -2,6 +2,7 @@ package com.geckour.egret.view.adapter
 
 import android.databinding.DataBindingUtil
 import android.support.v7.widget.RecyclerView
+import android.text.Spannable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,7 +24,7 @@ class TimelineFragmentAdapter: RecyclerView.Adapter<TimelineFragmentAdapter.View
             binding.nameStrong.text = content.nameStrong
             binding.nameWeak.text = content.nameWeak
             binding.time.text = Date(content.time).toString()
-            binding.body.text = content.body
+            binding.body.text = Spannable.Factory().newSpannable(content.body)
         }
     }
 
@@ -39,19 +40,18 @@ class TimelineFragmentAdapter: RecyclerView.Adapter<TimelineFragmentAdapter.View
     }
 
     override fun getItemCount(): Int {
-        return contents.size
+        return this.contents.size
     }
 
     fun addContent(content: TimelineContent) {
         this.contents.add(content)
-        notifyItemInserted(this.contents.lastIndex)
-        notifyDataSetChanged()
+        notifyItemInserted(this.contents.size)
     }
 
     fun addAllContents(contents: List<TimelineContent>) {
-        val size = this.contents.size
+        val lastIndex = this.contents.lastIndex
         this.contents.addAll(contents)
-        notifyItemRangeInserted(size, contents.size)
+        notifyItemRangeInserted(lastIndex, contents.size)
     }
 
     fun clearContents() {

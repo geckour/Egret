@@ -14,6 +14,8 @@ import com.geckour.egret.api.model.Status
 import com.geckour.egret.api.service.MastodonService
 import com.geckour.egret.databinding.FragmentTimelineBinding
 import com.geckour.egret.util.Common
+import com.geckour.egret.util.OrmaProvider
+import com.geckour.egret.view.activity.MainActivity
 import com.geckour.egret.view.adapter.TimelineFragmentAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
 import com.google.gson.Gson
@@ -34,8 +36,8 @@ class TimelineFragment: RxFragment() { // TODO: Timelineを取得、RecyclerView
         }
     }
 
-    lateinit var binding: FragmentTimelineBinding
-    lateinit var adapter: TimelineFragmentAdapter
+    lateinit private var binding: FragmentTimelineBinding
+    lateinit private var adapter: TimelineFragmentAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +58,8 @@ class TimelineFragment: RxFragment() { // TODO: Timelineを取得、RecyclerView
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val instanceId = OrmaProvider.db.selectFromAccessToken().isCurrentEq(true).last().instanceId
+        (activity as MainActivity).supportActionBar?.title = "Public TL - ${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance}"
         (activity.findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showPublicTimeline() }
     }
 
@@ -81,8 +85,8 @@ class TimelineFragment: RxFragment() { // TODO: Timelineを取得、RecyclerView
                             val content = TimelineContent(status.account.avatarUrl, status.account.displayName, status.account.username, status.createdAt.time, status.content)
                             Log.d("showPublicTimeline", "body: ${status.content}")
 
-
                             adapter.addContent(content)
+                            adapter.notifyDataSetChanged()
                         } catch (e: JsonSyntaxException) {
                             Log.e("showPublicTimeline", e.message)
                         }

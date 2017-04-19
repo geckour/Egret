@@ -9,11 +9,10 @@
     tools:context=".view.activity.MainActivity"
     tools:showIn="@layout/app_bar_main">
 
-    <include android:layout_width="0dp"
-        android:layout_height="0dp"
+    <RelativeLayout
         android:id="@+id/container"
-        layout="@layout/fragment_timeline"
-        tools:layout="@layout/fragment_timeline"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"

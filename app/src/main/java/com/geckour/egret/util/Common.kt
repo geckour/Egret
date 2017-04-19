@@ -31,7 +31,7 @@ class Common {
 
     private fun getCurrentAccessToken(): AccessToken? {
         val accessTokens = OrmaProvider.db.selectFromAccessToken().isCurrentEq(true)
-        return if (accessTokens.isEmpty) null else accessTokens.last()
+        return if (accessTokens == null || accessTokens.isEmpty) null else accessTokens.last()
     }
 
     fun resetAuthInfo(): String? {
