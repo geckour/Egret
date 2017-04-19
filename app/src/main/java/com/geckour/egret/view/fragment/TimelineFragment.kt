@@ -11,14 +11,13 @@ import android.view.ViewGroup
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Status
+import com.geckour.egret.api.service.MastodonService
 import com.geckour.egret.databinding.FragmentTimelineBinding
-import com.geckour.egret.model.AccessToken
 import com.geckour.egret.util.Common
-import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.adapter.TimelineFragmentAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import com.google.gson.JsonSyntaxException
 import com.trello.rxlifecycle2.components.support.RxFragment
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -38,11 +37,17 @@ class TimelineFragment: RxFragment() { // TODO: Timelineを取得、RecyclerView
     lateinit var binding: FragmentTimelineBinding
     lateinit var adapter: TimelineFragmentAdapter
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        adapter = TimelineFragmentAdapter()
+    }
+
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_timeline, container, false)
 
+        binding.recyclerView.setHasFixedSize(true)
         binding.recyclerView.layoutManager = LinearLayoutManager(activity)
-        adapter = TimelineFragmentAdapter()
         binding.recyclerView.adapter = adapter
 
         return binding.root
@@ -51,27 +56,37 @@ class TimelineFragment: RxFragment() { // TODO: Timelineを取得、RecyclerView
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        showPublicTimeline()
-
         (activity.findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showPublicTimeline() }
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+
+        showPublicTimeline()
     }
 
     fun showPublicTimeline() {
         MastodonClient(Common().resetAuthInfo() ?: return).getPublicTimeline()
+                .flatMap { responceBody -> MastodonService.events(responceBody.source()) }
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
-                .subscribe({ response ->
-                    val contents: ArrayList<TimelineContent> = ArrayList()
+                .subscribe({ source ->
+                    Log.d("showPublicTimeline", "source: $source")
 
-                    val type = object: TypeToken<ArrayList<Status>>() {}.type
-                    Gson().fromJson<ArrayList<Status>>(response.string(), type).map {
-                        val content = TimelineContent(it.account.avatarUrl, it.account.displayName, it.account.username, it.createdAt.time, it.content)
-                        Log.d("showPublicTimeline", "body: ${it.content}")
-                        contents.add(content)
+                    if (source.startsWith("data: ")) {
+                        val data = source.replace(Regex("^data:\\s(.+)"), "$1")
+                        try {
+                            val status = Gson().fromJson(data, Status::class.java)
+                            val content = TimelineContent(status.account.avatarUrl, status.account.displayName, status.account.username, status.createdAt.time, status.content)
+                            Log.d("showPublicTimeline", "body: ${status.content}")
+
+
+                            adapter.addContent(content)
+                        } catch (e: JsonSyntaxException) {
+                            Log.e("showPublicTimeline", e.message)
+                        }
                     }
-
-                    adapter.addAllContents(contents)
                 }, Throwable::printStackTrace)
     }
 }

@@ -3,9 +3,14 @@ package com.geckour.egret.api.service
 import com.geckour.egret.api.model.Account
 import com.geckour.egret.api.model.InstanceAccess
 import com.geckour.egret.api.model.UserSpecificApp
+import io.reactivex.Observable
+import io.reactivex.ObservableOnSubscribe
 import io.reactivex.Single
+import io.reactivex.disposables.Disposable
 import okhttp3.ResponseBody
+import okio.BufferedSource
 import retrofit2.http.*
+import java.io.IOException
 
 interface MastodonService {
     @FormUrlEncoded
@@ -42,7 +47,23 @@ interface MastodonService {
     @GET("api/v1/accounts/verify_credentials")
     fun getSelfInfo(): Single<Account>
 
-    @Streaming
     @GET("api/v1/streaming/public")
-    fun getPublicTimeline(): Single<ResponseBody>
+    @Streaming
+    fun getPublicTimeline(): Observable<ResponseBody>
+
+    companion object {
+        fun events(source: BufferedSource): Observable<String> {
+            return Observable.create { emitter ->
+                try {
+                    while (!source.exhausted()) {
+                        emitter.onNext(source.readUtf8Line())
+                    }
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    emitter.onError(e)
+                }
+                emitter.onComplete()
+            }
+        }
+    }
 }

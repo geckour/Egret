@@ -44,7 +44,8 @@ class TimelineFragmentAdapter: RecyclerView.Adapter<TimelineFragmentAdapter.View
 
     fun addContent(content: TimelineContent) {
         this.contents.add(content)
-        notifyItemInserted(this.contents.size)
+        notifyItemInserted(this.contents.lastIndex)
+        notifyDataSetChanged()
     }
 
     fun addAllContents(contents: List<TimelineContent>) {

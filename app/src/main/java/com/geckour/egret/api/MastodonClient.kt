@@ -6,6 +6,7 @@ import com.geckour.egret.api.model.UserSpecificApp
 import com.geckour.egret.api.service.MastodonService
 import com.geckour.egret.util.OkHttpProvider
 import com.google.gson.GsonBuilder
+import io.reactivex.Observable
 import io.reactivex.Single
 import okhttp3.ResponseBody
 import retrofit2.Retrofit
@@ -33,5 +34,5 @@ class MastodonClient(baseUrl: String) {
 
     fun getAccount(): Single<Account> = service.getSelfInfo()
 
-    fun getPublicTimeline(): Single<ResponseBody> = service.getPublicTimeline()
+    fun getPublicTimeline(): Observable<ResponseBody> = service.getPublicTimeline()
 }
