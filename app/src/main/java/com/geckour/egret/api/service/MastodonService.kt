@@ -48,6 +48,12 @@ interface MastodonService {
     @GET("api/v1/accounts/verify_credentials")
     fun getSelfInfo(): Single<Account>
 
+    @GET("api/v1/accounts/{id}")
+    fun getAccount(
+            @Path("id")
+            accountId: Long
+    ): Single<Account>
+
     @GET("api/v1/streaming/public")
     @Streaming
     fun getPublicTimeline(): Observable<ResponseBody>
@@ -59,10 +65,12 @@ interface MastodonService {
                     while (!source.exhausted()) {
                         emitter.onNext(source.readUtf8Line())
                     }
-                } catch (e: IOException) {
-                    emitter.onError(e)
                 } catch (e: SocketException) {
-                    emitter.onError(e)
+                    //emitter.onError(e)
+                    e.printStackTrace()
+                } catch (e: IOException) {
+                    //emitter.onError(e)
+                    e.printStackTrace()
                 }
                 emitter.onComplete()
             }

@@ -12,7 +12,7 @@ import com.squareup.picasso.Picasso
 import java.util.*
 import kotlin.collections.ArrayList
 
-class TimelineFragmentAdapter : RecyclerView.Adapter<TimelineFragmentAdapter.ViewHolder>() {
+class TimelineFragmentAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineFragmentAdapter.ViewHolder>() {
 
     private val contents: ArrayList<TimelineContent> = ArrayList()
 
@@ -23,7 +23,15 @@ class TimelineFragmentAdapter : RecyclerView.Adapter<TimelineFragmentAdapter.Vie
             // TODO: 以下2つもdatabindingできる
             binding.timeString = Date(content.time).toString()
             Picasso.with(binding.icon.context).load(content.iconUrl).into(binding.icon)
+
+            binding.icon.setOnClickListener { view ->
+                listener.onClickIcon(content.accountId)
+            }
         }
+    }
+
+    interface IListenr {
+        fun onClickIcon(accountId: Long)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ViewHolder {

@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+        <import type="android.text.Html" />
+        <variable
+            name="content"
+            type="com.geckour.egret.view.adapter.model.ProfileContent" />
+        <variable
+            name="timeString"
+            type="String" />
+    </data>
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <RelativeLayout
+            android:id="@+id/relativeLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:layout_editor_absoluteX="8dp">
+
+            <ImageView
+                android:id="@+id/header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:adjustViewBounds="true"/>
+
+            <LinearLayout
+                android:id="@+id/linearLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:padding="8dp">
+
+                <ImageView
+                    android:id="@+id/icon"
+                    android:layout_width="100sp"
+                    android:layout_height="100sp"
+                    app:srcCompat="@drawable/egret"/>
+
+                <android.support.constraint.ConstraintLayout
+                    android:id="@+id/name_wrap"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="8sp"
+                    app:layout_constraintRight_toRightOf="parent">
+
+                    <TextView
+                        android:id="@+id/screenName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:minLines="1"
+                        android:singleLine="true"
+                        android:text="@{content.screenName}"
+                        android:textSize="16sp"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        tools:text="おなまえ"/>
+
+                    <TextView
+                        android:id="@+id/username"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:ellipsize="end"
+                        android:minLines="1"
+                        android:singleLine="true"
+                        android:text="@{content.username}"
+                        android:textSize="12sp"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/screenName"
+                        tools:text="あいでぃー"/>
+
+                    <TextView
+                        android:id="@+id/followingText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:layout_marginTop="8dp"
+                        android:text="following:"
+                        android:textSize="12sp"
+                        app:layout_constraintBottom_toBottomOf="@+id/followingCount"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toTopOf="@+id/followingCount"/>
+
+                    <TextView
+                        android:id="@+id/followingCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:layout_marginLeft="4dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginTop="8dp"
+                        android:ellipsize="end"
+                        android:minLines="1"
+                        android:singleLine="true"
+                        android:text="@{String.valueOf(content.followingCount)}"
+                        android:textSize="12sp"
+                        app:layout_constraintBottom_toBottomOf="@+id/divide_follow"
+                        app:layout_constraintLeft_toRightOf="@+id/followingText"
+                        app:layout_constraintTop_toTopOf="@+id/divide_follow"
+                        tools:text="123"/>
+
+                    <TextView
+                        android:id="@+id/divide_follow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="4dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginTop="8dp"
+                        android:text="/"
+                        android:textSize="12sp"
+                        app:layout_constraintLeft_toRightOf="@+id/followingCount"
+                        app:layout_constraintTop_toBottomOf="@+id/username"
+                        />
+
+                    <TextView
+                        android:id="@+id/followerText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:layout_marginLeft="4dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginTop="8dp"
+                        android:text="follower:"
+                        android:textSize="12sp"
+                        app:layout_constraintBottom_toBottomOf="@+id/divide_follow"
+                        app:layout_constraintLeft_toRightOf="@+id/divide_follow"
+                        app:layout_constraintTop_toTopOf="@+id/divide_follow"/>
+
+                    <TextView
+                        android:id="@+id/followerCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:layout_marginLeft="4dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginTop="8dp"
+                        android:ellipsize="end"
+                        android:minLines="1"
+                        android:singleLine="true"
+                        android:text="@{String.valueOf(content.followerCount)}"
+                        android:textSize="12sp"
+                        app:layout_constraintBottom_toBottomOf="@+id/followerText"
+                        app:layout_constraintLeft_toRightOf="@+id/followerText"
+                        app:layout_constraintTop_toTopOf="@+id/followerText"
+                        tools:text="345"/>
+
+                    <TextView
+                        android:id="@+id/url"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:text="@{Html.fromHtml(content.url)}"
+                        android:textSize="12sp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/divide_follow"
+                        tools:text="http://hoge.example.com" />
+
+                </android.support.constraint.ConstraintLayout>
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/relativeLayout">
+
+            <LinearLayout
+                android:id="@+id/linearLayout2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp">
+
+                <TextView
+                    android:id="@+id/tootText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="4dp"
+                    android:layout_weight="1"
+                    android:text="Toots:"
+                    android:textSize="12sp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    tools:layout_editor_absoluteY="0dp"/>
+
+                <TextView
+                    android:id="@+id/tootCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:minLines="1"
+                    android:singleLine="true"
+                    android:text="@{String.valueOf(content.tootCount)}"
+                    android:textSize="12sp"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="12345678"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/linearLayout3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                app:layout_constraintLeft_toLeftOf="@+id/linearLayout2"
+                app:layout_constraintRight_toRightOf="@+id/linearLayout2"
+                app:layout_constraintTop_toBottomOf="@+id/linearLayout2"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp">
+
+                <TextView
+                    android:id="@+id/textView5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="4dp"
+                    android:layout_weight="1"
+                    android:text="started at:"
+                    android:textSize="12sp"/>
+
+                <TextView
+                    android:id="@+id/createdAt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@{timeString}"
+                    android:textSize="12sp"
+                    app:layout_constraintLeft_toLeftOf="@+id/linearLayout2"
+                    app:layout_constraintRight_toRightOf="@+id/linearLayout2"
+                    app:layout_constraintTop_toBottomOf="@+id/linearLayout2"
+                    tools:text="yyyy:m:dd"/>
+            </LinearLayout>
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recyclerView"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginBottom="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginTop="8dp"
+                app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/linearLayout3"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"/>
+        </android.support.constraint.ConstraintLayout>
+
+    </android.support.constraint.ConstraintLayout>
+</layout>
