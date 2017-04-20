@@ -16,15 +16,13 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:padding="8dp">
 
         <ImageView
             android:id="@+id/icon"
             android:layout_width="42dp"
             android:layout_height="42dp"
-            android:layout_marginBottom="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginStart="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="@+id/wrap"
@@ -35,17 +33,7 @@
             android:id="@+id/wrap"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
-            android:layout_marginTop="8dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintHeight_default="wrap"
-            app:layout_constraintHeight_min="42dp"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintLeft_toRightOf="@+id/icon"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            android:layout_marginLeft="8dp">
 
             <TextView
                 android:id="@+id/body"
@@ -54,12 +42,12 @@
                 android:layout_marginTop="8dp"
                 android:ellipsize="none"
                 android:text="@{Html.fromHtml(content.body)}"
-                tools:text="これはトゥート本文です"
                 android:textSize="12sp"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/name_wrap" />
+                app:layout_constraintTop_toBottomOf="@+id/name_wrap"
+                tools:text="これはトゥート本文です" />
 
             <ImageView
                 android:id="@+id/image"
@@ -99,9 +87,9 @@
                     android:singleLine="true"
                     android:text="@{content.nameStrong}"
                     android:textSize="12sp"
-                    tools:text="つよいなまえ"
                     app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="つよいなまえ" />
 
                 <TextView
                     android:id="@+id/name_weak"
@@ -112,9 +100,9 @@
                     android:singleLine="true"
                     android:text="@{content.nameWeak}"
                     android:textSize="10sp"
-                    tools:text="よわいなまえ"
                     app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/name_strong" />
+                    app:layout_constraintTop_toBottomOf="@+id/name_strong"
+                    tools:text="よわいなまえ" />
             </android.support.constraint.ConstraintLayout>
 
             <TextView
@@ -126,10 +114,10 @@
                 android:layout_marginTop="8dp"
                 android:text="@{timeString}"
                 android:textSize="10sp"
-                tools:text="HH:MM"
                 app:layout_constraintBottom_toBottomOf="@+id/name_wrap"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/name_wrap" />
+                app:layout_constraintTop_toTopOf="@+id/name_wrap"
+                tools:text="HH:MM" />
 
         </android.support.constraint.ConstraintLayout>
     </LinearLayout>
