@@ -13,13 +13,27 @@
             type="String" />
     </data>
 
-    <android.support.constraint.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/wrap"
+            app:layout_constraintVertical_bias="0.0"
+            app:srcCompat="@drawable/egret" />
 
         <android.support.constraint.ConstraintLayout
             android:id="@+id/wrap"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:layout_marginLeft="8dp"
@@ -40,6 +54,7 @@
                 android:layout_marginTop="8dp"
                 android:ellipsize="none"
                 android:text="@{Html.fromHtml(content.body)}"
+                tools:text="これはトゥート本文です"
                 android:textSize="12sp"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintLeft_toLeftOf="parent"
@@ -84,6 +99,7 @@
                     android:singleLine="true"
                     android:text="@{content.nameStrong}"
                     android:textSize="12sp"
+                    tools:text="つよいなまえ"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -96,6 +112,7 @@
                     android:singleLine="true"
                     android:text="@{content.nameWeak}"
                     android:textSize="10sp"
+                    tools:text="よわいなまえ"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/name_strong" />
             </android.support.constraint.ConstraintLayout>
@@ -109,23 +126,11 @@
                 android:layout_marginTop="8dp"
                 android:text="@{timeString}"
                 android:textSize="10sp"
+                tools:text="HH:MM"
                 app:layout_constraintBottom_toBottomOf="@+id/name_wrap"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/name_wrap" />
 
         </android.support.constraint.ConstraintLayout>
-
-        <ImageView
-            android:id="@+id/icon"
-            android:layout_width="42dp"
-            android:layout_height="42dp"
-            android:layout_marginBottom="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginStart="8dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/wrap"
-            app:layout_constraintVertical_bias="0.0"
-            app:srcCompat="@drawable/egret" />
-    </android.support.constraint.ConstraintLayout>
+    </LinearLayout>
 </layout>
