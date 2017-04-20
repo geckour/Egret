@@ -82,7 +82,7 @@ class TimelineFragment: RxFragment() { // TODO: Timelineを取得、RecyclerView
                             Log.d("showPublicTimeline", "body: ${status.content}")
 
                             adapter.addContent(content)
-                            binding.recyclerView.scrollToPosition(0)
+                            if ((binding.recyclerView.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition() == 0) binding.recyclerView.scrollToPosition(0)
                         } catch (e: JsonSyntaxException) {
                             Log.e("showPublicTimeline", e.message)
                         }

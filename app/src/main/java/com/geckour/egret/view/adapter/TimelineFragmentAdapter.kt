@@ -32,7 +32,7 @@ class TimelineFragmentAdapter : RecyclerView.Adapter<TimelineFragmentAdapter.Vie
     }
 
     override fun onBindViewHolder(holder: ViewHolder?, position: Int) {
-        val item = contents.get(position)
+        val item = contents[position]
         holder?.bindData(item)
     }
 
