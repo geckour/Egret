@@ -4,6 +4,7 @@ import com.facebook.stetho.okhttp3.StethoInterceptor
 import com.geckour.egret.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import java.util.concurrent.TimeUnit
 
 object OkHttpProvider {
 
@@ -11,10 +12,12 @@ object OkHttpProvider {
     val authInterceptor = AuthInterceptor()
 
     fun init() {
-        val builder : OkHttpClient.Builder = OkHttpClient.Builder();
+        val builder : OkHttpClient.Builder = OkHttpClient.Builder()
+        builder.readTimeout(0, TimeUnit.SECONDS).writeTimeout(0, TimeUnit.SECONDS)
+
         if (BuildConfig.DEBUG) {
             builder.addNetworkInterceptor(StethoInterceptor())
-            builder.addNetworkInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+            builder.addNetworkInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.HEADERS))
         }
 
         client = builder.addInterceptor(authInterceptor).build()

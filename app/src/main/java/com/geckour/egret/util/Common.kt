@@ -2,6 +2,7 @@ package com.geckour.egret.util
 
 import android.util.Log
 import com.geckour.egret.api.MastodonClient
+import com.geckour.egret.model.AccessToken
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
@@ -13,13 +14,9 @@ class Common {
     }
 
     fun hasCertified(listener: IListener) {
-        val accessTokenList = OrmaProvider.db.selectFromAccessToken()
-        if (!accessTokenList.isEmpty) {
-            val instanceAuthInfoList = OrmaProvider.db.selectFromInstanceAuthInfo().orderBy("createdAt DESC")
-            if (!instanceAuthInfoList.isEmpty) {
-                OkHttpProvider.authInterceptor.setToken(accessTokenList.first().token)
-
-                MastodonClient(instanceAuthInfoList.first().instance).getAccount()
+        val domain = resetAuthInfo()
+        if (domain != null) {
+                MastodonClient(domain).getAccount()
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({ account ->
@@ -29,9 +26,19 @@ class Common {
                             Timber.e(throwable)
                             listener.onCheckCertify(false)
                         })
-            } else {
-                listener.onCheckCertify(false)
-            }
         } else listener.onCheckCertify(false)
+    }
+
+    private fun getCurrentAccessToken(): AccessToken? {
+        val accessTokens = OrmaProvider.db.selectFromAccessToken().isCurrentEq(true)
+        return if (accessTokens == null || accessTokens.isEmpty) null else accessTokens.last()
+    }
+
+    fun resetAuthInfo(): String? {
+        val accessToken = getCurrentAccessToken() ?: return null
+        val instanceInfo = OrmaProvider.db.selectFromInstanceAuthInfo().idEq(accessToken.instanceId).last() ?: return null
+        OkHttpProvider.authInterceptor.setToken(accessToken.token)
+
+        return instanceInfo.instance
     }
 }
