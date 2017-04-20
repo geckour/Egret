@@ -18,45 +18,45 @@
         android:layout_height="wrap_content">
 
         <android.support.constraint.ConstraintLayout
-            android:id="@+id/constraintLayout"
+            android:id="@+id/wrap"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:layout_marginEnd="8dp"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
-            android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHeight_default="wrap"
+            app:layout_constraintHeight_min="42dp"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/icon"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.0">
+            app:layout_constraintTop_toTopOf="parent">
 
             <TextView
                 android:id="@+id/body"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
+                android:ellipsize="none"
                 android:text="@{Html.fromHtml(content.body)}"
                 android:textSize="12sp"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/name_strong" />
+                app:layout_constraintTop_toBottomOf="@+id/name_wrap" />
 
             <ImageView
                 android:id="@+id/image"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
                 android:layout_marginLeft="32dp"
                 android:layout_marginRight="32dp"
                 android:layout_marginTop="8dp"
                 android:adjustViewBounds="true"
                 android:maxHeight="140dp"
                 android:scaleType="centerCrop"
+                android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintLeft_toLeftOf="parent"
@@ -65,37 +65,53 @@
                 app:layout_constraintVertical_bias="0.0"
                 app:srcCompat="@drawable/egret" />
 
-            <TextView
-                android:id="@+id/name_strong"
-                android:layout_width="wrap_content"
+            <android.support.constraint.ConstraintLayout
+                android:id="@+id/name_wrap"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:inputType="none"
-                android:text="@{content.nameStrong}"
-                android:textSize="12sp"
+                android:layout_marginRight="8dp"
                 app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintRight_toLeftOf="@+id/time"
+                app:layout_constraintTop_toTopOf="parent">
 
-            <TextView
-                android:id="@+id/name_weak"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="8dp"
-                android:text="@{content.nameWeak}"
-                android:textSize="10sp"
-                app:layout_constraintBottom_toBottomOf="@+id/name_strong"
-                app:layout_constraintLeft_toRightOf="@+id/name_strong"
-                app:layout_constraintTop_toTopOf="@+id/name_strong" />
+                <TextView
+                    android:id="@+id/name_strong"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:inputType="none"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:text="@{content.nameStrong}"
+                    android:textSize="12sp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/name_weak"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:ellipsize="end"
+                    android:singleLine="true"
+                    android:text="@{content.nameWeak}"
+                    android:textSize="10sp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/name_strong" />
+            </android.support.constraint.ConstraintLayout>
 
             <TextView
                 android:id="@+id/time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="8dp"
+                android:layout_marginBottom="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginTop="8dp"
                 android:text="@{timeString}"
                 android:textSize="10sp"
-                app:layout_constraintBottom_toBottomOf="@+id/name_weak"
-                app:layout_constraintLeft_toRightOf="@+id/name_weak"
-                app:layout_constraintTop_toTopOf="@+id/name_weak" />
+                app:layout_constraintBottom_toBottomOf="@+id/name_wrap"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/name_wrap" />
 
         </android.support.constraint.ConstraintLayout>
 
@@ -108,7 +124,7 @@
             android:layout_marginStart="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/constraintLayout"
+            app:layout_constraintTop_toTopOf="@+id/wrap"
             app:layout_constraintVertical_bias="0.0"
             app:srcCompat="@drawable/egret" />
     </android.support.constraint.ConstraintLayout>

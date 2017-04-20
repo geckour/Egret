@@ -3,6 +3,7 @@ package com.geckour.egret.view.fragment
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
+import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import android.view.LayoutInflater
@@ -25,7 +26,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 
-class TimelineFragment: RxFragment() { // TODO: Timelineを取得、RecyclerViewを使って表示
+class TimelineFragment: RxFragment() {
 
     companion object {
         val TAG = "timelineFragment"
@@ -55,6 +56,7 @@ class TimelineFragment: RxFragment() { // TODO: Timelineを取得、RecyclerView
         (activity as MainActivity).supportActionBar?.title = "Public TL - ${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance}"
         (activity.findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showPublicTimeline() }
 
+        binding.recyclerView.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
         adapter = TimelineFragmentAdapter()
         binding.recyclerView.adapter = adapter
     }
@@ -78,7 +80,7 @@ class TimelineFragment: RxFragment() { // TODO: Timelineを取得、RecyclerView
                         val data = source.replace(Regex("^data:\\s(.+)"), "$1")
                         try {
                             val status = Gson().fromJson(data, Status::class.java)
-                            val content = TimelineContent(status.account.avatarUrl, status.account.displayName, status.account.username, status.createdAt.time, status.content)
+                            val content = TimelineContent(status.account.avatarUrl, status.account.displayName, status.account.acct, status.createdAt.time, status.content)
                             Log.d("showPublicTimeline", "body: ${status.content}")
 
                             adapter.addContent(content)
