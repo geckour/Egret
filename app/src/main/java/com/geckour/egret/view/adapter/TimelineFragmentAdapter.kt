@@ -20,7 +20,7 @@ class TimelineFragmentAdapter : RecyclerView.Adapter<TimelineFragmentAdapter.Vie
         fun bindData(content: TimelineContent) {
             binding.content = content
 
-            //TODO 以下2つもdatabindingできる
+            // TODO: 以下2つもdatabindingできる
             binding.timeString = Date(content.time).toString()
             Picasso.with(binding.icon.context).load(content.iconUrl).into(binding.icon)
         }
@@ -41,14 +41,14 @@ class TimelineFragmentAdapter : RecyclerView.Adapter<TimelineFragmentAdapter.Vie
     }
 
     fun addContent(content: TimelineContent) {
-        this.contents.add(content)
-        notifyItemInserted(this.contents.size)
+        this.contents.add(0, content)
+        notifyItemInserted(0)
     }
 
     fun addAllContents(contents: List<TimelineContent>) {
         val lastIndex = this.contents.lastIndex
-        this.contents.addAll(contents)
-        notifyItemRangeInserted(lastIndex, contents.size)
+        this.contents.addAll(0, contents)
+        notifyItemRangeInserted(0, contents.size)
     }
 
     fun clearContents() {

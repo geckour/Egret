@@ -11,6 +11,7 @@ import okhttp3.ResponseBody
 import okio.BufferedSource
 import retrofit2.http.*
 import java.io.IOException
+import java.net.SocketException
 
 interface MastodonService {
     @FormUrlEncoded
@@ -59,7 +60,8 @@ interface MastodonService {
                         emitter.onNext(source.readUtf8Line())
                     }
                 } catch (e: IOException) {
-                    e.printStackTrace()
+                    emitter.onError(e)
+                } catch (e: SocketException) {
                     emitter.onError(e)
                 }
                 emitter.onComplete()

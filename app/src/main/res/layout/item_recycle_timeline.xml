@@ -3,15 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-
     <data>
-
         <import type="android.text.Html" />
-
         <variable
             name="content"
             type="com.geckour.egret.view.adapter.model.TimelineContent" />
-
         <variable
             name="timeString"
             type="String" />
@@ -54,6 +50,7 @@
                 android:id="@+id/image"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 android:layout_marginLeft="32dp"
                 android:layout_marginRight="32dp"
                 android:layout_marginTop="8dp"
