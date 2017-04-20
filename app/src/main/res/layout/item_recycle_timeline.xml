@@ -3,33 +3,47 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
+
+    <data>
+
+        <import type="android.text.Html" />
+
+        <variable
+            name="content"
+            type="com.geckour.egret.view.adapter.model.TimelineContent" />
+
+        <variable
+            name="timeString"
+            type="String" />
+    </data>
+
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <android.support.constraint.ConstraintLayout
+            android:id="@+id/constraintLayout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/icon"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.0"
-            android:layout_marginTop="8dp"
-            android:id="@+id/constraintLayout"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp">
+            app:layout_constraintVertical_bias="0.0">
 
             <TextView
                 android:id="@+id/body"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Body text"
+                android:text="@{Html.fromHtml(content.body)}"
                 android:textSize="12sp"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintLeft_toLeftOf="parent"
@@ -59,7 +73,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:inputType="none"
-                android:text="screen name or id"
+                android:text="@{content.nameStrong}"
                 android:textSize="12sp"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -69,7 +83,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="8dp"
-                android:text="screen name or id"
+                android:text="@{content.nameWeak}"
                 android:textSize="10sp"
                 app:layout_constraintBottom_toBottomOf="@+id/name_strong"
                 app:layout_constraintLeft_toRightOf="@+id/name_strong"
@@ -80,7 +94,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="8dp"
-                android:text="time"
+                android:text="@{timeString}"
                 android:textSize="10sp"
                 app:layout_constraintBottom_toBottomOf="@+id/name_weak"
                 app:layout_constraintLeft_toRightOf="@+id/name_weak"
@@ -94,11 +108,11 @@
             android:layout_height="30dp"
             android:layout_marginBottom="8dp"
             android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="@+id/constraintLayout"
             app:layout_constraintVertical_bias="0.0"
-            app:srcCompat="@drawable/egret"
-            android:layout_marginStart="8dp" />
+            app:srcCompat="@drawable/egret" />
     </android.support.constraint.ConstraintLayout>
 </layout>

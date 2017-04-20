@@ -2,7 +2,6 @@ package com.geckour.egret.view.adapter
 
 import android.databinding.DataBindingUtil
 import android.support.v7.widget.RecyclerView
-import android.text.Spannable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,36 +10,34 @@ import com.geckour.egret.databinding.ItemRecycleTimelineBinding
 import com.geckour.egret.view.adapter.model.TimelineContent
 import com.squareup.picasso.Picasso
 import java.util.*
+import kotlin.collections.ArrayList
 
-class TimelineFragmentAdapter: RecyclerView.Adapter<TimelineFragmentAdapter.ViewHolder>() {
-
-    inner class ViewHolder(v: View): RecyclerView.ViewHolder(v) {
-        val binding: ItemRecycleTimelineBinding = DataBindingUtil.bind(v)
-
-        fun bindData(position: Int) {
-            val content = contents[position]
-
-            Picasso.with(binding.icon.context).load(content.iconUrl).into(binding.icon)
-            binding.nameStrong.text = content.nameStrong
-            binding.nameWeak.text = content.nameWeak
-            binding.time.text = Date(content.time).toString()
-            binding.body.text = Spannable.Factory().newSpannable(content.body)
-        }
-    }
+class TimelineFragmentAdapter : RecyclerView.Adapter<TimelineFragmentAdapter.ViewHolder>() {
 
     private val contents: ArrayList<TimelineContent> = ArrayList()
 
+    inner class ViewHolder(val binding: ItemRecycleTimelineBinding) : RecyclerView.ViewHolder(binding.root) {
+        fun bindData(content: TimelineContent) {
+            binding.content = content
+
+            //TODO 以下2つもdatabindingできる
+            binding.timeString = Date(content.time).toString()
+            Picasso.with(binding.icon.context).load(content.iconUrl).into(binding.icon)
+        }
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent?.context).inflate(R.layout.item_recycle_timeline, parent, false)
-        return ViewHolder(view)
+        val binding = DataBindingUtil.inflate<ItemRecycleTimelineBinding>(LayoutInflater.from(parent?.context), R.layout.item_recycle_timeline, parent, false)
+        return ViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ViewHolder?, position: Int) {
-        holder?.bindData(position)
+        val item = contents.get(position)
+        holder?.bindData(item)
     }
 
     override fun getItemCount(): Int {
-        return this.contents.size
+        return contents.size
     }
 
     fun addContent(content: TimelineContent) {

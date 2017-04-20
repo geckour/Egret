@@ -41,17 +41,10 @@ class TimelineFragment: RxFragment() { // TODO: Timelineを取得、RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        adapter = TimelineFragmentAdapter()
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_timeline, container, false)
-
-        binding.recyclerView.setHasFixedSize(true)
-        binding.recyclerView.layoutManager = LinearLayoutManager(activity)
-        binding.recyclerView.adapter = adapter
-
         return binding.root
     }
 
@@ -61,6 +54,9 @@ class TimelineFragment: RxFragment() { // TODO: Timelineを取得、RecyclerView
         val instanceId = OrmaProvider.db.selectFromAccessToken().isCurrentEq(true).last().instanceId
         (activity as MainActivity).supportActionBar?.title = "Public TL - ${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance}"
         (activity.findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showPublicTimeline() }
+
+        adapter = TimelineFragmentAdapter()
+        binding.recyclerView.adapter = adapter
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -86,7 +82,6 @@ class TimelineFragment: RxFragment() { // TODO: Timelineを取得、RecyclerView
                             Log.d("showPublicTimeline", "body: ${status.content}")
 
                             adapter.addContent(content)
-                            adapter.notifyDataSetChanged()
                         } catch (e: JsonSyntaxException) {
                             Log.e("showPublicTimeline", e.message)
                         }
