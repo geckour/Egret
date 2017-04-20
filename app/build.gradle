@@ -14,6 +14,10 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         dataBinding.enabled = true
     }
+    dexOptions {
+        javaMaxHeapSize "2g"
+        preDexLibraries true
+    }
     buildTypes {
         release {
             minifyEnabled false
