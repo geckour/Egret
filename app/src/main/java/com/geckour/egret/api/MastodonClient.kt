@@ -32,7 +32,9 @@ class MastodonClient(baseUrl: String) {
             password: String
     ): Single<InstanceAccess> = service.authUser(clientId, clientSecret, username, password)
 
-    fun getAccount(): Single<Account> = service.getSelfInfo()
+    fun getSelfInfo(): Single<Account> = service.getSelfInfo()
+
+    fun getAccount(accountId: Long): Single<Account> = service.getAccount(accountId)
 
     fun getPublicTimeline(): Observable<ResponseBody> = service.getPublicTimeline()
 }

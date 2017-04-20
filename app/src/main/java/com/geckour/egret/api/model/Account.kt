@@ -1,11 +1,12 @@
 package com.geckour.egret.api.model
 
 import com.google.gson.annotations.SerializedName
+import java.io.Serializable
 import java.net.URL
 import java.util.*
 
 class Account(
-        val id: String,
+        val id: Long,
 
         var username: String,
 
@@ -44,4 +45,4 @@ class Account(
 
         @SerializedName("header_static")
         val headerImg: String
-)
+): Serializable

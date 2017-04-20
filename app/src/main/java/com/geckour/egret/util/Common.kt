@@ -16,7 +16,7 @@ class Common {
     fun hasCertified(listener: IListener) {
         val domain = resetAuthInfo()
         if (domain != null) {
-                MastodonClient(domain).getAccount()
+                MastodonClient(domain).getSelfInfo()
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({ account ->

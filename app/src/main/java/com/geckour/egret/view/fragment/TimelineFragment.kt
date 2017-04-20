@@ -21,12 +21,11 @@ import com.geckour.egret.view.adapter.TimelineFragmentAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
-import com.trello.rxlifecycle2.components.support.RxFragment
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 
-class TimelineFragment: RxFragment() {
+class TimelineFragment: BaseFragment() {
 
     companion object {
         val TAG = "timelineFragment"
@@ -53,11 +52,20 @@ class TimelineFragment: RxFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val instanceId = OrmaProvider.db.selectFromAccessToken().isCurrentEq(true).last().instanceId
+        (activity as MainActivity).supportActionBar?.show()
         (activity as MainActivity).supportActionBar?.title = "Public TL - ${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance}"
         (activity.findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showPublicTimeline() }
 
         binding.recyclerView.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
-        adapter = TimelineFragmentAdapter()
+        adapter = TimelineFragmentAdapter(object: TimelineFragmentAdapter.IListenr {
+            override fun onClickIcon(accountId: Long) {
+                AccountProfileFragment.newObservableInstance(accountId)
+                        .subscribe( {
+                            fragment ->
+                            activity.supportFragmentManager.beginTransaction().replace(R.id.container, fragment).addToBackStack(null).commit()
+                        }, Throwable::printStackTrace)
+            }
+        })
         binding.recyclerView.adapter = adapter
     }
 
@@ -80,7 +88,7 @@ class TimelineFragment: RxFragment() {
                         val data = source.replace(Regex("^data:\\s(.+)"), "$1")
                         try {
                             val status = Gson().fromJson(data, Status::class.java)
-                            val content = TimelineContent(status.account.avatarUrl, status.account.displayName, status.account.acct, status.createdAt.time, status.content)
+                            val content = TimelineContent(status.account.id, status.account.avatarUrl, status.account.displayName, status.account.acct, status.createdAt.time, status.content)
                             Log.d("showPublicTimeline", "body: ${status.content}")
 
                             adapter.addContent(content)
