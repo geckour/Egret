@@ -2,10 +2,13 @@
 <resources>
     <color name="colorPrimary">#78909c</color>
     <color name="colorPrimaryDark">#607d8b</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorAccent">#d40a4f</color>
 
     <color name="black_overlay">#66000000</color>
 
     <color name="splash_content">#80000000</color>
     <color name="splash_bg">#00A8EC</color>
+
+    <color name="account_profile_info_bg">#80ffffff</color>
+    <color name="account_profile_text">#202020</color>
 </resources>

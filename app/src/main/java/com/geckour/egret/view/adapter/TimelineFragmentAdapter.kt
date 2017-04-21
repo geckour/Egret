@@ -3,7 +3,6 @@ package com.geckour.egret.view.adapter
 import android.databinding.DataBindingUtil
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import com.geckour.egret.R
 import com.geckour.egret.databinding.ItemRecycleTimelineBinding
@@ -24,9 +23,7 @@ class TimelineFragmentAdapter(val listener: IListenr) : RecyclerView.Adapter<Tim
             binding.timeString = Date(content.time).toString()
             Picasso.with(binding.icon.context).load(content.iconUrl).into(binding.icon)
 
-            binding.icon.setOnClickListener { view ->
-                listener.onClickIcon(content.accountId)
-            }
+            binding.icon.setOnClickListener { listener.onClickIcon(content.accountId) }
         }
     }
 
@@ -54,7 +51,6 @@ class TimelineFragmentAdapter(val listener: IListenr) : RecyclerView.Adapter<Tim
     }
 
     fun addAllContents(contents: List<TimelineContent>) {
-        val lastIndex = this.contents.lastIndex
         this.contents.addAll(0, contents)
         notifyItemRangeInserted(0, contents.size)
     }
