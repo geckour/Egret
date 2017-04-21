@@ -1,7 +1,6 @@
 package com.geckour.egret.view.fragment
 
 import android.databinding.DataBindingUtil
-import android.databinding.Observable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,7 +11,6 @@ import com.geckour.egret.api.model.Account
 import com.geckour.egret.databinding.FragmentAccountProfileBinding
 import com.geckour.egret.util.Common
 import com.geckour.egret.view.activity.MainActivity
-import com.geckour.egret.view.adapter.model.ProfileContent
 import com.squareup.picasso.Picasso
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -33,7 +31,7 @@ class AccountProfileFragment: BaseFragment() {
         }
 
         fun newObservableInstance(accountId: Long): Single<AccountProfileFragment> {
-            return MastodonClient(Common().resetAuthInfo() ?: throw IllegalArgumentException()).getAccount(accountId)
+            return MastodonClient(Common.resetAuthInfo() ?: throw IllegalArgumentException()).getAccount(accountId)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .flatMap { account ->
@@ -55,16 +53,7 @@ class AccountProfileFragment: BaseFragment() {
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_account_profile, container, false)
-        val content = ProfileContent(
-                account.avatarUrl,
-                account.headerUrl,
-                account.displayName,
-                "@${account.acct}",
-                "<a href=\"${account.url}\">${account.url}</a>",
-                account.followingCount,
-                account.followersCount,
-                account.statusesCount,
-                account.createdAt.time)
+        val content = Common.getProfileContent(account)
         binding.content = content
         binding.timeString = account.createdAt.toString()
         Picasso.with(binding.icon.context).load(content.iconUrl).into(binding.icon)

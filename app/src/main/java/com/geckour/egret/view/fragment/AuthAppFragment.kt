@@ -207,7 +207,7 @@ class AuthAppFragment: RxFragment() {
                             .compose(bindToLifecycle())
                             .subscribe({ value ->
                                 Timber.d("$value")
-                                Common().hasCertified(object : Common.IListener {
+                                Common.hasCertified(object : Common.Companion.IListener {
                                     override fun onCheckCertify(hasCertified: Boolean) {
                                         if (hasCertified) (activity as LoginActivity).showMainActivity()
                                     }

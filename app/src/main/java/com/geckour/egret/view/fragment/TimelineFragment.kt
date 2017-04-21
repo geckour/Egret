@@ -18,7 +18,6 @@ import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.MainActivity
 import com.geckour.egret.view.adapter.TimelineFragmentAdapter
-import com.geckour.egret.view.adapter.model.TimelineContent
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -76,8 +75,8 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun showPublicTimeline() {
-        MastodonClient(Common().resetAuthInfo() ?: return).getPublicTimeline()
-                .flatMap { responceBody -> MastodonService.events(responceBody.source()) }
+        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline()
+                .flatMap { responseBody -> MastodonService.events(responseBody.source()) }
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
@@ -88,7 +87,7 @@ class TimelineFragment: BaseFragment() {
                         val data = source.replace(Regex("^data:\\s(.+)"), "$1")
                         try {
                             val status = Gson().fromJson(data, Status::class.java)
-                            val content = TimelineContent(status.account.id, status.account.avatarUrl, status.account.displayName, status.account.acct, status.createdAt.time, status.content)
+                            val content = Common.getTimelineContent(status)
                             Log.d("showPublicTimeline", "body: ${status.content}")
 
                             adapter.addContent(content)
