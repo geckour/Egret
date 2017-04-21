@@ -62,6 +62,7 @@ class Common {
                 account.displayName,
                 "@${account.acct}",
                 "<a href=\"${account.url}\">${account.url}</a>",
+                account.note,
                 account.followingCount,
                 account.followersCount,
                 account.statusesCount,
