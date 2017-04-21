@@ -39,6 +39,5 @@ class Common {
         val instanceInfo = OrmaProvider.db.selectFromInstanceAuthInfo().idEq(accessToken.instanceId).last() ?: return null
         OkHttpProvider.authInterceptor.setToken(accessToken.token)
 
-        return instanceInfo.instance
     }
 }
