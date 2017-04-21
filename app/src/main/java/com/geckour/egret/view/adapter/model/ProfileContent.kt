@@ -1,6 +1,6 @@
 package com.geckour.egret.view.adapter.model
 
-class ProfileContent(
+data class ProfileContent(
         var iconUrl: String,
         var headerUrl: String,
         var screenName: String,

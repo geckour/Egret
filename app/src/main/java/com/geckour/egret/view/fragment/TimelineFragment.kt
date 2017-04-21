@@ -2,9 +2,10 @@ package com.geckour.egret.view.fragment
 
 import android.databinding.DataBindingUtil
 import android.os.Bundle
+import android.os.Parcel
+import android.os.Parcelable
 import android.support.design.widget.FloatingActionButton
 import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
@@ -19,8 +20,8 @@ import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.MainActivity
 import com.geckour.egret.view.adapter.TimelineFragmentAdapter
+import com.geckour.egret.view.adapter.model.TimelineContent
 import com.google.gson.Gson
-import com.google.gson.JsonSyntaxException
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
@@ -29,6 +30,7 @@ class TimelineFragment: BaseFragment() {
 
     companion object {
         val TAG = "timelineFragment"
+        val STATE_ARGS_KEY_CONTENTS = "contents"
 
         fun newInstance(): TimelineFragment {
             val fragment = TimelineFragment()
@@ -39,6 +41,7 @@ class TimelineFragment: BaseFragment() {
     lateinit private var binding: FragmentTimelineBinding
     lateinit private var adapter: TimelineFragmentAdapter
     private var onTop = true
+    private val bundle = Bundle()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,6 +85,25 @@ class TimelineFragment: BaseFragment() {
         super.onActivityCreated(savedInstanceState)
 
         showPublicTimeline()
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        bundle.putParcelableArrayList(STATE_ARGS_KEY_CONTENTS, ArrayList(adapter.getContents()))
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        restoreTimeline(bundle)
+    }
+
+    fun restoreTimeline(savedInstanceState: Bundle?) {
+        if (savedInstanceState != null && savedInstanceState.containsKey(STATE_ARGS_KEY_CONTENTS)) {
+            val parcelables: ArrayList<Parcelable> = savedInstanceState.getParcelableArrayList(STATE_ARGS_KEY_CONTENTS)
+            adapter.addAllContents(parcelables.map { parcelable -> parcelable as TimelineContent })
+        }
     }
 
     fun showPublicTimeline() {
