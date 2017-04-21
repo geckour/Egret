@@ -85,6 +85,8 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun showPublicTimeline() {
+        var waitingContent = false
+        var waitingDeletedId = false
         MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline()
                 .flatMap { responseBody -> MastodonService.events(responseBody.source()) }
                 .subscribeOn(Schedulers.newThread())
@@ -95,16 +97,20 @@ class TimelineFragment: BaseFragment() {
 
                     if (source.startsWith("data: ")) {
                         val data = source.replace(Regex("^data:\\s(.+)"), "$1")
-                        try {
+                        if (waitingContent) {
                             val status = Gson().fromJson(data, Status::class.java)
                             val content = Common.getTimelineContent(status)
                             Log.d("showPublicTimeline", "body: ${status.content}")
 
                             adapter.addContent(content)
                             onAddItemToAdapter()
-                        } catch (e: JsonSyntaxException) {
-                            Log.e("showPublicTimeline", e.message)
                         }
+                        if (waitingDeletedId) {
+                            adapter.removeContentByTootId(data.toLong())
+                        }
+                    } else {
+                        waitingContent = source == "event: update"
+                        waitingDeletedId = source == "event: delete"
                     }
                 }, Throwable::printStackTrace)
     }
