@@ -49,6 +49,7 @@ class Common {
         }
 
         fun getTimelineContent(status: Status): TimelineContent = TimelineContent(
+                status.id,
                 status.account.id,
                 status.account.avatarUrl,
                 status.account.displayName,

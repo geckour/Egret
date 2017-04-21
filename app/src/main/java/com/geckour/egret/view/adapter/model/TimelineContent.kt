@@ -1,6 +1,7 @@
 package com.geckour.egret.view.adapter.model
 
 class TimelineContent(
+        var id: Long,
         var accountId: Long,
         var iconUrl: String,
         var nameStrong: String,

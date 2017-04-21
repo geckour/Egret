@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -37,6 +38,7 @@ class TimelineFragment: BaseFragment() {
 
     lateinit private var binding: FragmentTimelineBinding
     lateinit private var adapter: TimelineFragmentAdapter
+    private var onTop = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +58,14 @@ class TimelineFragment: BaseFragment() {
         (activity.findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showPublicTimeline() }
 
         binding.recyclerView.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
+        binding.recyclerView.addOnScrollListener(object: RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView?, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                val scrollY: Int = recyclerView?.computeVerticalScrollOffset() ?: -1
+                onTop = (onTop && dy == 0) || scrollY == 0 || scrollY == dy
+            }
+        })
         adapter = TimelineFragmentAdapter(object: TimelineFragmentAdapter.IListenr {
             override fun onClickIcon(accountId: Long) {
                 AccountProfileFragment.newObservableInstance(accountId)
@@ -75,6 +85,8 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun showPublicTimeline() {
+        var waitingContent = false
+        var waitingDeletedId = false
         MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline()
                 .flatMap { responseBody -> MastodonService.events(responseBody.source()) }
                 .subscribeOn(Schedulers.newThread())
@@ -85,17 +97,28 @@ class TimelineFragment: BaseFragment() {
 
                     if (source.startsWith("data: ")) {
                         val data = source.replace(Regex("^data:\\s(.+)"), "$1")
-                        try {
+                        if (waitingContent) {
                             val status = Gson().fromJson(data, Status::class.java)
                             val content = Common.getTimelineContent(status)
                             Log.d("showPublicTimeline", "body: ${status.content}")
 
                             adapter.addContent(content)
-                            if ((binding.recyclerView.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition() == 0) binding.recyclerView.smoothScrollToPosition(0)
-                        } catch (e: JsonSyntaxException) {
-                            Log.e("showPublicTimeline", e.message)
+                            onAddItemToAdapter()
                         }
+                        if (waitingDeletedId) {
+                            adapter.removeContentByTootId(data.toLong())
+                        }
+                    } else {
+                        waitingContent = source == "event: update"
+                        waitingDeletedId = source == "event: delete"
                     }
                 }, Throwable::printStackTrace)
+    }
+
+    fun onAddItemToAdapter() {
+        if (onTop && adapter.itemCount > 1) {
+            binding.recyclerView.scrollToPosition(1)
+            binding.recyclerView.smoothScrollToPosition(0)
+        }
     }
 }
