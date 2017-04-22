@@ -194,22 +194,29 @@ class AuthAppFragment: RxFragment() {
     }
 
     fun storeAccessToken(instanceId: Long, value: InstanceAccess) {
-        OrmaProvider.db.updateAccessToken().isCurrent(false).executeAsSingle()
+        OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).executeAsSingle()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
-                .subscribe( { rowCount ->
-                    Timber.d("updated rows: $rowCount")
-
+                .subscribe( {
                     OrmaProvider.db.relationOfAccessToken().upsertAsSingle(createAccessToken(instanceId, value))
                             .subscribeOn(Schedulers.newThread())
                             .observeOn(AndroidSchedulers.mainThread())
                             .compose(bindToLifecycle())
                             .subscribe({ value ->
-                                Timber.d("$value")
+                                Timber.d("token: ${value.token}")
+
                                 Common.hasCertified(object : Common.Companion.IListener {
-                                    override fun onCheckCertify(hasCertified: Boolean) {
-                                        if (hasCertified) (activity as LoginActivity).showMainActivity()
+                                    override fun onCheckCertify(hasCertified: Boolean, userId: Long) {
+                                        if (hasCertified) {
+                                            OrmaProvider.db.updateAccessToken().isCurrentEq(true).userId(userId).executeAsSingle()
+                                                    .subscribeOn(Schedulers.newThread())
+                                                    .observeOn(AndroidSchedulers.mainThread())
+                                                    .compose(bindToLifecycle())
+                                                    .subscribe(
+                                                            { (activity as LoginActivity).showMainActivity() },
+                                                            Throwable::printStackTrace)
+                                        }
                                     }
                                 })
                             }, Throwable::printStackTrace)
@@ -217,7 +224,7 @@ class AuthAppFragment: RxFragment() {
     }
 
     fun createAccessToken(instanceId: Long, value: InstanceAccess): AccessToken {
-        return AccessToken(-1L, value.accessToken, instanceId, true)
+        return AccessToken(-1L, value.accessToken, instanceId, -1L, true)
     }
 
     fun getEmailsFromContact(): List<String> {

@@ -57,7 +57,8 @@ class TimelineFragment: BaseFragment() {
 
         val instanceId = OrmaProvider.db.selectFromAccessToken().isCurrentEq(true).last().instanceId
         (activity as MainActivity).supportActionBar?.show()
-        (activity as MainActivity).supportActionBar?.title = "Public TL - ${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance}"
+        val domain = OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance
+        (activity as MainActivity).supportActionBar?.title = "Public TL - $domain"
         (activity.findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showPublicTimeline() }
 
         binding.recyclerView.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))

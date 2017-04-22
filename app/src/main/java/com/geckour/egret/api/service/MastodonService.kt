@@ -53,7 +53,7 @@ interface MastodonService {
     fun getAccount(
             @Path("id")
             accountId: Long
-    ): Single<Account>
+    ): Observable<Account>
 
     @GET("api/v1/streaming/public")
     @Streaming
