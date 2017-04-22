@@ -35,7 +35,7 @@ class MastodonClient(baseUrl: String) {
 
     fun getSelfAccount(): Single<Account> = service.getSelfAccount()
 
-    fun getAccount(accountId: Long): Single<Account> = service.getAccount(accountId)
+    fun getAccount(accountId: Long): Observable<Account> = service.getAccount(accountId)
 
     fun getPublicTimeline(): Observable<ResponseBody> = service.getPublicTimeline()
 

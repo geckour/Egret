@@ -27,4 +27,6 @@
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="splash_content">Egret</string>
+
+    <string name="navigation_drawer_item_login">Login to other account</string>
 </resources>

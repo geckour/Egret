@@ -3,8 +3,7 @@ package com.geckour.egret.api.model
 import com.google.gson.annotations.SerializedName
 
 class UserSpecificApp(
-        @SerializedName("id")
-        val userId: String,
+        val id: Long,
 
         @SerializedName("client_id")
         val clientId: String,

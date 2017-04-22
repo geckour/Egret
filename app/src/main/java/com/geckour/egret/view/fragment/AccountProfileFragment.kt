@@ -17,6 +17,7 @@ import com.geckour.egret.view.activity.MainActivity
 import com.geckour.egret.view.adapter.TimelineAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
 import com.squareup.picasso.Picasso
+import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -24,6 +25,7 @@ import io.reactivex.schedulers.Schedulers
 class AccountProfileFragment: BaseFragment() {
 
     companion object {
+        val TAG = "accountProfileFragment"
         val ARGS_KEY_ACCOUNT = "account"
 
         fun newInstance(account: Account): AccountProfileFragment {
@@ -35,13 +37,13 @@ class AccountProfileFragment: BaseFragment() {
             return fragment
         }
 
-        fun newObservableInstance(accountId: Long): Single<AccountProfileFragment> {
+        fun newObservableInstance(accountId: Long): Observable<AccountProfileFragment> {
             return MastodonClient(Common.resetAuthInfo() ?: throw IllegalArgumentException()).getAccount(accountId)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .flatMap { account ->
                         val fragment = newInstance(account)
-                        Single.just(fragment)
+                        Observable.just(fragment)
                     }
         }
     }

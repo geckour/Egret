@@ -1,6 +1,5 @@
 package com.geckour.egret.util
 
-import android.util.Log
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Account
 import com.geckour.egret.api.model.Status
@@ -16,7 +15,7 @@ class Common {
     companion object {
 
         interface IListener {
-            fun onCheckCertify(hasCertified: Boolean)
+            fun onCheckCertify(hasCertified: Boolean, userId: Long)
         }
 
         fun hasCertified(listener: IListener) {
@@ -26,13 +25,12 @@ class Common {
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({ account ->
-                            Log.d("hasCertified", "id: ${account.id}")
-                            listener.onCheckCertify(true)
+                            listener.onCheckCertify(true, account.id)
                         }, { throwable ->
                             Timber.e(throwable)
-                            listener.onCheckCertify(false)
+                            listener.onCheckCertify(false, -1)
                         })
-            } else listener.onCheckCertify(false)
+            } else listener.onCheckCertify(false, -1)
         }
 
         private fun getCurrentAccessToken(): AccessToken? {

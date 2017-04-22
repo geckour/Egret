@@ -85,6 +85,6 @@ class AccessInstanceFragment: RxFragment() {
     }
 
     fun createInstanceAuthInfo(domain: String, info: UserSpecificApp): InstanceAuthInfo {
-        return InstanceAuthInfo(-1L, domain, info.userId, info.clientId, info.clientSecret)
+        return InstanceAuthInfo(-1L, domain, info.id, info.clientId, info.clientSecret)
     }
 }
