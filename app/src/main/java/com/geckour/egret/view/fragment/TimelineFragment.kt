@@ -2,9 +2,11 @@ package com.geckour.egret.view.fragment
 
 import android.databinding.DataBindingUtil
 import android.os.Bundle
+import android.os.Parcel
+import android.os.Parcelable
 import android.support.design.widget.FloatingActionButton
 import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -18,8 +20,8 @@ import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.MainActivity
 import com.geckour.egret.view.adapter.TimelineFragmentAdapter
+import com.geckour.egret.view.adapter.model.TimelineContent
 import com.google.gson.Gson
-import com.google.gson.JsonSyntaxException
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
@@ -28,6 +30,7 @@ class TimelineFragment: BaseFragment() {
 
     companion object {
         val TAG = "timelineFragment"
+        val STATE_ARGS_KEY_CONTENTS = "contents"
 
         fun newInstance(): TimelineFragment {
             val fragment = TimelineFragment()
@@ -37,6 +40,8 @@ class TimelineFragment: BaseFragment() {
 
     lateinit private var binding: FragmentTimelineBinding
     lateinit private var adapter: TimelineFragmentAdapter
+    private var onTop = true
+    private val bundle = Bundle()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +61,14 @@ class TimelineFragment: BaseFragment() {
         (activity.findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showPublicTimeline() }
 
         binding.recyclerView.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
+        binding.recyclerView.addOnScrollListener(object: RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView?, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                val scrollY: Int = recyclerView?.computeVerticalScrollOffset() ?: -1
+                onTop = (onTop && dy == 0) || scrollY == 0 || scrollY == dy
+            }
+        })
         adapter = TimelineFragmentAdapter(object: TimelineFragmentAdapter.IListenr {
             override fun onClickIcon(accountId: Long) {
                 AccountProfileFragment.newObservableInstance(accountId)
@@ -74,7 +87,28 @@ class TimelineFragment: BaseFragment() {
         showPublicTimeline()
     }
 
+    override fun onPause() {
+        super.onPause()
+
+        bundle.putParcelableArrayList(STATE_ARGS_KEY_CONTENTS, ArrayList(adapter.getContents()))
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        restoreTimeline(bundle)
+    }
+
+    fun restoreTimeline(savedInstanceState: Bundle?) {
+        if (savedInstanceState != null && savedInstanceState.containsKey(STATE_ARGS_KEY_CONTENTS)) {
+            val parcelables: ArrayList<Parcelable> = savedInstanceState.getParcelableArrayList(STATE_ARGS_KEY_CONTENTS)
+            adapter.addAllContents(parcelables.map { parcelable -> parcelable as TimelineContent })
+        }
+    }
+
     fun showPublicTimeline() {
+        var waitingContent = false
+        var waitingDeletedId = false
         MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline()
                 .flatMap { responseBody -> MastodonService.events(responseBody.source()) }
                 .subscribeOn(Schedulers.newThread())
@@ -85,17 +119,28 @@ class TimelineFragment: BaseFragment() {
 
                     if (source.startsWith("data: ")) {
                         val data = source.replace(Regex("^data:\\s(.+)"), "$1")
-                        try {
+                        if (waitingContent) {
                             val status = Gson().fromJson(data, Status::class.java)
                             val content = Common.getTimelineContent(status)
                             Log.d("showPublicTimeline", "body: ${status.content}")
 
                             adapter.addContent(content)
-                            if ((binding.recyclerView.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition() == 0) binding.recyclerView.smoothScrollToPosition(0)
-                        } catch (e: JsonSyntaxException) {
-                            Log.e("showPublicTimeline", e.message)
+                            onAddItemToAdapter()
                         }
+                        if (waitingDeletedId) {
+                            adapter.removeContentByTootId(data.toLong())
+                        }
+                    } else {
+                        waitingContent = source == "event: update"
+                        waitingDeletedId = source == "event: delete"
                     }
                 }, Throwable::printStackTrace)
+    }
+
+    fun onAddItemToAdapter() {
+        if (onTop && adapter.itemCount > 1) {
+            binding.recyclerView.scrollToPosition(1)
+            binding.recyclerView.smoothScrollToPosition(0)
+        }
     }
 }
