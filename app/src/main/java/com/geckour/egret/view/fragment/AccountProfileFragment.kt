@@ -4,6 +4,7 @@ import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.os.Parcelable
 import android.support.v7.widget.DividerItemDecoration
+import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -73,6 +74,8 @@ class AccountProfileFragment: BaseFragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.url.movementMethod = LinkMovementMethod.getInstance()
+        binding.note.movementMethod = LinkMovementMethod.getInstance()
 
         binding.recyclerView.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
         adapter = TimelineAdapter(object: TimelineAdapter.IListenr {

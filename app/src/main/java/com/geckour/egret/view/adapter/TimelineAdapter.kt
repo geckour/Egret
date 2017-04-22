@@ -2,6 +2,7 @@ package com.geckour.egret.view.adapter
 
 import android.databinding.DataBindingUtil
 import android.support.v7.widget.RecyclerView
+import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.geckour.egret.R
@@ -23,6 +24,7 @@ class TimelineAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineAda
             Picasso.with(binding.icon.context).load(content.iconUrl).into(binding.icon)
 
             binding.icon.setOnClickListener { listener.onClickIcon(content.accountId) }
+            binding.body.movementMethod = LinkMovementMethod.getInstance()
         }
     }
 
