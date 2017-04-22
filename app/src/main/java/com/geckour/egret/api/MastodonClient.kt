@@ -2,6 +2,7 @@ package com.geckour.egret.api
 
 import com.geckour.egret.api.model.Account
 import com.geckour.egret.api.model.InstanceAccess
+import com.geckour.egret.api.model.Status
 import com.geckour.egret.api.model.UserSpecificApp
 import com.geckour.egret.api.service.MastodonService
 import com.geckour.egret.util.OkHttpProvider
@@ -32,9 +33,11 @@ class MastodonClient(baseUrl: String) {
             password: String
     ): Single<InstanceAccess> = service.authUser(clientId, clientSecret, username, password)
 
-    fun getSelfInfo(): Single<Account> = service.getSelfInfo()
+    fun getSelfAccount(): Single<Account> = service.getSelfAccount()
 
     fun getAccount(accountId: Long): Single<Account> = service.getAccount(accountId)
 
     fun getPublicTimeline(): Observable<ResponseBody> = service.getPublicTimeline()
+
+    fun getAccountAllToots(accountId: Long): Single<List<Status>> = service.getAccountAllToots(accountId)
 }

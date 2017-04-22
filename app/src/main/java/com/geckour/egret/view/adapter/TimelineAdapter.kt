@@ -10,7 +10,7 @@ import com.geckour.egret.view.adapter.model.TimelineContent
 import com.squareup.picasso.Picasso
 import java.util.*
 
-class TimelineFragmentAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineFragmentAdapter.ViewHolder>() {
+class TimelineAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineAdapter.ViewHolder>() {
 
     private val contents: ArrayList<TimelineContent> = ArrayList()
 
@@ -46,16 +46,16 @@ class TimelineFragmentAdapter(val listener: IListenr) : RecyclerView.Adapter<Tim
 
     fun getContents(): List<TimelineContent> = this.contents
 
-    fun addContent(content: TimelineContent) {
+    fun addContent(content: TimelineContent, limit: Int = DEFAULT_ITEMS_LIMIT) {
         this.contents.add(0, content)
         notifyItemInserted(0)
-        removeItemsWhenOverLimit(ITEMS_LIMIT)
+        removeItemsWhenOverLimit(limit)
     }
 
-    fun addAllContents(contents: List<TimelineContent>) {
+    fun addAllContents(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
         this.contents.addAll(0, contents)
         notifyItemRangeInserted(0, contents.size)
-        removeItemsWhenOverLimit(ITEMS_LIMIT)
+        removeItemsWhenOverLimit(limit)
     }
 
     fun clearContents() {
@@ -90,6 +90,6 @@ class TimelineFragmentAdapter(val listener: IListenr) : RecyclerView.Adapter<Tim
     }
 
     companion object {
-        val ITEMS_LIMIT = 100
+        val DEFAULT_ITEMS_LIMIT = 100
     }
 }
