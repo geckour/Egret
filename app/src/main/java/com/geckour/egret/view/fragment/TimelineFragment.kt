@@ -19,7 +19,7 @@ import com.geckour.egret.databinding.FragmentTimelineBinding
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.MainActivity
-import com.geckour.egret.view.adapter.TimelineFragmentAdapter
+import com.geckour.egret.view.adapter.TimelineAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
 import com.google.gson.Gson
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -39,7 +39,7 @@ class TimelineFragment: BaseFragment() {
     }
 
     lateinit private var binding: FragmentTimelineBinding
-    lateinit private var adapter: TimelineFragmentAdapter
+    lateinit private var adapter: TimelineAdapter
     private var onTop = true
     private val bundle = Bundle()
 
@@ -69,7 +69,7 @@ class TimelineFragment: BaseFragment() {
                 onTop = (onTop && dy == 0) || scrollY == 0 || scrollY == dy
             }
         })
-        adapter = TimelineFragmentAdapter(object: TimelineFragmentAdapter.IListenr {
+        adapter = TimelineAdapter(object: TimelineAdapter.IListenr {
             override fun onClickIcon(accountId: Long) {
                 AccountProfileFragment.newObservableInstance(accountId)
                         .subscribe( {
