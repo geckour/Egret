@@ -66,7 +66,7 @@ class AccountProfileFragment: BaseFragment() {
         val content = Common.getProfileContent(account)
 
         binding.content = content
-        binding.timeString = content.createdAt.toString()
+        binding.timeString = Common.getReadableDateString(content.createdAt, true)
         Picasso.with(binding.icon.context).load(content.iconUrl).into(binding.icon)
         Picasso.with(binding.header.context).load(content.headerUrl).into(binding.header)
 
