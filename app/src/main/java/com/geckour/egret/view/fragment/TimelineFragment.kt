@@ -55,9 +55,9 @@ class TimelineFragment: BaseFragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val instanceId = OrmaProvider.db.selectFromAccessToken().isCurrentEq(true).last().instanceId
+        val instanceId = Common.getCurrentAccessToken()?.instanceId
         (activity as MainActivity).supportActionBar?.show()
-        val domain = OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance
+        val domain = if (instanceId == null) "not logged in" else OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance
         (activity as MainActivity).supportActionBar?.title = "Public TL - $domain"
         (activity.findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showPublicTimeline() }
 

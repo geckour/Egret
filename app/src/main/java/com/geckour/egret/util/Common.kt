@@ -35,7 +35,7 @@ class Common {
             } else listener.onCheckCertify(false, -1)
         }
 
-        private fun getCurrentAccessToken(): AccessToken? {
+        fun getCurrentAccessToken(): AccessToken? {
             val accessTokens = OrmaProvider.db.selectFromAccessToken().isCurrentEq(true)
             return if (accessTokens == null || accessTokens.isEmpty) null else accessTokens.last()
         }
