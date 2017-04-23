@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.geckour.egret.R
 import com.geckour.egret.databinding.ItemRecycleTimelineBinding
+import com.geckour.egret.util.Common
 import com.geckour.egret.view.adapter.model.TimelineContent
 import com.squareup.picasso.Picasso
 import java.util.*
@@ -20,7 +21,7 @@ class TimelineAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineAda
             binding.content = content
 
             // TODO: 以下2つもdatabindingできる
-            binding.timeString = Date(content.time).toString()
+            binding.timeString = Common.getReadableDateString(content.time)
             Picasso.with(binding.icon.context).load(content.iconUrl).into(binding.icon)
 
             binding.icon.setOnClickListener { listener.onClickIcon(content.accountId) }

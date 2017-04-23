@@ -9,6 +9,8 @@ import com.geckour.egret.view.adapter.model.TimelineContent
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
+import java.text.SimpleDateFormat
+import java.util.*
 
 class Common {
 
@@ -66,5 +68,15 @@ class Common {
                 account.followersCount,
                 account.statusesCount,
                 account.createdAt.time)
+
+        fun getReadableDateString(time: Long, full: Boolean = false): String {
+            val date = Date(time)
+            val pattern = if (full) "yyyy/M/d H:mm:ss"
+            else if (date.before(Date(Calendar.getInstance().get(Calendar.YEAR).toLong()))) "yyyy/M/d"
+            else if (date.before(Date(Calendar.getInstance().get(Calendar.DATE).toLong()))) "M/d H:mm"
+            else "H:mm:ss"
+
+            return SimpleDateFormat(pattern).format(date)
+        }
     }
 }
