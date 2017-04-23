@@ -2,6 +2,7 @@ package com.geckour.egret.api.service
 
 import com.geckour.egret.api.model.Account
 import com.geckour.egret.api.model.InstanceAccess
+import com.geckour.egret.api.model.Status
 import com.geckour.egret.api.model.UserSpecificApp
 import io.reactivex.Observable
 import io.reactivex.ObservableOnSubscribe
@@ -46,17 +47,23 @@ interface MastodonService {
     ): Single<InstanceAccess>
 
     @GET("api/v1/accounts/verify_credentials")
-    fun getSelfInfo(): Single<Account>
+    fun getSelfAccount(): Single<Account>
 
     @GET("api/v1/accounts/{id}")
     fun getAccount(
             @Path("id")
             accountId: Long
-    ): Single<Account>
+    ): Observable<Account>
 
     @GET("api/v1/streaming/public")
     @Streaming
     fun getPublicTimeline(): Observable<ResponseBody>
+
+    @GET("api/v1/accounts/{id}/statuses")
+    fun getAccountAllToots(
+            @Path("id")
+            accountId: Long
+    ): Single<List<Status>>
 
     companion object {
         fun events(source: BufferedSource): Observable<String> {

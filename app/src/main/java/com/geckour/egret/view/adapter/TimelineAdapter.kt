@@ -2,15 +2,17 @@ package com.geckour.egret.view.adapter
 
 import android.databinding.DataBindingUtil
 import android.support.v7.widget.RecyclerView
+import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.geckour.egret.R
 import com.geckour.egret.databinding.ItemRecycleTimelineBinding
+import com.geckour.egret.util.Common
 import com.geckour.egret.view.adapter.model.TimelineContent
 import com.squareup.picasso.Picasso
 import java.util.*
 
-class TimelineFragmentAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineFragmentAdapter.ViewHolder>() {
+class TimelineAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineAdapter.ViewHolder>() {
 
     private val contents: ArrayList<TimelineContent> = ArrayList()
 
@@ -19,10 +21,11 @@ class TimelineFragmentAdapter(val listener: IListenr) : RecyclerView.Adapter<Tim
             binding.content = content
 
             // TODO: 以下2つもdatabindingできる
-            binding.timeString = Date(content.time).toString()
+            binding.timeString = Common.getReadableDateString(content.time)
             Picasso.with(binding.icon.context).load(content.iconUrl).into(binding.icon)
 
             binding.icon.setOnClickListener { listener.onClickIcon(content.accountId) }
+            binding.body.movementMethod = LinkMovementMethod.getInstance()
         }
     }
 
@@ -44,16 +47,18 @@ class TimelineFragmentAdapter(val listener: IListenr) : RecyclerView.Adapter<Tim
         return contents.size
     }
 
-    fun addContent(content: TimelineContent) {
+    fun getContents(): List<TimelineContent> = this.contents
+
+    fun addContent(content: TimelineContent, limit: Int = DEFAULT_ITEMS_LIMIT) {
         this.contents.add(0, content)
         notifyItemInserted(0)
-        removeItemsWhenOverLimit(ITEMS_LIMIT)
+        removeItemsWhenOverLimit(limit)
     }
 
-    fun addAllContents(contents: List<TimelineContent>) {
+    fun addAllContents(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
         this.contents.addAll(0, contents)
         notifyItemRangeInserted(0, contents.size)
-        removeItemsWhenOverLimit(ITEMS_LIMIT)
+        removeItemsWhenOverLimit(limit)
     }
 
     fun clearContents() {
@@ -88,6 +93,6 @@ class TimelineFragmentAdapter(val listener: IListenr) : RecyclerView.Adapter<Tim
     }
 
     companion object {
-        val ITEMS_LIMIT = 100
+        val DEFAULT_ITEMS_LIMIT = 100
     }
 }

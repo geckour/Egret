@@ -70,6 +70,13 @@ dependencies {
 
     compile 'com.jakewharton.timber:timber:4.5.1'
 
+    compile 'nz.bradcampbell:paperparcel:2.0.1'
+    compile 'nz.bradcampbell:paperparcel-kotlin:2.0.1'
+    kapt 'nz.bradcampbell:paperparcel-compiler:2.0.1'
+    compile('com.mikepenz:materialdrawer:5.9.0@aar') {
+        transitive = true
+    }
+
     compile 'uk.co.chrisjenx:calligraphy:2.2.0'
 }
 repositories {
