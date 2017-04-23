@@ -29,4 +29,8 @@
     <string name="splash_content">Egret</string>
 
     <string name="navigation_drawer_item_login">Login to other account</string>
+
+    <string name="button_create_toot">Toot</string>
+
+    <string name="hint_new_toot">What\'s go on with you?</string>
 </resources>

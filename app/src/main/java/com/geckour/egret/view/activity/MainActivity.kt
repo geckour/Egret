@@ -18,6 +18,7 @@ import com.geckour.egret.api.model.Account
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.fragment.AccountProfileFragment
+import com.geckour.egret.view.fragment.NewTootCreateFragment
 import com.geckour.egret.view.fragment.TimelineFragment
 import com.mikepenz.materialdrawer.AccountHeaderBuilder
 import com.mikepenz.materialdrawer.DrawerBuilder
@@ -149,6 +150,8 @@ class MainActivity : RxAppCompatActivity() {
                     val fragment = TimelineFragment.newInstance()
                     supportFragmentManager.beginTransaction().replace(R.id.container, fragment, TimelineFragment.TAG).commit()
                 })
+
+        (findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showCreateNewTootFragment() }
     }
 
     override fun onBackPressed() {
@@ -178,5 +181,11 @@ class MainActivity : RxAppCompatActivity() {
         }
 
         return super.onOptionsItemSelected(item)
+    }
+
+    fun showCreateNewTootFragment() {
+        val token = Common.getCurrentAccessToken() ?: return
+        val fragment = NewTootCreateFragment.newInstance(token.id)
+        supportFragmentManager.beginTransaction().replace(R.id.container, fragment).addToBackStack(NewTootCreateFragment.TAG).commit()
     }
 }
