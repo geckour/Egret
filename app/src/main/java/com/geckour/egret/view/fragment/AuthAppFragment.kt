@@ -195,31 +195,26 @@ class AuthAppFragment: RxFragment() {
 
     fun storeAccessToken(instanceId: Long, value: InstanceAccess) {
         OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).executeAsSingle()
+                .flatMap { OrmaProvider.db.relationOfAccessToken().upsertAsSingle(createAccessToken(instanceId, value)) }
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
-                .subscribe( {
-                    OrmaProvider.db.relationOfAccessToken().upsertAsSingle(createAccessToken(instanceId, value))
-                            .subscribeOn(Schedulers.newThread())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .compose(bindToLifecycle())
-                            .subscribe({ value ->
-                                Timber.d("token: ${value.token}")
+                .subscribe({ value ->
+                    Timber.d("token: ${value.token}")
 
-                                Common.hasCertified(object : Common.Companion.IListener {
-                                    override fun onCheckCertify(hasCertified: Boolean, userId: Long) {
-                                        if (hasCertified) {
-                                            OrmaProvider.db.updateAccessToken().isCurrentEq(true).userId(userId).executeAsSingle()
-                                                    .subscribeOn(Schedulers.newThread())
-                                                    .observeOn(AndroidSchedulers.mainThread())
-                                                    .compose(bindToLifecycle())
-                                                    .subscribe(
-                                                            { (activity as LoginActivity).showMainActivity() },
-                                                            Throwable::printStackTrace)
-                                        }
-                                    }
-                                })
-                            }, Throwable::printStackTrace)
+                    Common.hasCertified(object : Common.Companion.IListener {
+                        override fun onCheckCertify(hasCertified: Boolean, userId: Long) {
+                            if (hasCertified) {
+                                OrmaProvider.db.updateAccessToken().isCurrentEq(true).userId(userId).executeAsSingle()
+                                        .subscribeOn(Schedulers.newThread())
+                                        .observeOn(AndroidSchedulers.mainThread())
+                                        .compose(bindToLifecycle())
+                                        .subscribe(
+                                                { (activity as LoginActivity).showMainActivity() },
+                                                Throwable::printStackTrace)
+                            }
+                        }
+                    })
                 }, Throwable::printStackTrace)
     }
 

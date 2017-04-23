@@ -9,6 +9,7 @@ import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import com.geckour.egret.R
@@ -41,6 +42,7 @@ class TimelineFragment: BaseFragment() {
     lateinit private var binding: FragmentTimelineBinding
     lateinit private var adapter: TimelineAdapter
     private var onTop = true
+    private var inTouch = false
     private val bundle = Bundle()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,19 +57,31 @@ class TimelineFragment: BaseFragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val instanceId = OrmaProvider.db.selectFromAccessToken().isCurrentEq(true).last().instanceId
+        val instanceId = Common.getCurrentAccessToken()?.instanceId
         (activity as MainActivity).supportActionBar?.show()
-        val domain = OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance
+        val domain = if (instanceId == null) "not logged in" else OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance
         (activity as MainActivity).supportActionBar?.title = "Public TL - $domain"
         (activity.findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showPublicTimeline() }
 
         binding.recyclerView.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
+        binding.recyclerView.setOnTouchListener { view, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
+                    inTouch = true
+                }
+
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
+                    inTouch = false
+                }
+            }
+            false
+        }
         binding.recyclerView.addOnScrollListener(object: RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView?, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
                 val scrollY: Int = recyclerView?.computeVerticalScrollOffset() ?: -1
-                onTop = (onTop && dy == 0) || scrollY == 0 || scrollY == dy
+                onTop = scrollY == 0 || onTop && !(inTouch && scrollY > 0)
             }
         })
         adapter = TimelineAdapter(object: TimelineAdapter.IListenr {

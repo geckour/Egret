@@ -48,11 +48,14 @@ class MainActivity : RxAppCompatActivity() {
         val toolbar = findViewById(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
 
+        val recentToken = Common.getCurrentAccessToken()
+
+        // NavDrawer内のアカウント情報表示部
         val accountHeaderBuilder = AccountHeaderBuilder().withActivity(this)
                 .withHeaderBackground(R.drawable.side_nav_bar)
                 .withOnAccountHeaderListener { v, profile, current ->
                     val token = Common.resetAuthInfo()
-                    if (v.id == R.id.material_drawer_account_header_current && token != null) {
+                    if (token != null && v.id == R.id.material_drawer_account_header_current) {
                         MastodonClient(token).getSelfAccount()
                                 .subscribeOn(Schedulers.newThread())
                                 .observeOn(AndroidSchedulers.mainThread())
@@ -64,7 +67,7 @@ class MainActivity : RxAppCompatActivity() {
                         false
                     } else if (!current) {
                         OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).executeAsSingle()
-                                .flatMap { OrmaProvider.db.updateAccessToken().userIdEq(profile.identifier).isCurrent(true).executeAsSingle() }
+                                .flatMap { OrmaProvider.db.updateAccessToken().idEq(profile.identifier).isCurrent(true).executeAsSingle() }
                                 .subscribeOn(Schedulers.newThread())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .compose(bindToLifecycle())
@@ -77,7 +80,7 @@ class MainActivity : RxAppCompatActivity() {
                     } else true
                 }
 
-        val recentToken = OrmaProvider.db.selectFromAccessToken().isCurrentEq(true).last()
+        // アカウント情報をNavDrawerに追加してNavDrawerを表示
         Observable.fromIterable(OrmaProvider.db.selectFromAccessToken())
                 .map { token ->
                     val domain = OrmaProvider.db.selectFromInstanceAuthInfo().idEq(token.instanceId).last().instance
@@ -87,7 +90,7 @@ class MainActivity : RxAppCompatActivity() {
                     OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).execute()
                     OrmaProvider.db.updateAccessToken().idEq(pair.second.id).isCurrent(true).execute()
                     MastodonClient(Common.resetAuthInfo() ?: throw IllegalArgumentException()).getAccount(pair.second.userId)
-                            .map { account -> Pair(pair.first, account) }
+                            .map { account -> Pair(pair, account) }
                 }
                 .flatMap { pair ->
                     if (pair.second.avatarUrl.startsWith("http")) {
@@ -101,14 +104,22 @@ class MainActivity : RxAppCompatActivity() {
                 .subscribe({ pair ->
                     val item = ProfileDrawerItem()
                             .withName(pair.first.second.displayName)
-                            .withEmail("@${pair.first.second.username}@${pair.first.first}")
-                            .withIdentifier(pair.first.second.id)
+                            .withEmail("@${pair.first.second.username}@${pair.first.first.first}")
+                            .withIdentifier(pair.first.first.second.id)
                     if (pair.second != null) item.withIcon(pair.second)
                     accountHeaderBuilder.addProfiles(item)
                 }, Throwable::printStackTrace, {
-                    OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).executeAsSingle()
-                            .flatMap { OrmaProvider.db.updateAccessToken().userIdEq(recentToken.userId).executeAsSingle() }
-                            .subscribe({}, Throwable::printStackTrace)
+                    val accountHeader = accountHeaderBuilder.build()
+
+                    if (recentToken != null) {
+                        OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).executeAsSingle()
+                                .flatMap { OrmaProvider.db.updateAccessToken().idEq(recentToken.id).isCurrent(true).executeAsSingle() }
+                                .subscribeOn(Schedulers.newThread())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .compose(bindToLifecycle())
+                                .subscribe({}, Throwable::printStackTrace)
+                        accountHeader.setActiveProfile(recentToken.id)
+                    }
 
                     DrawerBuilder().withActivity(this)
                             .withSavedInstance(savedInstanceState)
@@ -128,7 +139,7 @@ class MainActivity : RxAppCompatActivity() {
                                     else -> false
                                 }
                             }
-                            .withAccountHeader(accountHeaderBuilder.build()).build()
+                            .withAccountHeader(accountHeader).build()
                     supportActionBar?.setDisplayShowHomeEnabled(true)
 
                     val fragment = TimelineFragment.newInstance()
