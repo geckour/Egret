@@ -20,7 +20,7 @@ class MastodonClient(baseUrl: String) {
             .client(OkHttpProvider.client)
             .baseUrl("https://$baseUrl/")
             .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").create()))
+            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
             .build()
             .create(MastodonService::class.java)
 
