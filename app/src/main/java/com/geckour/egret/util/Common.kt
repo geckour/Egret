@@ -71,9 +71,13 @@ class Common {
 
         fun getReadableDateString(time: Long, full: Boolean = false): String {
             val date = Date(time)
+            val calThisYear = Calendar.getInstance()
+            calThisYear.set(Calendar.DAY_OF_MONTH, 0)
+            val calThisDay = Calendar.getInstance()
+            calThisDay.set(Calendar.HOUR_OF_DAY, 0)
             val pattern = if (full) "yyyy/M/d H:mm:ss"
-            else if (date.before(Date(Calendar.getInstance().get(Calendar.YEAR).toLong()))) "yyyy/M/d"
-            else if (date.before(Date(Calendar.getInstance().get(Calendar.DATE).toLong()))) "M/d H:mm"
+            else if (date.before(calThisYear.time)) "yyyy/M/d"
+            else if (date.before(calThisDay.time)) "M/d HH:mm"
             else "H:mm:ss"
 
             return SimpleDateFormat(pattern).format(date)
