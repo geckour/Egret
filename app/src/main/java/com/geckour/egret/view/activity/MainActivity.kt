@@ -127,11 +127,12 @@ class MainActivity : RxAppCompatActivity() {
                     DrawerBuilder().withActivity(this)
                             .withSavedInstance(savedInstanceState)
                             .withTranslucentStatusBar(false)
+                            .withActionBarDrawerToggleAnimated(true)
+                            .withToolbar(toolbar)
                             .addDrawerItems(
                                     DividerDrawerItem(),
                                     PrimaryDrawerItem().withName(R.string.navigation_drawer_item_login).withIdentifier(NAV_ITEM_LOGIN)
                             )
-                            .withActionBarDrawerToggleAnimated(true)
                             .withOnDrawerItemClickListener { v, position, item ->
                                 return@withOnDrawerItemClickListener when (item.identifier) {
                                     NAV_ITEM_LOGIN -> {
