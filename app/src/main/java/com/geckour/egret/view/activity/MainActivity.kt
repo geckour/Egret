@@ -62,7 +62,10 @@ class MainActivity : RxAppCompatActivity() {
                                 .compose(bindToLifecycle())
                                 .subscribe({ account ->
                                     val fragment = AccountProfileFragment.newInstance(account)
-                                    supportFragmentManager.beginTransaction().replace(R.id.container, fragment, AccountProfileFragment.TAG).commit()
+                                    supportFragmentManager.beginTransaction()
+                                            .replace(R.id.container, fragment, AccountProfileFragment.TAG)
+                                            .addToBackStack(AccountProfileFragment.TAG)
+                                            .commit()
                                 }, Throwable::printStackTrace)
                         false
                     } else if (!current) {
