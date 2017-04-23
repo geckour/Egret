@@ -103,8 +103,8 @@ class AccountProfileFragment: BaseFragment() {
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
-                .subscribe( { values ->
-                    adapter.addAllContents(values.map { status -> Common.getTimelineContent(status) }, -1)
+                .subscribe( { statuses ->
+                    adapter.addAllContents(statuses.map { status -> Common.getTimelineContent(status) }, -1)
                 }, Throwable::printStackTrace)
     }
 

@@ -1,5 +1,6 @@
 package com.geckour.egret.util
 
+import android.text.format.DateFormat
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Account
 import com.geckour.egret.api.model.Status
@@ -9,7 +10,6 @@ import com.geckour.egret.view.adapter.model.TimelineContent
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
-import java.text.SimpleDateFormat
 import java.util.*
 
 class Common {
@@ -75,12 +75,12 @@ class Common {
             calThisYear.set(Calendar.DAY_OF_MONTH, 0)
             val calThisDay = Calendar.getInstance()
             calThisDay.set(Calendar.HOUR_OF_DAY, 0)
-            val pattern = if (full) "yyyy/M/d H:mm:ss"
+            val pattern = if (full) "yyyy/M/d k:mm:ss"
             else if (date.before(calThisYear.time)) "yyyy/M/d"
-            else if (date.before(calThisDay.time)) "M/d HH:mm"
-            else "H:mm:ss"
+            else if (date.before(calThisDay.time)) "M/d kk:mm"
+            else "k:mm:ss"
 
-            return SimpleDateFormat(pattern).format(date)
+            return DateFormat.format(pattern, date).toString()
         }
     }
 }
