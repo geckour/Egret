@@ -56,7 +56,9 @@ class Common {
                 status.account.displayName,
                 "@${status.account.acct}",
                 status.createdAt.time,
-                status.content)
+                status.content,
+                status.favourited,
+                status.reblogged)
 
         fun getProfileContent(account: Account): ProfileContent = ProfileContent(
                 account.avatarUrl,

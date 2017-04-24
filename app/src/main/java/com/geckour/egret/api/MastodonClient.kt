@@ -43,6 +43,16 @@ class MastodonClient(baseUrl: String) {
 
     fun getAccountAllToots(accountId: Long): Single<List<Status>> = service.getAccountAllToots(accountId)
 
+    fun favoriteByStatusId(statusId: Long): Single<Status> = service.favoriteStatusById(statusId)
+
+    fun unFavoriteByStatusId(statusId: Long): Single<Status> = service.unFavoriteStatusById(statusId)
+
+    fun reblogByStatusId(statusId: Long): Single<Status> = service.reblogStatusById(statusId)
+
+    fun unReblogByStatusId(statusId: Long): Single<Status> = service.unReblogStatusById(statusId)
+
+    fun getStatusByStatusId(statusId: Long): Single<Status> = service.getStatusById(statusId)
+
     fun postNewToot(
             body: String,
             inReplyToId: Long? = null,
