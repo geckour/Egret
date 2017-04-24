@@ -32,7 +32,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 
-class MainActivity : RxAppCompatActivity() {
+class MainActivity : BaseActivity() {
 
     companion object {
         val NAV_ITEM_LOGIN: Long = 0

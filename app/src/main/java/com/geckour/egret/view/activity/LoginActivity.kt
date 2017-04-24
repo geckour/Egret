@@ -9,13 +9,15 @@ import android.content.Intent
 import android.databinding.DataBindingUtil
 import android.os.Build
 import android.view.View
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import com.geckour.egret.R
 import com.geckour.egret.databinding.ActivityLoginBinding
 import com.geckour.egret.view.fragment.AccessInstanceFragment
 import com.geckour.egret.view.fragment.AuthAppFragment
 import com.trello.rxlifecycle2.components.support.RxAppCompatActivity
 
-class LoginActivity : RxAppCompatActivity() {
+class LoginActivity : BaseActivity() {
 
     companion object {
         fun getIntent(context: Context): Intent {
