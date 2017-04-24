@@ -22,6 +22,7 @@ import com.geckour.egret.databinding.FragmentLoginInstanceBinding
 import com.geckour.egret.model.AccessToken
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
+import com.geckour.egret.view.activity.BaseActivity
 import com.geckour.egret.view.activity.LoginActivity
 import com.trello.rxlifecycle2.components.support.RxFragment
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -74,8 +75,7 @@ class AuthAppFragment: RxFragment() {
         if (!mayRequestContacts()) {
             return
         }
-
-        addEmailsToAutoComplete(getEmailsFromContact())
+        focusToEmail()
     }
 
     private fun mayRequestContacts(): Boolean {
@@ -104,6 +104,8 @@ class AuthAppFragment: RxFragment() {
                 populateAutoComplete()
             }
         }
+        focusToEmail()
+        addEmailsToAutoComplete(getEmailsFromContact())
     }
 
     /**
@@ -165,6 +167,11 @@ class AuthAppFragment: RxFragment() {
         binding.email.setAdapter(adapter)
     }
 
+    private fun focusToEmail() {
+        (activity as LoginActivity).showSoftKeyBoardOnFocusEditText(binding.email)
+        (activity as LoginActivity).showSoftKeyBoardOnFocusEditText(binding.password)
+        binding.email.requestFocusFromTouch()
+    }
 
     private interface ProfileQuery {
         companion object {

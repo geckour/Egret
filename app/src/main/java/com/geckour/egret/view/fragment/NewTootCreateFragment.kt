@@ -78,9 +78,7 @@ class NewTootCreateFragment : BaseFragment() {
                     Picasso.with(binding.icon.context).load(content.avatarUrl).into(binding.icon)
                 }, Throwable::printStackTrace)
 
-        binding.tootBody.setOnFocusChangeListener { v, hasFocus ->
-            if (hasFocus) showSoftKeyBoard()
-        }
+        (activity as MainActivity).showSoftKeyBoardOnFocusEditText(binding.tootBody)
         binding.tootBody.requestFocusFromTouch()
         binding.buttonToot.setOnClickListener {
             binding.buttonToot.isEnabled = false
@@ -99,10 +97,5 @@ class NewTootCreateFragment : BaseFragment() {
 
     fun onPostSuccess() {
         activity.onBackPressed()
-    }
-
-    fun showSoftKeyBoard() {
-        ((activity as MainActivity).getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager)
-                .showSoftInput(binding.tootBody, InputMethodManager.SHOW_IMPLICIT)
     }
 }
