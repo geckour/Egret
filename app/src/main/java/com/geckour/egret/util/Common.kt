@@ -5,6 +5,7 @@ import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Account
 import com.geckour.egret.api.model.Status
 import com.geckour.egret.model.AccessToken
+import com.geckour.egret.view.adapter.model.NewTootIndentifyContent
 import com.geckour.egret.view.adapter.model.ProfileContent
 import com.geckour.egret.view.adapter.model.TimelineContent
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -68,6 +69,13 @@ class Common {
                 account.followersCount,
                 account.statusesCount,
                 account.createdAt.time)
+
+        fun getNewTootIdentifyContent(domain: String, accessToken: AccessToken, account: Account): NewTootIndentifyContent = NewTootIndentifyContent(
+                accessToken.id,
+                account.id,
+                account.avatarUrl,
+                "@${account.username}@$domain"
+        )
 
         fun getReadableDateString(time: Long, full: Boolean = false): String {
             val date = Date(time)

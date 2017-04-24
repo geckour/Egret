@@ -61,7 +61,6 @@ class TimelineFragment: BaseFragment() {
         (activity as MainActivity).supportActionBar?.show()
         val domain = if (instanceId == null) "not logged in" else OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance
         (activity as MainActivity).supportActionBar?.title = "Public TL - $domain"
-        (activity.findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showPublicTimeline() }
 
         binding.recyclerView.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
         binding.recyclerView.setOnTouchListener { view, event ->
