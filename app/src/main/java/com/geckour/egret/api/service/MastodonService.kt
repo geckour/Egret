@@ -100,6 +100,36 @@ interface MastodonService {
             visibility: String?
     ): Single<Status>
 
+    @POST("api/v1/statuses/{id}/favourite")
+    fun favoriteStatusById(
+            @Path("id")
+            statusId: Long
+    ): Single<Status>
+
+    @POST("api/v1/statuses/{id}/unfavourite")
+    fun unFavoriteStatusById(
+            @Path("id")
+            statusId: Long
+    ): Single<Status>
+
+    @POST("api/v1/statuses/{id}/reblog")
+    fun reblogStatusById(
+            @Path("id")
+            statusId: Long
+    ): Single<Status>
+
+    @POST("api/v1/statuses/{id}/unreblog")
+    fun unReblogStatusById(
+            @Path("id")
+            statusId: Long
+    ): Single<Status>
+
+    @GET("api/v1/statuses/{id}")
+    fun getStatusById(
+            @Path("id")
+            statusId: Long
+    ): Single<Status>
+
     companion object {
         fun events(source: BufferedSource): Observable<String> {
             return Observable.create { emitter ->

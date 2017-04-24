@@ -7,11 +7,13 @@ import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.Snackbar
 import android.support.design.widget.NavigationView
+import android.support.v4.content.ContextCompat
 import android.support.v4.view.GravityCompat
 import android.support.v4.widget.DrawerLayout
 import android.support.v7.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.ImageView
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Account
@@ -231,5 +233,35 @@ class MainActivity : BaseActivity() {
                 .replace(R.id.container, fragment, NewTootCreateFragment.TAG)
                 .addToBackStack(NewTootCreateFragment.TAG)
                 .commit()
+    }
+
+    fun favStatusById(statusId: Long, view: ImageView) {
+        val domain = Common.resetAuthInfo() ?: return
+        MastodonClient(domain).getStatusByStatusId(statusId)
+                .flatMap { status ->
+                    if (status.favourited) MastodonClient(domain).unFavoriteByStatusId(statusId)
+                    else MastodonClient(domain).favoriteByStatusId(statusId)
+                }
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe( { status ->
+                    view.setColorFilter(ContextCompat.getColor(this, if (status.favourited) R.color.colorAccent else R.color.icon_tint_dark))
+                }, Throwable::printStackTrace)
+    }
+
+    fun boostStatusById(statusId: Long, view: ImageView) {
+        val domain = Common.resetAuthInfo() ?: return
+        MastodonClient(domain).getStatusByStatusId(statusId)
+                .flatMap { status ->
+                    if (status.reblogged) MastodonClient(domain).unReblogByStatusId(statusId)
+                    else MastodonClient(domain).reblogByStatusId(statusId)
+                }
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe( { status ->
+                    view.setColorFilter(ContextCompat.getColor(this, if (status.reblogged) R.color.colorAccent else R.color.icon_tint_dark))
+                }, Throwable::printStackTrace)
     }
 }

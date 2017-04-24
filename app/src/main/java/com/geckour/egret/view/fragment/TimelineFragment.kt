@@ -12,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Status
@@ -105,6 +106,14 @@ class TimelineFragment: BaseFragment() {
                                     .addToBackStack(AccountProfileFragment.TAG)
                                     .commit()
                         }, Throwable::printStackTrace)
+            }
+
+            override fun onFavStatus(statusId: Long, view: ImageView) {
+                (activity as MainActivity).favStatusById(statusId, view)
+            }
+
+            override fun onBoostStatus(statusId: Long, view: ImageView) {
+                (activity as MainActivity).boostStatusById(statusId, view)
             }
         })
         binding.recyclerView.adapter = adapter
