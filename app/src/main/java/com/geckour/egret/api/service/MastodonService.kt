@@ -8,6 +8,7 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import okhttp3.ResponseBody
 import okio.BufferedSource
+import retrofit2.adapter.rxjava2.Result
 import retrofit2.http.*
 import java.io.IOException
 import java.net.SocketException
@@ -66,11 +67,20 @@ interface MastodonService {
 
     @GET("api/v1/streaming/public")
     @Streaming
-    fun getPublicTimeline(): Observable<ResponseBody>
+    fun getPublicTimelineAsStream(): Observable<ResponseBody>
 
     @GET("api/v1/streaming/user")
     @Streaming
-    fun getUserTimeline(): Observable<ResponseBody>
+    fun getUserTimelineAsStream(): Observable<ResponseBody>
+
+    @GET("api/v1/timelines/home")
+    fun getUserTimeline(): Single<Result<List<Status>>>
+
+    @GET("api/v1/timelines/home")
+    fun getUserTimeline(
+            @Query("max_id")
+            maxId: Long
+    ): Single<Result<List<Status>>>
 
     @GET("api/v1/accounts/{id}/statuses")
     fun getAccountAllToots(
