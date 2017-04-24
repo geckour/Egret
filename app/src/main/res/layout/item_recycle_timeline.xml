@@ -122,6 +122,7 @@
 
             <ImageView
                 android:id="@+id/opt"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:clickable="true"
@@ -148,6 +149,7 @@
 
                     <ImageView
                         android:id="@+id/reply"
+                        android:background="?attr/selectableItemBackgroundBorderless"
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:clickable="true"
@@ -162,6 +164,7 @@
 
                     <ImageView
                         android:id="@+id/fav"
+                        android:background="?attr/selectableItemBackgroundBorderless"
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:clickable="true"
@@ -176,6 +179,7 @@
 
                     <ImageView
                         android:id="@+id/boost"
+                        android:background="?attr/selectableItemBackgroundBorderless"
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:clickable="true"
