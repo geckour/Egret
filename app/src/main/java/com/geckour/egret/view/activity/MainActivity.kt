@@ -200,6 +200,10 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.main, menu)
@@ -218,6 +222,10 @@ class MainActivity : BaseActivity() {
         }
 
         return super.onOptionsItemSelected(item)
+    }
+
+    fun resetSelectionNavItem(identifier: Long) {
+        if (identifier > -1) drawer.setSelection(identifier)
     }
 
     fun showDefaultTimeline() {

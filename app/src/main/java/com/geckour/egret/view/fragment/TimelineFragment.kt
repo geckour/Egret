@@ -162,6 +162,11 @@ class TimelineFragment: BaseFragment() {
         super.onResume()
 
         restoreTimeline(bundle)
+        (activity as MainActivity).resetSelectionNavItem(when (getCategory()) {
+            ARGS_VALUE_PUBLIC -> MainActivity.NAV_ITEM_TL_PUBLIC
+            ARGS_VALUE_USER -> MainActivity.NAV_ITEM_TL_USER
+            else -> -1
+        })
     }
 
     fun getCategory(): String = arguments.getString(ARGS_KEY_CATEGORY) ?: "Unknown"
