@@ -40,4 +40,13 @@ class MastodonClient(baseUrl: String) {
     fun getPublicTimeline(): Observable<ResponseBody> = service.getPublicTimeline()
 
     fun getAccountAllToots(accountId: Long): Single<List<Status>> = service.getAccountAllToots(accountId)
+
+    fun postNewToot(
+            body: String,
+            inReplyToId: Long? = null,
+            mediaIds: List<Long>? = null,
+            isSensitive: Boolean? = null,
+            spoilerText: String? = null,
+            visibility: MastodonService.Visibility? = null
+    ): Single<Status> = service.postNewToot(body, inReplyToId, mediaIds, isSensitive, spoilerText, visibility?.name)
 }
