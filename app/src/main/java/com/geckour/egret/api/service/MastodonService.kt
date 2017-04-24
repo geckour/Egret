@@ -79,14 +79,17 @@ interface MastodonService {
     @GET("api/v1/timelines/home")
     fun getUserTimeline(
             @Query("max_id")
-            maxId: Long
+            maxId: Long?
     ): Single<Result<List<Status>>>
 
     @GET("api/v1/accounts/{id}/statuses")
     fun getAccountAllToots(
             @Path("id")
-            accountId: Long
-    ): Single<List<Status>>
+            accountId: Long,
+
+            @Query("max_id")
+            maxId: Long?
+    ): Single<Result<List<Status>>>
 
     @FormUrlEncoded
     @POST("api/v1/statuses")

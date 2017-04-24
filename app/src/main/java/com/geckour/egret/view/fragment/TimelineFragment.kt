@@ -58,7 +58,7 @@ class TimelineFragment: BaseFragment() {
     private var waitingContent = false
     private var waitingDeletedId = false
 
-    private var nextId: Long = -1
+    private var nextId: Long? = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -201,27 +201,18 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun showUserTimeline(loadStream: Boolean = false, loadNext: Boolean = false) {
-        if (loadNext && nextId > -1) {
-            MastodonClient(Common.resetAuthInfo() ?: return).getUserTimeline(nextId)
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .compose(bindToLifecycle())
-                    .subscribe({ result ->
-                        adapter.addAllContentsInLast(result.response().body().map { Common.getTimelineContent(it) })
-                        nextId = result.response().headers().get("Link")?.replace(Regex(".*<https?://.+\\?max_id=(.+?)>.*"), "$1")?.toLong() ?: -1
-                    }, Throwable::printStackTrace)
-        } else {
-            MastodonClient(Common.resetAuthInfo() ?: return).getUserTimeline()
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .compose(bindToLifecycle())
-                    .subscribe({ result ->
-                        adapter.addAllContents(result.response().body().map { Common.getTimelineContent(it) })
-                        nextId = result.response().headers().get("Link")?.replace(Regex("^.*<https?://.+\\?max_id=(.+?)>.*"), "$1")?.toLong() ?: -1
+        val next = loadNext && nextId != null && (nextId?.compareTo(-1) ?: 0) == 1
+        if (nextId != null) MastodonClient(Common.resetAuthInfo() ?: return).getUserTimeline(if (next) nextId else null)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe({ result ->
+                    if (next) adapter.addAllContentsInLast(result.response().body().map { Common.getTimelineContent(it) })
+                    else adapter.addAllContents(result.response().body().map { Common.getTimelineContent(it) })
+                    nextId = result.response().headers().get("Link")?.replace(Regex("^.*<https?://.+\\?max_id=(.+?)>.*"), "$1")?.toLong()
 
-                        if (loadStream) showUserTimelineAsStream()
-                    }, Throwable::printStackTrace)
-        }
+                    if (loadStream) showUserTimelineAsStream()
+                }, Throwable::printStackTrace)
     }
 
     fun onAddItemToAdapter() {

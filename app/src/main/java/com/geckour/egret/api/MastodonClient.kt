@@ -42,11 +42,9 @@ class MastodonClient(baseUrl: String) {
 
     fun getUserTimelineAsStream(): Observable<ResponseBody> = service.getUserTimelineAsStream()
 
-    fun getUserTimeline(): Single<Result<List<Status>>> = service.getUserTimeline()
+    fun getUserTimeline(maxId: Long? = null): Single<Result<List<Status>>> = service.getUserTimeline(maxId)
 
-    fun getUserTimeline(maxId: Long): Single<Result<List<Status>>> = service.getUserTimeline(maxId)
-
-    fun getAccountAllToots(accountId: Long): Single<List<Status>> = service.getAccountAllToots(accountId)
+    fun getAccountAllToots(accountId: Long, maxId: Long? = null): Single<Result<List<Status>>> = service.getAccountAllToots(accountId, maxId)
 
     fun favoriteByStatusId(statusId: Long): Single<Status> = service.favoriteStatusById(statusId)
 
