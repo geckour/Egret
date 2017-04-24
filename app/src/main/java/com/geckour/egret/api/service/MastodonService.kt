@@ -68,6 +68,10 @@ interface MastodonService {
     @Streaming
     fun getPublicTimeline(): Observable<ResponseBody>
 
+    @GET("api/v1/streaming/user")
+    @Streaming
+    fun getUserTimeline(): Observable<ResponseBody>
+
     @GET("api/v1/accounts/{id}/statuses")
     fun getAccountAllToots(
             @Path("id")

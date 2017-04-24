@@ -31,10 +31,18 @@ class TimelineFragment: BaseFragment() {
 
     companion object {
         val TAG = "timelineFragment"
+        val ARGS_KEY_CATEGORY = "category"
+        val ARGS_VALUE_PUBLIC = "Public"
+        val ARGS_VALUE_USER = "User"
+        val ARGS_VALUE_HASH_TAG = "Hash tag"
         val STATE_ARGS_KEY_CONTENTS = "contents"
 
-        fun newInstance(): TimelineFragment {
+        fun newInstance(category: String): TimelineFragment {
             val fragment = TimelineFragment()
+            val args = Bundle()
+            args.putString(ARGS_KEY_CATEGORY, category)
+            fragment.arguments = args
+
             return fragment
         }
     }
@@ -44,6 +52,9 @@ class TimelineFragment: BaseFragment() {
     private var onTop = true
     private var inTouch = false
     private val bundle = Bundle()
+
+    private var waitingContent = false
+    private var waitingDeletedId = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,7 +71,8 @@ class TimelineFragment: BaseFragment() {
         val instanceId = Common.getCurrentAccessToken()?.instanceId
         (activity as MainActivity).supportActionBar?.show()
         val domain = if (instanceId == null) "not logged in" else OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance
-        (activity as MainActivity).supportActionBar?.title = "Public TL - $domain"
+        val category = getCategory()
+        (activity as MainActivity).supportActionBar?.title = "$category TL - $domain"
 
         binding.recyclerView.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
         binding.recyclerView.setOnTouchListener { view, event ->
@@ -88,7 +100,10 @@ class TimelineFragment: BaseFragment() {
                 AccountProfileFragment.newObservableInstance(accountId)
                         .subscribe( {
                             fragment ->
-                            activity.supportFragmentManager.beginTransaction().replace(R.id.container, fragment).addToBackStack(null).commit()
+                            activity.supportFragmentManager.beginTransaction()
+                                    .replace(R.id.container, fragment, AccountProfileFragment.TAG)
+                                    .addToBackStack(AccountProfileFragment.TAG)
+                                    .commit()
                         }, Throwable::printStackTrace)
             }
         })
@@ -98,7 +113,11 @@ class TimelineFragment: BaseFragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        showPublicTimeline()
+        when (arguments.getString(ARGS_KEY_CATEGORY)) {
+            ARGS_VALUE_PUBLIC -> showPublicTimeline()
+            ARGS_VALUE_USER -> showUserTimeline()
+            ARGS_VALUE_HASH_TAG -> {}
+        }
     }
 
     override fun onPause() {
@@ -113,6 +132,8 @@ class TimelineFragment: BaseFragment() {
         restoreTimeline(bundle)
     }
 
+    fun getCategory(): String = arguments.getString(ARGS_KEY_CATEGORY) ?: "Unknown"
+
     fun restoreTimeline(savedInstanceState: Bundle?) {
         if (savedInstanceState != null && savedInstanceState.containsKey(STATE_ARGS_KEY_CONTENTS)) {
             val parcelables: ArrayList<Parcelable> = savedInstanceState.getParcelableArrayList(STATE_ARGS_KEY_CONTENTS)
@@ -121,8 +142,7 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun showPublicTimeline() {
-        var waitingContent = false
-        var waitingDeletedId = false
+        adapter.clearContents()
         MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline()
                 .flatMap { responseBody -> MastodonService.events(responseBody.source()) }
                 .subscribeOn(Schedulers.newThread())
@@ -131,23 +151,21 @@ class TimelineFragment: BaseFragment() {
                 .subscribe({ source ->
                     Log.d("showPublicTimeline", "source: $source")
 
-                    if (source.startsWith("data: ")) {
-                        val data = source.replace(Regex("^data:\\s(.+)"), "$1")
-                        if (waitingContent) {
-                            val status = Gson().fromJson(data, Status::class.java)
-                            val content = Common.getTimelineContent(status)
-                            Log.d("showPublicTimeline", "body: ${status.content}")
+                    parseTimelineStream(source)
+                }, Throwable::printStackTrace)
+    }
 
-                            adapter.addContent(content)
-                            onAddItemToAdapter()
-                        }
-                        if (waitingDeletedId) {
-                            adapter.removeContentByTootId(data.toLong())
-                        }
-                    } else {
-                        waitingContent = source == "event: update"
-                        waitingDeletedId = source == "event: delete"
-                    }
+    fun showUserTimeline() {
+        adapter.clearContents()
+        MastodonClient(Common.resetAuthInfo() ?: return).getUserTimeline()
+                .flatMap { responseBody -> MastodonService.events(responseBody.source()) }
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe({ source ->
+                    Log.d("showUserTimeline", "source: $source")
+
+                    parseTimelineStream(source)
                 }, Throwable::printStackTrace)
     }
 
@@ -155,6 +173,26 @@ class TimelineFragment: BaseFragment() {
         if (onTop && adapter.itemCount > 1) {
             binding.recyclerView.scrollToPosition(1)
             binding.recyclerView.smoothScrollToPosition(0)
+        }
+    }
+
+    private fun parseTimelineStream(source: String) {
+        if (source.startsWith("data: ")) {
+            val data = source.replace(Regex("^data:\\s(.+)"), "$1")
+            if (waitingContent) {
+                val status = Gson().fromJson(data, Status::class.java)
+                val content = Common.getTimelineContent(status)
+                Log.d("showPublicTimeline", "body: ${status.content}")
+
+                adapter.addContent(content)
+                onAddItemToAdapter()
+            }
+            if (waitingDeletedId) {
+                adapter.removeContentByTootId(data.toLong())
+            }
+        } else {
+            waitingContent = source == "event: update"
+            waitingDeletedId = source == "event: delete"
         }
     }
 }

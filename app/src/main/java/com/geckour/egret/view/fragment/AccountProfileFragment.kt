@@ -85,7 +85,7 @@ class AccountProfileFragment: BaseFragment() {
                 newObservableInstance(accountId)
                         .subscribe( {
                             fragment ->
-                            activity.supportFragmentManager.beginTransaction().replace(R.id.container, fragment).addToBackStack(null).commit()
+                            activity.supportFragmentManager.beginTransaction().replace(R.id.container, fragment, TAG).addToBackStack(TAG).commit()
                         }, Throwable::printStackTrace)
             }
         })
