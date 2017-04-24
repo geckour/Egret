@@ -39,6 +39,8 @@ class MastodonClient(baseUrl: String) {
 
     fun getPublicTimeline(): Observable<ResponseBody> = service.getPublicTimeline()
 
+    fun getUserTimeline(): Observable<ResponseBody> = service.getUserTimeline()
+
     fun getAccountAllToots(accountId: Long): Single<List<Status>> = service.getAccountAllToots(accountId)
 
     fun postNewToot(
