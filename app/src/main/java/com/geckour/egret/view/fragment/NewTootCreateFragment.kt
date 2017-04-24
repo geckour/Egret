@@ -82,6 +82,23 @@ class NewTootCreateFragment : BaseFragment() {
             if (hasFocus) showSoftKeyBoard()
         }
         binding.tootBody.requestFocusFromTouch()
+        binding.buttonToot.setOnClickListener {
+            binding.buttonToot.isEnabled = false
+
+            execToot(binding.tootBody.text.toString())
+        }
+    }
+
+    fun execToot(body: String) {
+        MastodonClient(Common.resetAuthInfo() ?: return).postNewToot(body)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe( { onPostSuccess() }, Throwable::printStackTrace)
+    }
+
+    fun onPostSuccess() {
+        activity.onBackPressed()
     }
 
     fun showSoftKeyBoard() {
