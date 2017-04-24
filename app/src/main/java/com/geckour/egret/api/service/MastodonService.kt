@@ -49,7 +49,10 @@ interface MastodonService {
             password: String,
 
             @Query("grant_type")
-            grantType: String = "password"
+            grantType: String = "password",
+
+            @Query("scope")
+            authorityScope: String = "read write follow"
     ): Single<InstanceAccess>
 
     @GET("api/v1/accounts/verify_credentials")
