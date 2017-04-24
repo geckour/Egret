@@ -1,6 +1,5 @@
 package com.geckour.egret.view.fragment
 
-import android.app.AlertDialog
 import android.content.Context
 import android.databinding.DataBindingUtil
 import android.os.Bundle
@@ -8,7 +7,6 @@ import android.support.design.widget.FloatingActionButton
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.databinding.FragmentCreateNewTootBinding
@@ -18,7 +16,6 @@ import com.geckour.egret.view.activity.MainActivity
 import com.squareup.picasso.Picasso
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
-import android.content.Context.INPUT_METHOD_SERVICE
 import android.view.inputmethod.InputMethodManager
 
 

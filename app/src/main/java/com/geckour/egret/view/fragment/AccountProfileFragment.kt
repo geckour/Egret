@@ -4,6 +4,7 @@ import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.os.Parcelable
 import android.support.v7.widget.DividerItemDecoration
+import android.support.v7.widget.RecyclerView
 import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.View
@@ -49,10 +50,11 @@ class AccountProfileFragment: BaseFragment() {
         }
     }
 
-    lateinit var account: Account
-    lateinit var binding: FragmentAccountProfileBinding
-    lateinit var adapter: TimelineAdapter
+    lateinit private var account: Account
+    lateinit private var binding: FragmentAccountProfileBinding
+    lateinit private var adapter: TimelineAdapter
     private val bundle = Bundle()
+    private var nextId: Long? = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -99,6 +101,19 @@ class AccountProfileFragment: BaseFragment() {
             }
         })
         binding.recyclerView.adapter = adapter
+
+        binding.recyclerView.addOnScrollListener(object: RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView?, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                val scrollY: Int = recyclerView?.computeVerticalScrollOffset() ?: -1
+                val y = scrollY + (recyclerView?.height ?: -1)
+                val h = recyclerView?.computeVerticalScrollRange() ?: -1
+                if (y == h) {
+                    showToots(true)
+                }
+            }
+        })
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -107,13 +122,16 @@ class AccountProfileFragment: BaseFragment() {
         showToots()
     }
 
-    fun showToots() {
-        MastodonClient(Common.resetAuthInfo() ?: return).getAccountAllToots(account.id)
+    fun showToots(loadNext: Boolean = false) {
+        val next = loadNext && nextId != null && (nextId?.compareTo(-1) ?: 0) == 1
+        if (nextId != null) MastodonClient(Common.resetAuthInfo() ?: return).getAccountAllToots(account.id, if (next) nextId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
-                .subscribe( { statuses ->
-                    adapter.addAllContents(statuses.map { status -> Common.getTimelineContent(status) }, -1)
+                .subscribe({ result ->
+                    if (next) adapter.addAllContentsInLast(result.response().body().map { status -> Common.getTimelineContent(status) }, -1)
+                    else adapter.addAllContents(result.response().body().map { status -> Common.getTimelineContent(status) }, -1)
+                    nextId = result.response().headers().get("Link")?.replace(Regex(".*<https?://.+\\?max_id=(.+?)>.*"), "$1")?.toLong()
                 }, Throwable::printStackTrace)
     }
 
