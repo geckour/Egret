@@ -20,7 +20,7 @@ class MastodonClient(baseUrl: String) {
             .client(OkHttpProvider.client)
             .baseUrl("https://$baseUrl/")
             .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").create()))
+            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
             .build()
             .create(MastodonService::class.java)
 
@@ -39,5 +39,26 @@ class MastodonClient(baseUrl: String) {
 
     fun getPublicTimeline(): Observable<ResponseBody> = service.getPublicTimeline()
 
+    fun getUserTimeline(): Observable<ResponseBody> = service.getUserTimeline()
+
     fun getAccountAllToots(accountId: Long): Single<List<Status>> = service.getAccountAllToots(accountId)
+
+    fun favoriteByStatusId(statusId: Long): Single<Status> = service.favoriteStatusById(statusId)
+
+    fun unFavoriteByStatusId(statusId: Long): Single<Status> = service.unFavoriteStatusById(statusId)
+
+    fun reblogByStatusId(statusId: Long): Single<Status> = service.reblogStatusById(statusId)
+
+    fun unReblogByStatusId(statusId: Long): Single<Status> = service.unReblogStatusById(statusId)
+
+    fun getStatusByStatusId(statusId: Long): Single<Status> = service.getStatusById(statusId)
+
+    fun postNewToot(
+            body: String,
+            inReplyToId: Long? = null,
+            mediaIds: List<Long>? = null,
+            isSensitive: Boolean? = null,
+            spoilerText: String? = null,
+            visibility: MastodonService.Visibility? = null
+    ): Single<Status> = service.postNewToot(body, inReplyToId, mediaIds, isSensitive, spoilerText, visibility?.name)
 }

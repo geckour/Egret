@@ -7,7 +7,7 @@ import com.geckour.egret.util.Common
 import com.trello.rxlifecycle2.components.support.RxAppCompatActivity
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper
 
-class SplashActivity : RxAppCompatActivity() {
+class SplashActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

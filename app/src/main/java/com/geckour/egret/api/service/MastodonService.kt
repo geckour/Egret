@@ -5,9 +5,7 @@ import com.geckour.egret.api.model.InstanceAccess
 import com.geckour.egret.api.model.Status
 import com.geckour.egret.api.model.UserSpecificApp
 import io.reactivex.Observable
-import io.reactivex.ObservableOnSubscribe
 import io.reactivex.Single
-import io.reactivex.disposables.Disposable
 import okhttp3.ResponseBody
 import okio.BufferedSource
 import retrofit2.http.*
@@ -15,6 +13,14 @@ import java.io.IOException
 import java.net.SocketException
 
 interface MastodonService {
+
+    enum class Visibility(val rawValue: Int) {
+        `public`(0),
+        unlisted(1),
+        `private`(2),
+        direct(3)
+    }
+
     @FormUrlEncoded
     @POST("api/v1/apps")
     fun registerApp(
@@ -43,7 +49,10 @@ interface MastodonService {
             password: String,
 
             @Query("grant_type")
-            grantType: String = "password"
+            grantType: String = "password",
+
+            @Query("scope")
+            authorityScope: String = "read write follow"
     ): Single<InstanceAccess>
 
     @GET("api/v1/accounts/verify_credentials")
@@ -59,11 +68,67 @@ interface MastodonService {
     @Streaming
     fun getPublicTimeline(): Observable<ResponseBody>
 
+    @GET("api/v1/streaming/user")
+    @Streaming
+    fun getUserTimeline(): Observable<ResponseBody>
+
     @GET("api/v1/accounts/{id}/statuses")
     fun getAccountAllToots(
             @Path("id")
             accountId: Long
     ): Single<List<Status>>
+
+    @FormUrlEncoded
+    @POST("api/v1/statuses")
+    fun postNewToot(
+            @Field("status")
+            body: String,
+
+            @Field("in_reply_to_id")
+            inReplyToId: Long?,
+
+            @Field("media_ids")
+            mediaIds: List<Long>?,
+
+            @Field("sensitive")
+            isSensitive: Boolean?,
+
+            @Field("spoiler_text")
+            spoilerText: String?,
+
+            @Field("visibility")
+            visibility: String?
+    ): Single<Status>
+
+    @POST("api/v1/statuses/{id}/favourite")
+    fun favoriteStatusById(
+            @Path("id")
+            statusId: Long
+    ): Single<Status>
+
+    @POST("api/v1/statuses/{id}/unfavourite")
+    fun unFavoriteStatusById(
+            @Path("id")
+            statusId: Long
+    ): Single<Status>
+
+    @POST("api/v1/statuses/{id}/reblog")
+    fun reblogStatusById(
+            @Path("id")
+            statusId: Long
+    ): Single<Status>
+
+    @POST("api/v1/statuses/{id}/unreblog")
+    fun unReblogStatusById(
+            @Path("id")
+            statusId: Long
+    ): Single<Status>
+
+    @GET("api/v1/statuses/{id}")
+    fun getStatusById(
+            @Path("id")
+            statusId: Long
+    ): Single<Status>
 
     companion object {
         fun events(source: BufferedSource): Observable<String> {

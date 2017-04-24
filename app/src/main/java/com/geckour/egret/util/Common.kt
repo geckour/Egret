@@ -1,15 +1,16 @@
 package com.geckour.egret.util
 
+import android.text.format.DateFormat
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Account
 import com.geckour.egret.api.model.Status
 import com.geckour.egret.model.AccessToken
+import com.geckour.egret.view.adapter.model.NewTootIndentifyContent
 import com.geckour.egret.view.adapter.model.ProfileContent
 import com.geckour.egret.view.adapter.model.TimelineContent
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
-import java.text.SimpleDateFormat
 import java.util.*
 
 class Common {
@@ -55,7 +56,9 @@ class Common {
                 status.account.displayName,
                 "@${status.account.acct}",
                 status.createdAt.time,
-                status.content)
+                status.content,
+                status.favourited,
+                status.reblogged)
 
         fun getProfileContent(account: Account): ProfileContent = ProfileContent(
                 account.avatarUrl,
@@ -69,14 +72,25 @@ class Common {
                 account.statusesCount,
                 account.createdAt.time)
 
+        fun getNewTootIdentifyContent(domain: String, accessToken: AccessToken, account: Account): NewTootIndentifyContent = NewTootIndentifyContent(
+                accessToken.id,
+                account.id,
+                account.avatarUrl,
+                "@${account.username}@$domain"
+        )
+
         fun getReadableDateString(time: Long, full: Boolean = false): String {
             val date = Date(time)
-            val pattern = if (full) "yyyy/M/d H:mm:ss"
-            else if (date.before(Date(Calendar.getInstance().get(Calendar.YEAR).toLong()))) "yyyy/M/d"
-            else if (date.before(Date(Calendar.getInstance().get(Calendar.DATE).toLong()))) "M/d H:mm"
-            else "H:mm:ss"
+            val calThisYear = Calendar.getInstance()
+            calThisYear.set(Calendar.DAY_OF_MONTH, 0)
+            val calThisDay = Calendar.getInstance()
+            calThisDay.set(Calendar.HOUR_OF_DAY, 0)
+            val pattern = if (full) "yyyy/M/d k:mm:ss"
+            else if (date.before(calThisYear.time)) "yyyy/M/d"
+            else if (date.before(calThisDay.time)) "M/d kk:mm"
+            else "k:mm:ss"
 
-            return SimpleDateFormat(pattern).format(date)
+            return DateFormat.format(pattern, date).toString()
         }
     }
 }

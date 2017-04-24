@@ -7,19 +7,23 @@ import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.Snackbar
 import android.support.design.widget.NavigationView
+import android.support.v4.content.ContextCompat
 import android.support.v4.view.GravityCompat
 import android.support.v4.widget.DrawerLayout
 import android.support.v7.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.ImageView
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Account
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.fragment.AccountProfileFragment
+import com.geckour.egret.view.fragment.NewTootCreateFragment
 import com.geckour.egret.view.fragment.TimelineFragment
 import com.mikepenz.materialdrawer.AccountHeaderBuilder
+import com.mikepenz.materialdrawer.Drawer
 import com.mikepenz.materialdrawer.DrawerBuilder
 import com.mikepenz.materialdrawer.model.DividerDrawerItem
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
@@ -31,10 +35,14 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 
-class MainActivity : RxAppCompatActivity() {
+class MainActivity : BaseActivity() {
+
+    lateinit var drawer: Drawer
 
     companion object {
         val NAV_ITEM_LOGIN: Long = 0
+        val NAV_ITEM_TL_PUBLIC: Long = 1
+        val NAV_ITEM_TL_USER: Long = 2
 
         fun getIntent(context: Context): Intent {
             val intent = Intent(context, MainActivity::class.java)
@@ -76,7 +84,7 @@ class MainActivity : RxAppCompatActivity() {
                                 .compose(bindToLifecycle())
                                 .subscribe({ i ->
                                     Timber.d("updated row count: $i")
-                                    val fragment = TimelineFragment.newInstance()
+                                    val fragment = TimelineFragment.newInstance(TimelineFragment.ARGS_VALUE_PUBLIC)
                                     supportFragmentManager.beginTransaction().replace(R.id.container, fragment, TimelineFragment.TAG).commit()
                                 }, Throwable::printStackTrace)
                         false
@@ -124,12 +132,14 @@ class MainActivity : RxAppCompatActivity() {
                         accountHeader.setActiveProfile(recentToken.id)
                     }
 
-                    DrawerBuilder().withActivity(this)
+                    drawer = DrawerBuilder().withActivity(this)
                             .withSavedInstance(savedInstanceState)
                             .withTranslucentStatusBar(false)
                             .withActionBarDrawerToggleAnimated(true)
                             .withToolbar(toolbar)
                             .addDrawerItems(
+                                    PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_public).withIdentifier(NAV_ITEM_TL_PUBLIC),
+                                    PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_user).withIdentifier(NAV_ITEM_TL_USER),
                                     DividerDrawerItem(),
                                     PrimaryDrawerItem().withName(R.string.navigation_drawer_item_login).withIdentifier(NAV_ITEM_LOGIN)
                             )
@@ -137,24 +147,52 @@ class MainActivity : RxAppCompatActivity() {
                                 return@withOnDrawerItemClickListener when (item.identifier) {
                                     NAV_ITEM_LOGIN -> {
                                         startActivity(LoginActivity.getIntent(this))
-                                        true
+                                        false
                                     }
 
-                                    else -> false
+                                    NAV_ITEM_TL_PUBLIC -> {
+                                        val fragment = supportFragmentManager.findFragmentByTag(TimelineFragment.TAG)
+                                        if (!(fragment != null
+                                                && fragment.isVisible
+                                                && (fragment as TimelineFragment).getCategory() == TimelineFragment.ARGS_VALUE_PUBLIC)) {
+                                            val fmt = TimelineFragment.newInstance(TimelineFragment.ARGS_VALUE_PUBLIC)
+                                            supportFragmentManager.beginTransaction()
+                                                    .replace(R.id.container, fmt, TimelineFragment.TAG)
+                                                    .addToBackStack(TimelineFragment.TAG)
+                                                    .commit()
+                                        }
+                                        false
+                                    }
+
+                                    NAV_ITEM_TL_USER -> {
+                                        val fragment = supportFragmentManager.findFragmentByTag(TimelineFragment.TAG)
+                                        if (!(fragment != null
+                                                && fragment.isVisible
+                                                && (fragment as TimelineFragment).getCategory() == TimelineFragment.ARGS_VALUE_USER)) {
+                                            val fmt = TimelineFragment.newInstance(TimelineFragment.ARGS_VALUE_USER)
+                                            supportFragmentManager.beginTransaction()
+                                                    .replace(R.id.container, fmt, TimelineFragment.TAG)
+                                                    .addToBackStack(TimelineFragment.TAG)
+                                                    .commit()
+                                        }
+                                        false
+                                    }
+
+                                    else -> true
                                 }
                             }
                             .withAccountHeader(accountHeader).build()
                     supportActionBar?.setDisplayShowHomeEnabled(true)
 
-                    val fragment = TimelineFragment.newInstance()
-                    supportFragmentManager.beginTransaction().replace(R.id.container, fragment, TimelineFragment.TAG).commit()
+                    showDefaultTimeline()
                 })
+
+        (findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showCreateNewTootFragment() }
     }
 
     override fun onBackPressed() {
-        val drawer = findViewById(R.id.drawer_layout) as DrawerLayout
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START)
+        if (drawer.isDrawerOpen) {
+            drawer.closeDrawer()
         } else {
             super.onBackPressed()
         }
@@ -178,5 +216,52 @@ class MainActivity : RxAppCompatActivity() {
         }
 
         return super.onOptionsItemSelected(item)
+    }
+
+    fun showDefaultTimeline() {
+        val fragment = TimelineFragment.newInstance(TimelineFragment.ARGS_VALUE_PUBLIC)
+        supportFragmentManager.beginTransaction()
+                .replace(R.id.container, fragment, TimelineFragment.TAG)
+                .commit()
+        drawer.setSelection(NAV_ITEM_TL_PUBLIC)
+    }
+
+    fun showCreateNewTootFragment() {
+        val token = Common.getCurrentAccessToken() ?: return
+        val fragment = NewTootCreateFragment.newInstance(token.id)
+        supportFragmentManager.beginTransaction()
+                .replace(R.id.container, fragment, NewTootCreateFragment.TAG)
+                .addToBackStack(NewTootCreateFragment.TAG)
+                .commit()
+    }
+
+    fun favStatusById(statusId: Long, view: ImageView) {
+        val domain = Common.resetAuthInfo() ?: return
+        MastodonClient(domain).getStatusByStatusId(statusId)
+                .flatMap { status ->
+                    if (status.favourited) MastodonClient(domain).unFavoriteByStatusId(statusId)
+                    else MastodonClient(domain).favoriteByStatusId(statusId)
+                }
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe( { status ->
+                    view.setColorFilter(ContextCompat.getColor(this, if (status.favourited) R.color.colorAccent else R.color.icon_tint_dark))
+                }, Throwable::printStackTrace)
+    }
+
+    fun boostStatusById(statusId: Long, view: ImageView) {
+        val domain = Common.resetAuthInfo() ?: return
+        MastodonClient(domain).getStatusByStatusId(statusId)
+                .flatMap { status ->
+                    if (status.reblogged) MastodonClient(domain).unReblogByStatusId(statusId)
+                    else MastodonClient(domain).reblogByStatusId(statusId)
+                }
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe( { status ->
+                    view.setColorFilter(ContextCompat.getColor(this, if (status.reblogged) R.color.colorAccent else R.color.icon_tint_dark))
+                }, Throwable::printStackTrace)
     }
 }

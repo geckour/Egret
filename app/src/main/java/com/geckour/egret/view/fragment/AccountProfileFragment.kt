@@ -8,6 +8,7 @@ import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Account
@@ -85,8 +86,16 @@ class AccountProfileFragment: BaseFragment() {
                 newObservableInstance(accountId)
                         .subscribe( {
                             fragment ->
-                            activity.supportFragmentManager.beginTransaction().replace(R.id.container, fragment).addToBackStack(null).commit()
+                            activity.supportFragmentManager.beginTransaction().replace(R.id.container, fragment, TAG).addToBackStack(TAG).commit()
                         }, Throwable::printStackTrace)
+            }
+
+            override fun onFavStatus(statusId: Long, view: ImageView) {
+                (activity as MainActivity).favStatusById(statusId, view)
+            }
+
+            override fun onBoostStatus(statusId: Long, view: ImageView) {
+                (activity as MainActivity).boostStatusById(statusId, view)
             }
         })
         binding.recyclerView.adapter = adapter
@@ -103,8 +112,8 @@ class AccountProfileFragment: BaseFragment() {
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
-                .subscribe( { values ->
-                    adapter.addAllContents(values.map { status -> Common.getTimelineContent(status) }, -1)
+                .subscribe( { statuses ->
+                    adapter.addAllContents(statuses.map { status -> Common.getTimelineContent(status) }, -1)
                 }, Throwable::printStackTrace)
     }
 
