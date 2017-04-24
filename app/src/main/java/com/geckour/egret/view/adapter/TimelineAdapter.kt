@@ -72,6 +72,13 @@ class TimelineAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineAda
         removeItemsWhenOverLimit(limit)
     }
 
+    fun addAllContentsInLast(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
+        val size = this.contents.size
+        this.contents.addAll(contents)
+        notifyItemRangeInserted(size, contents.size)
+        removeItemsWhenOverLimit(limit)
+    }
+
     fun clearContents() {
         val size = this.contents.size
         this.contents.clear()

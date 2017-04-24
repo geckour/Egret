@@ -1,6 +1,7 @@
 package com.geckour.egret.view.fragment
 
 import android.databinding.DataBindingUtil
+import android.graphics.Rect
 import android.os.Bundle
 import android.os.Parcel
 import android.os.Parcelable
@@ -57,6 +58,8 @@ class TimelineFragment: BaseFragment() {
     private var waitingContent = false
     private var waitingDeletedId = false
 
+    private var nextId: Long? = -1
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }
@@ -94,6 +97,18 @@ class TimelineFragment: BaseFragment() {
 
                 val scrollY: Int = recyclerView?.computeVerticalScrollOffset() ?: -1
                 onTop = scrollY == 0 || onTop && !(inTouch && scrollY > 0)
+
+                if (!onTop) {
+                    val y = scrollY + (recyclerView?.height ?: -1)
+                    val h = recyclerView?.computeVerticalScrollRange() ?: -1
+                    if (y == h) {
+                        when (getCategory()) {
+                            ARGS_VALUE_PUBLIC -> {}
+                            ARGS_VALUE_USER -> showUserTimeline(loadNext = true)
+                            ARGS_VALUE_HASH_TAG -> {}
+                        }
+                    }
+                }
             }
         })
         adapter = TimelineAdapter(object: TimelineAdapter.IListenr {
@@ -122,10 +137,18 @@ class TimelineFragment: BaseFragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        when (arguments.getString(ARGS_KEY_CATEGORY)) {
-            ARGS_VALUE_PUBLIC -> showPublicTimeline()
-            ARGS_VALUE_USER -> showUserTimeline()
-            ARGS_VALUE_HASH_TAG -> {}
+        if (savedInstanceState == null) {
+            when (arguments.getString(ARGS_KEY_CATEGORY)) {
+                ARGS_VALUE_PUBLIC -> showPublicTimeline()
+                ARGS_VALUE_USER -> showUserTimeline(true)
+                ARGS_VALUE_HASH_TAG -> {}
+            }
+        } else {
+            when (arguments.getString(ARGS_KEY_CATEGORY)) {
+                ARGS_VALUE_PUBLIC -> showPublicTimeline()
+                ARGS_VALUE_USER -> showUserTimelineAsStream()
+                ARGS_VALUE_HASH_TAG -> {}
+            }
         }
     }
 
@@ -145,14 +168,14 @@ class TimelineFragment: BaseFragment() {
 
     fun restoreTimeline(savedInstanceState: Bundle?) {
         if (savedInstanceState != null && savedInstanceState.containsKey(STATE_ARGS_KEY_CONTENTS)) {
+            adapter.clearContents()
             val parcelables: ArrayList<Parcelable> = savedInstanceState.getParcelableArrayList(STATE_ARGS_KEY_CONTENTS)
-            adapter.addAllContents(parcelables.map { parcelable -> parcelable as TimelineContent })
+            adapter.addAllContents(parcelables.map { it as TimelineContent })
         }
     }
 
     fun showPublicTimeline() {
-        adapter.clearContents()
-        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline()
+        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimelineAsStream()
                 .flatMap { responseBody -> MastodonService.events(responseBody.source()) }
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -164,9 +187,8 @@ class TimelineFragment: BaseFragment() {
                 }, Throwable::printStackTrace)
     }
 
-    fun showUserTimeline() {
-        adapter.clearContents()
-        MastodonClient(Common.resetAuthInfo() ?: return).getUserTimeline()
+    fun showUserTimelineAsStream() {
+        MastodonClient(Common.resetAuthInfo() ?: return).getUserTimelineAsStream()
                 .flatMap { responseBody -> MastodonService.events(responseBody.source()) }
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -175,6 +197,21 @@ class TimelineFragment: BaseFragment() {
                     Log.d("showUserTimeline", "source: $source")
 
                     parseTimelineStream(source)
+                }, Throwable::printStackTrace)
+    }
+
+    fun showUserTimeline(loadStream: Boolean = false, loadNext: Boolean = false) {
+        val next = loadNext && nextId != null && (nextId?.compareTo(-1) ?: 0) == 1
+        if (nextId != null) MastodonClient(Common.resetAuthInfo() ?: return).getUserTimeline(if (next) nextId else null)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe({ result ->
+                    if (next) adapter.addAllContentsInLast(result.response().body().map { Common.getTimelineContent(it) })
+                    else adapter.addAllContents(result.response().body().map { Common.getTimelineContent(it) })
+                    nextId = result.response().headers().get("Link")?.replace(Regex("^.*<https?://.+\\?max_id=(.+?)>.*"), "$1")?.toLong()
+
+                    if (loadStream) showUserTimelineAsStream()
                 }, Throwable::printStackTrace)
     }
 

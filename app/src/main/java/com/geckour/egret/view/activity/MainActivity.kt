@@ -59,7 +59,7 @@ class MainActivity : BaseActivity() {
         val recentToken = Common.getCurrentAccessToken()
 
         // NavDrawer内のアカウント情報表示部
-        val accountHeaderBuilder = AccountHeaderBuilder().withActivity(this)
+        val accountHeader = AccountHeaderBuilder().withActivity(this)
                 .withHeaderBackground(R.drawable.side_nav_bar)
                 .withOnAccountHeaderListener { v, profile, current ->
                     val token = Common.resetAuthInfo()
@@ -90,6 +90,59 @@ class MainActivity : BaseActivity() {
                         false
                     } else true
                 }
+                .build()
+
+        drawer = DrawerBuilder().withActivity(this)
+                .withSavedInstance(savedInstanceState)
+                .withTranslucentStatusBar(false)
+                .withActionBarDrawerToggleAnimated(true)
+                .withToolbar(toolbar)
+                .addDrawerItems(
+                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_public).withIdentifier(NAV_ITEM_TL_PUBLIC),
+                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_user).withIdentifier(NAV_ITEM_TL_USER),
+                        DividerDrawerItem(),
+                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_login).withIdentifier(NAV_ITEM_LOGIN)
+                )
+                .withOnDrawerItemClickListener { v, position, item ->
+                    return@withOnDrawerItemClickListener when (item.identifier) {
+                        NAV_ITEM_LOGIN -> {
+                            startActivity(LoginActivity.getIntent(this))
+                            false
+                        }
+
+                        NAV_ITEM_TL_PUBLIC -> {
+                            val fragment = supportFragmentManager.findFragmentByTag(TimelineFragment.TAG)
+                            if (!(fragment != null
+                                    && fragment.isVisible
+                                    && (fragment as TimelineFragment).getCategory() == TimelineFragment.ARGS_VALUE_PUBLIC)) {
+                                val fmt = TimelineFragment.newInstance(TimelineFragment.ARGS_VALUE_PUBLIC)
+                                supportFragmentManager.beginTransaction()
+                                        .replace(R.id.container, fmt, TimelineFragment.TAG)
+                                        .addToBackStack(TimelineFragment.TAG)
+                                        .commit()
+                            }
+                            false
+                        }
+
+                        NAV_ITEM_TL_USER -> {
+                            val fragment = supportFragmentManager.findFragmentByTag(TimelineFragment.TAG)
+                            if (!(fragment != null
+                                    && fragment.isVisible
+                                    && (fragment as TimelineFragment).getCategory() == TimelineFragment.ARGS_VALUE_USER)) {
+                                val fmt = TimelineFragment.newInstance(TimelineFragment.ARGS_VALUE_USER)
+                                supportFragmentManager.beginTransaction()
+                                        .replace(R.id.container, fmt, TimelineFragment.TAG)
+                                        .addToBackStack(TimelineFragment.TAG)
+                                        .commit()
+                            }
+                            false
+                        }
+
+                        else -> true
+                    }
+                }
+                .withAccountHeader(accountHeader)
+                .build()
 
         // アカウント情報をNavDrawerに追加してNavDrawerを表示
         Observable.fromIterable(OrmaProvider.db.selectFromAccessToken())
@@ -118,9 +171,8 @@ class MainActivity : BaseActivity() {
                             .withEmail("@${pair.first.second.username}@${pair.first.first.first}")
                             .withIdentifier(pair.first.first.second.id)
                     if (pair.second != null) item.withIcon(pair.second)
-                    accountHeaderBuilder.addProfiles(item)
+                    accountHeader.addProfiles(item)
                 }, Throwable::printStackTrace, {
-                    val accountHeader = accountHeaderBuilder.build()
 
                     if (recentToken != null) {
                         OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).executeAsSingle()
@@ -132,56 +184,6 @@ class MainActivity : BaseActivity() {
                         accountHeader.setActiveProfile(recentToken.id)
                     }
 
-                    drawer = DrawerBuilder().withActivity(this)
-                            .withSavedInstance(savedInstanceState)
-                            .withTranslucentStatusBar(false)
-                            .withActionBarDrawerToggleAnimated(true)
-                            .withToolbar(toolbar)
-                            .addDrawerItems(
-                                    PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_public).withIdentifier(NAV_ITEM_TL_PUBLIC),
-                                    PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_user).withIdentifier(NAV_ITEM_TL_USER),
-                                    DividerDrawerItem(),
-                                    PrimaryDrawerItem().withName(R.string.navigation_drawer_item_login).withIdentifier(NAV_ITEM_LOGIN)
-                            )
-                            .withOnDrawerItemClickListener { v, position, item ->
-                                return@withOnDrawerItemClickListener when (item.identifier) {
-                                    NAV_ITEM_LOGIN -> {
-                                        startActivity(LoginActivity.getIntent(this))
-                                        false
-                                    }
-
-                                    NAV_ITEM_TL_PUBLIC -> {
-                                        val fragment = supportFragmentManager.findFragmentByTag(TimelineFragment.TAG)
-                                        if (!(fragment != null
-                                                && fragment.isVisible
-                                                && (fragment as TimelineFragment).getCategory() == TimelineFragment.ARGS_VALUE_PUBLIC)) {
-                                            val fmt = TimelineFragment.newInstance(TimelineFragment.ARGS_VALUE_PUBLIC)
-                                            supportFragmentManager.beginTransaction()
-                                                    .replace(R.id.container, fmt, TimelineFragment.TAG)
-                                                    .addToBackStack(TimelineFragment.TAG)
-                                                    .commit()
-                                        }
-                                        false
-                                    }
-
-                                    NAV_ITEM_TL_USER -> {
-                                        val fragment = supportFragmentManager.findFragmentByTag(TimelineFragment.TAG)
-                                        if (!(fragment != null
-                                                && fragment.isVisible
-                                                && (fragment as TimelineFragment).getCategory() == TimelineFragment.ARGS_VALUE_USER)) {
-                                            val fmt = TimelineFragment.newInstance(TimelineFragment.ARGS_VALUE_USER)
-                                            supportFragmentManager.beginTransaction()
-                                                    .replace(R.id.container, fmt, TimelineFragment.TAG)
-                                                    .addToBackStack(TimelineFragment.TAG)
-                                                    .commit()
-                                        }
-                                        false
-                                    }
-
-                                    else -> true
-                                }
-                            }
-                            .withAccountHeader(accountHeader).build()
                     supportActionBar?.setDisplayShowHomeEnabled(true)
 
                     showDefaultTimeline()

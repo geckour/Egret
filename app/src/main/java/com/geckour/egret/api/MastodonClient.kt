@@ -11,6 +11,7 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import okhttp3.ResponseBody
 import retrofit2.Retrofit
+import retrofit2.adapter.rxjava2.Result
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -37,11 +38,13 @@ class MastodonClient(baseUrl: String) {
 
     fun getAccount(accountId: Long): Observable<Account> = service.getAccount(accountId)
 
-    fun getPublicTimeline(): Observable<ResponseBody> = service.getPublicTimeline()
+    fun getPublicTimelineAsStream(): Observable<ResponseBody> = service.getPublicTimelineAsStream()
 
-    fun getUserTimeline(): Observable<ResponseBody> = service.getUserTimeline()
+    fun getUserTimelineAsStream(): Observable<ResponseBody> = service.getUserTimelineAsStream()
 
-    fun getAccountAllToots(accountId: Long): Single<List<Status>> = service.getAccountAllToots(accountId)
+    fun getUserTimeline(maxId: Long? = null): Single<Result<List<Status>>> = service.getUserTimeline(maxId)
+
+    fun getAccountAllToots(accountId: Long, maxId: Long? = null): Single<Result<List<Status>>> = service.getAccountAllToots(accountId, maxId)
 
     fun favoriteByStatusId(statusId: Long): Single<Status> = service.favoriteStatusById(statusId)
 
