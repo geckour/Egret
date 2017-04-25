@@ -19,6 +19,7 @@ import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Account
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
+import com.geckour.egret.view.adapter.model.TimelineContent
 import com.geckour.egret.view.fragment.AccountProfileFragment
 import com.geckour.egret.view.fragment.NewTootCreateFragment
 import com.geckour.egret.view.fragment.TimelineFragment
@@ -153,7 +154,7 @@ class MainActivity : BaseActivity() {
                 .flatMap { pair ->
                     OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).execute()
                     OrmaProvider.db.updateAccessToken().idEq(pair.second.id).isCurrent(true).execute()
-                    MastodonClient(Common.resetAuthInfo() ?: throw IllegalArgumentException()).getAccount(pair.second.userId)
+                    MastodonClient(Common.resetAuthInfo() ?: throw IllegalArgumentException()).getAccount(pair.second.accountId)
                             .map { account -> Pair(pair, account) }
                 }
                 .flatMap { pair ->
@@ -239,6 +240,18 @@ class MainActivity : BaseActivity() {
     fun showCreateNewTootFragment() {
         val token = Common.getCurrentAccessToken() ?: return
         val fragment = NewTootCreateFragment.newInstance(token.id)
+        supportFragmentManager.beginTransaction()
+                .replace(R.id.container, fragment, NewTootCreateFragment.TAG)
+                .addToBackStack(NewTootCreateFragment.TAG)
+                .commit()
+    }
+
+    fun replyStatusById(content: TimelineContent) {
+        val fragment = NewTootCreateFragment.newInstance(
+                Common.getCurrentAccessToken()?.id ?: return,
+                replyToStatusId = content.id,
+                replyToAccountName = content.nameWeak)
+
         supportFragmentManager.beginTransaction()
                 .replace(R.id.container, fragment, NewTootCreateFragment.TAG)
                 .addToBackStack(NewTootCreateFragment.TAG)

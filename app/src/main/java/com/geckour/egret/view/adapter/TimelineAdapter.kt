@@ -30,6 +30,7 @@ class TimelineAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineAda
             binding.boost.setColorFilter(ContextCompat.getColor(binding.boost.context, if (content.reblogged) R.color.colorAccent else R.color.icon_tint_dark))
 
             binding.icon.setOnClickListener { listener.onClickIcon(content.accountId) }
+            binding.reply.setOnClickListener { listener.onReply(content) }
             binding.fav.setOnClickListener { listener.onFavStatus(content.id, binding.fav) }
             binding.boost.setOnClickListener { listener.onBoostStatus(content.id, binding.boost) }
             binding.body.movementMethod = LinkMovementMethod.getInstance()
@@ -38,6 +39,8 @@ class TimelineAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineAda
 
     interface IListenr {
         fun onClickIcon(accountId: Long)
+
+        fun onReply(content: TimelineContent)
 
         fun onFavStatus(statusId: Long, view: ImageView)
 
