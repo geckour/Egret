@@ -3,6 +3,7 @@ package com.geckour.egret.view.fragment
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.os.Parcelable
+import android.support.v4.content.ContextCompat
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.RecyclerView
 import android.text.method.LinkMovementMethod
@@ -13,8 +14,10 @@ import android.widget.ImageView
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Account
+import com.geckour.egret.api.model.Relationship
 import com.geckour.egret.databinding.FragmentAccountProfileBinding
 import com.geckour.egret.util.Common
+import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.MainActivity
 import com.geckour.egret.view.adapter.TimelineAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
@@ -51,6 +54,7 @@ class AccountProfileFragment: BaseFragment() {
     }
 
     lateinit private var account: Account
+    lateinit private var relationship: Relationship
     lateinit private var binding: FragmentAccountProfileBinding
     lateinit private var adapter: TimelineAdapter
     private val bundle = Bundle()
@@ -81,6 +85,91 @@ class AccountProfileFragment: BaseFragment() {
 
         binding.url.movementMethod = LinkMovementMethod.getInstance()
         binding.note.movementMethod = LinkMovementMethod.getInstance()
+
+        val domain = Common.resetAuthInfo()
+        if (domain != null) MastodonClient(domain).getAccountRelationships(account.id)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe( { relationships ->
+                    this.relationship = relationships.first()
+
+                    val currentAccountId = Common.getCurrentAccessToken()?.accountId
+                    if (currentAccountId != null && currentAccountId != account.id) {
+                        binding.follow.visibility = View.VISIBLE
+                        binding.block.visibility = View.VISIBLE
+                        binding.mute.visibility = View.VISIBLE
+                    }
+
+                    setFollowButtonState(this.relationship.following)
+                    binding.follow.setOnClickListener {
+                        if (this.relationship.following) {
+                            MastodonClient(domain).unFollowAccount(account.id)
+                                    .subscribeOn(Schedulers.newThread())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .compose(bindToLifecycle())
+                                    .subscribe( { relation ->
+                                        this.relationship = relation
+                                        setFollowButtonState(relation.following)
+                                    }, Throwable::printStackTrace)
+                        } else {
+                            MastodonClient(domain).followAccount(account.id)
+                                    .subscribeOn(Schedulers.newThread())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .compose(bindToLifecycle())
+                                    .subscribe( { relation ->
+                                        this.relationship = relation
+                                        setFollowButtonState(relation.following)
+                                    }, Throwable::printStackTrace)
+                        }
+                    }
+
+                    setBlockButtonState(this.relationship.blocking)
+                    binding.block.setOnClickListener {
+                        if (this.relationship.blocking) {
+                            MastodonClient(domain).unBlockAccount(account.id)
+                                    .subscribeOn(Schedulers.newThread())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .compose(bindToLifecycle())
+                                    .subscribe( { relation ->
+                                        this.relationship = relation
+                                        setBlockButtonState(relation.blocking)
+                                    }, Throwable::printStackTrace)
+                        } else {
+                            MastodonClient(domain).blockAccount(account.id)
+                                    .subscribeOn(Schedulers.newThread())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .compose(bindToLifecycle())
+                                    .subscribe( { relation ->
+                                        this.relationship = relation
+                                        setBlockButtonState(relation.blocking)
+                                    }, Throwable::printStackTrace)
+                        }
+                    }
+
+                    setMuteButtonState(this.relationship.blocking)
+                    binding.mute.setOnClickListener {
+                        if (this.relationship.muting) {
+                            MastodonClient(domain).unMuteAccount(account.id)
+                                    .subscribeOn(Schedulers.newThread())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .compose(bindToLifecycle())
+                                    .subscribe( { relation ->
+                                        this.relationship = relation
+                                        setMuteButtonState(relation.muting)
+                                    }, Throwable::printStackTrace)
+                        } else {
+                            MastodonClient(domain).muteAccount(account.id)
+                                    .subscribeOn(Schedulers.newThread())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .compose(bindToLifecycle())
+                                    .subscribe( { relation ->
+                                        this.relationship = relation
+                                        setMuteButtonState(relation.muting)
+                                    }, Throwable::printStackTrace)
+                        }
+                    }
+                }, Throwable::printStackTrace)
 
         binding.recyclerView.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
         adapter = TimelineAdapter(object: TimelineAdapter.IListenr {
@@ -126,6 +215,18 @@ class AccountProfileFragment: BaseFragment() {
         showToots()
     }
 
+    override fun onPause() {
+        super.onPause()
+
+        bundle.putParcelableArrayList(TimelineFragment.STATE_ARGS_KEY_CONTENTS, ArrayList(adapter.getContents()))
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        restoreTimeline(bundle)
+    }
+
     fun showToots(loadNext: Boolean = false) {
         val next = loadNext && nextId != null && (nextId?.compareTo(-1) ?: 0) == 1
         if (nextId != null) MastodonClient(Common.resetAuthInfo() ?: return).getAccountAllToots(account.id, if (next) nextId else null)
@@ -139,16 +240,30 @@ class AccountProfileFragment: BaseFragment() {
                 }, Throwable::printStackTrace)
     }
 
-    override fun onPause() {
-        super.onPause()
-
-        bundle.putParcelableArrayList(TimelineFragment.STATE_ARGS_KEY_CONTENTS, ArrayList(adapter.getContents()))
+    fun setFollowButtonState(state: Boolean) {
+        if (state) {
+            binding.follow.setImageResource(R.drawable.ic_people_black_24px)
+            binding.follow.setColorFilter(ContextCompat.getColor(activity, R.color.accent))
+        } else {
+            binding.follow.setImageResource(R.drawable.ic_person_add_black_24px)
+            binding.follow.setColorFilter(ContextCompat.getColor(activity, R.color.icon_tint_dark))
+        }
     }
 
-    override fun onResume() {
-        super.onResume()
+    fun setBlockButtonState(state: Boolean) {
+        if (state) {
+            binding.block.setColorFilter(ContextCompat.getColor(activity, R.color.accent))
+        } else {
+            binding.block.setColorFilter(ContextCompat.getColor(activity, R.color.icon_tint_dark))
+        }
+    }
 
-        restoreTimeline(bundle)
+    fun setMuteButtonState(state: Boolean) {
+        if (state) {
+            binding.mute.setColorFilter(ContextCompat.getColor(activity, R.color.accent))
+        } else {
+            binding.mute.setColorFilter(ContextCompat.getColor(activity, R.color.icon_tint_dark))
+        }
     }
 
     fun restoreTimeline(savedInstanceState: Bundle?) {

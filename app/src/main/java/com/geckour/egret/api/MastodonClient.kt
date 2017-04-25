@@ -1,9 +1,6 @@
 package com.geckour.egret.api
 
-import com.geckour.egret.api.model.Account
-import com.geckour.egret.api.model.InstanceAccess
-import com.geckour.egret.api.model.Status
-import com.geckour.egret.api.model.UserSpecificApp
+import com.geckour.egret.api.model.*
 import com.geckour.egret.api.service.MastodonService
 import com.geckour.egret.util.OkHttpProvider
 import com.google.gson.GsonBuilder
@@ -55,6 +52,20 @@ class MastodonClient(baseUrl: String) {
     fun unReblogByStatusId(statusId: Long): Single<Status> = service.unReblogStatusById(statusId)
 
     fun getStatusByStatusId(statusId: Long): Single<Status> = service.getStatusById(statusId)
+
+    fun getAccountRelationships(vararg accountId: Long): Single<List<Relationship>> = service.getAccountRelationships(*accountId)
+
+    fun followAccount(accountId: Long): Single<Relationship> = service.followAccount(accountId)
+
+    fun unFollowAccount(accountId: Long): Single<Relationship> = service.unFollowAccount(accountId)
+
+    fun blockAccount(accountId: Long): Single<Relationship> = service.blockAccount(accountId)
+
+    fun unBlockAccount(accountId: Long): Single<Relationship> = service.unBlockAccount(accountId)
+
+    fun muteAccount(accountId: Long): Single<Relationship> = service.muteAccount(accountId)
+
+    fun unMuteAccount(accountId: Long): Single<Relationship> = service.unMuteAccount(accountId)
 
     fun postNewToot(
             body: String,

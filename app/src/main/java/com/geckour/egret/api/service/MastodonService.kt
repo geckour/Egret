@@ -1,9 +1,6 @@
 package com.geckour.egret.api.service
 
-import com.geckour.egret.api.model.Account
-import com.geckour.egret.api.model.InstanceAccess
-import com.geckour.egret.api.model.Status
-import com.geckour.egret.api.model.UserSpecificApp
+import com.geckour.egret.api.model.*
 import io.reactivex.Observable
 import io.reactivex.Single
 import okhttp3.ResponseBody
@@ -142,6 +139,48 @@ interface MastodonService {
             @Path("id")
             statusId: Long
     ): Single<Status>
+
+    @GET("api/v1/accounts/relationships")
+    fun getAccountRelationships(
+            @Query("id")
+            vararg accountId: Long
+    ): Single<List<Relationship>>
+
+    @POST("api/v1/accounts/{id}/follow")
+    fun followAccount(
+            @Path("id")
+            accountId: Long
+    ): Single<Relationship>
+
+    @POST("api/v1/accounts/{id}/unfollow")
+    fun unFollowAccount(
+            @Path("id")
+            accountId: Long
+    ): Single<Relationship>
+
+    @POST("api/v1/accounts/{id}/block")
+    fun blockAccount(
+            @Path("id")
+            accountId: Long
+    ): Single<Relationship>
+
+    @POST("api/v1/accounts/{id}/unblock")
+    fun unBlockAccount(
+            @Path("id")
+            accountId: Long
+    ): Single<Relationship>
+
+    @POST("api/v1/accounts/{id}/mute")
+    fun muteAccount(
+            @Path("id")
+            accountId: Long
+    ): Single<Relationship>
+
+    @POST("api/v1/accounts/{id}/unmute")
+    fun unMuteAccount(
+            @Path("id")
+            accountId: Long
+    ): Single<Relationship>
 
     companion object {
         fun events(source: BufferedSource): Observable<String> {
