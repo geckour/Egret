@@ -92,6 +92,10 @@ class AccountProfileFragment: BaseFragment() {
                         }, Throwable::printStackTrace)
             }
 
+            override fun onReply(content: TimelineContent) {
+                (activity as MainActivity).replyStatusById(content)
+            }
+
             override fun onFavStatus(statusId: Long, view: ImageView) {
                 (activity as MainActivity).favStatusById(statusId, view)
             }

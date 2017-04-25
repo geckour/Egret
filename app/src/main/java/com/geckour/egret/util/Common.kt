@@ -22,7 +22,7 @@ class Common {
     companion object {
 
         interface IListener {
-            fun onCheckCertify(hasCertified: Boolean, userId: Long)
+            fun onCheckCertify(hasCertified: Boolean, accountId: Long)
         }
 
         fun hasCertified(listener: IListener) {
