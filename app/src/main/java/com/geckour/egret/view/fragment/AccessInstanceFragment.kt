@@ -51,7 +51,7 @@ class AccessInstanceFragment: BaseFragment() {
     }
 
     fun attemptChoseInstance() {
-        val domain = binding.editText.text.toString()
+        val domain = binding.editText.text.toString().replace(Regex("^https?://(.+)"), "$1")
         if (Patterns.WEB_URL.matcher(domain).matches()) requestResister(domain)
         else binding.editText.error = getString(R.string.error_incorrect_domain)
     }

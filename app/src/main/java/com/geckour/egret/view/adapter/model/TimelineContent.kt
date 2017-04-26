@@ -5,9 +5,9 @@ import com.geckour.egret.api.model.Account
 import com.geckour.egret.api.model.Status
 import paperparcel.PaperParcel
 import paperparcel.PaperParcelable
+import java.util.*
 
 @PaperParcel
-
 data class TimelineContent(
         var id: Long,
         var type: TimelineContentType,
@@ -15,12 +15,12 @@ data class TimelineContent(
         var iconUrl: String,
         var nameStrong: String,
         var nameWeak: String,
-        var time: Long,
+        var time: Date,
         var body: Spanned,
         var favourited: Boolean,
         var reblogged: Boolean,
-        var rebloggedBy: Account?,
-        var rebloggedStatus: Status?
+        var rebloggedBy: String?,
+        var rebloggedStatusContent: TimelineContent?
 ): PaperParcelable {
     companion object {
         @JvmField val CREATOR = PaperParcelTimelineContent.CREATOR

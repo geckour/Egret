@@ -34,5 +34,7 @@
 
     <string name="button_create_toot">Toot</string>
 
+    <string name="reblogged_by">Boosted by</string>
+
     <string name="hint_new_toot">What\'s go on with you?</string>
 </resources>

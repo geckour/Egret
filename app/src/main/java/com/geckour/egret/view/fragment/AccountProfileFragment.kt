@@ -173,7 +173,7 @@ class AccountProfileFragment: BaseFragment() {
 
         binding.recyclerView.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
         adapter = TimelineAdapter(object: TimelineAdapter.IListenr {
-            override fun onClickIcon(accountId: Long) {
+            override fun showProfile(accountId: Long) {
                 newObservableInstance(accountId)
                         .subscribe( {
                             fragment ->

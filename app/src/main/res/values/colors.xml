@@ -14,4 +14,5 @@
 
     <color name="icon_tint_dark">#455a64</color>
     <color name="button_bg_light">#eceff1</color>
+    <color name="secondary_text_material_light">#757575</color>
 </resources>

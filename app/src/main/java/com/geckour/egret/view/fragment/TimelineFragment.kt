@@ -114,7 +114,7 @@ class TimelineFragment: BaseFragment() {
             }
         })
         adapter = TimelineAdapter(object: TimelineAdapter.IListenr {
-            override fun onClickIcon(accountId: Long) {
+            override fun showProfile(accountId: Long) {
                 AccountProfileFragment.newObservableInstance(accountId)
                         .subscribe( {
                             fragment ->
@@ -222,13 +222,15 @@ class TimelineFragment: BaseFragment() {
                         Common.getTimelineContent(
                                 it,
                                 if (it.reblog == null) TimelineContent.Companion.TimelineContentType.normal
-                                else TimelineContent.Companion.TimelineContentType.reblog)
+                                else TimelineContent.Companion.TimelineContentType.reblog,
+                                if (it.reblog == null) null else  it.account)
                     })
                     else adapter.addAllContents(result.response().body().map {
                         Common.getTimelineContent(
                                 it,
                                 if (it.reblog == null) TimelineContent.Companion.TimelineContentType.normal
-                                else TimelineContent.Companion.TimelineContentType.reblog)
+                                else TimelineContent.Companion.TimelineContentType.reblog,
+                                if (it.reblog == null) null else  it.account)
                     })
                     nextId = result.response().headers().get("Link")?.replace(Regex("^.*<https?://.+\\?max_id=(.+?)>.*"), "$1")?.toLong()
 
@@ -248,7 +250,7 @@ class TimelineFragment: BaseFragment() {
             val data = source.replace(Regex("^data:\\s(.+)"), "$1")
             if (waitingContent) {
                 val status = Gson().fromJson(data, Status::class.java)
-                val content = Common.getTimelineContent(status, TimelineContent.Companion.TimelineContentType.normal)
+                val content = Common.getTimelineContent(status)
                 Log.d("showPublicTimeline", "body: ${status.content}")
 
                 adapter.addContent(content)

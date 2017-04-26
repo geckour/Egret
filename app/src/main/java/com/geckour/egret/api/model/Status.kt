@@ -3,7 +3,7 @@ package com.geckour.egret.api.model
 import com.google.gson.annotations.SerializedName
 import java.util.*
 
-class Status(
+data class Status(
         val id: Long,
 
         var uri: String,

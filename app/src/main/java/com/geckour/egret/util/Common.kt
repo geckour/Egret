@@ -53,19 +53,19 @@ class Common {
             return instanceInfo.instance
         }
 
-        fun getTimelineContent(status: Status, type: TimelineContent.Companion.TimelineContentType, rebloggedBy: Account? = null): TimelineContent = TimelineContent(
+        fun getTimelineContent(status: Status, type: TimelineContent.Companion.TimelineContentType = TimelineContent.Companion.TimelineContentType.normal, rebloggedBy: Account? = null): TimelineContent = TimelineContent(
                 status.id,
                 type,
                 status.account.id,
                 status.account.avatarUrl,
                 status.account.displayName,
                 "@${status.account.acct}",
-                status.createdAt.time,
+                Date(status.createdAt.time),
                 getBodyStringWithoutExtraMarginFromHtml(status.content),
                 status.favourited,
                 status.reblogged,
-                rebloggedBy,
-                status.reblog)
+                rebloggedBy?.displayName,
+                if (status.reblog == null) null else getTimelineContent(status.reblog!!, rebloggedBy = rebloggedBy))
 
         fun getProfileContent(account: Account): ProfileContent = ProfileContent(
                 account.avatarUrl,
