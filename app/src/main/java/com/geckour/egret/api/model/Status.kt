@@ -18,7 +18,7 @@ class Status(
         @SerializedName("in_reply_to_account_id")
         var inReplyToAccountId: Long?,
 
-        var reblog: Status,
+        var reblog: Status?,
 
         var content: String,
 

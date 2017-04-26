@@ -16,6 +16,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
+import com.geckour.egret.api.model.Notification
 import com.geckour.egret.api.model.Status
 import com.geckour.egret.api.service.MastodonService
 import com.geckour.egret.databinding.FragmentTimelineBinding
@@ -56,6 +57,7 @@ class TimelineFragment: BaseFragment() {
     private val bundle = Bundle()
 
     private var waitingContent = false
+    private var waitingNotification = false
     private var waitingDeletedId = false
 
     private var nextId: Long? = -1
@@ -216,8 +218,18 @@ class TimelineFragment: BaseFragment() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({ result ->
-                    if (next) adapter.addAllContentsInLast(result.response().body().map { Common.getTimelineContent(it) })
-                    else adapter.addAllContents(result.response().body().map { Common.getTimelineContent(it) })
+                    if (next) adapter.addAllContentsInLast(result.response().body().map {
+                        Common.getTimelineContent(
+                                it,
+                                if (it.reblog == null) TimelineContent.Companion.TimelineContentType.normal
+                                else TimelineContent.Companion.TimelineContentType.reblog)
+                    })
+                    else adapter.addAllContents(result.response().body().map {
+                        Common.getTimelineContent(
+                                it,
+                                if (it.reblog == null) TimelineContent.Companion.TimelineContentType.normal
+                                else TimelineContent.Companion.TimelineContentType.reblog)
+                    })
                     nextId = result.response().headers().get("Link")?.replace(Regex("^.*<https?://.+\\?max_id=(.+?)>.*"), "$1")?.toLong()
 
                     if (loadStream) showUserTimelineAsStream()
@@ -236,17 +248,31 @@ class TimelineFragment: BaseFragment() {
             val data = source.replace(Regex("^data:\\s(.+)"), "$1")
             if (waitingContent) {
                 val status = Gson().fromJson(data, Status::class.java)
-                val content = Common.getTimelineContent(status)
+                val content = Common.getTimelineContent(status, TimelineContent.Companion.TimelineContentType.normal)
                 Log.d("showPublicTimeline", "body: ${status.content}")
 
                 adapter.addContent(content)
                 onAddItemToAdapter()
+            }
+            if (waitingNotification) {
+                val notification = Gson().fromJson(data, Notification::class.java)
+                if (notification.type == Notification.Companion.NotificationType.reblog.name) {
+                    val status = notification.status
+                    if (status != null) {
+                        val content = Common.getTimelineContent(status, TimelineContent.Companion.TimelineContentType.reblog, notification.account)
+                        Log.d("showPublicTimeline", "body: ${status.content}")
+
+                        adapter.addContent(content)
+                        onAddItemToAdapter()
+                    }
+                }
             }
             if (waitingDeletedId) {
                 adapter.removeContentByTootId(data.toLong())
             }
         } else {
             waitingContent = source == "event: update"
+            waitingNotification = source == "event: notification"
             waitingDeletedId = source == "event: delete"
         }
     }

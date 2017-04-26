@@ -13,6 +13,7 @@ import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import com.geckour.egret.R
@@ -72,17 +73,18 @@ class AuthAppFragment: RxFragment() {
     }
 
     private fun populateAutoComplete() {
-        if (!mayRequestContacts()) {
-            return
-        }
-        focusToEmail()
+        if (!mayRequestContacts()) return
+
+        addEmailsToAutoComplete(getEmailsFromContact())
     }
 
     private fun mayRequestContacts(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            focusToEmail()
             return true
         }
         if (checkSelfPermission(activity, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
+            focusToEmail()
             return true
         }
         if (shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)) {
@@ -105,7 +107,6 @@ class AuthAppFragment: RxFragment() {
             }
         }
         focusToEmail()
-        addEmailsToAutoComplete(getEmailsFromContact())
     }
 
     /**
@@ -168,9 +169,8 @@ class AuthAppFragment: RxFragment() {
     }
 
     private fun focusToEmail() {
-        (activity as LoginActivity).showSoftKeyBoardOnFocusEditText(binding.email)
-        (activity as LoginActivity).showSoftKeyBoardOnFocusEditText(binding.password)
-        binding.email.requestFocusFromTouch()
+        binding.emailWrap.requestFocusFromTouch()
+        activity.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
     }
 
     private interface ProfileQuery {

@@ -18,7 +18,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 
-class AccessInstanceFragment: RxFragment() {
+class AccessInstanceFragment: BaseFragment() {
 
     companion object {
         val TAG = "accessInstanceFragment"
