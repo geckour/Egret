@@ -15,7 +15,7 @@ class SplashActivity : BaseActivity() {
         setContentView(R.layout.activity_splash)
 
         Common.hasCertified(object: Common.Companion.IListener {
-            override fun onCheckCertify(hasCertified: Boolean, userId: Long) {
+            override fun onCheckCertify(hasCertified: Boolean, accountId: Long) {
                 val intent = if (hasCertified) MainActivity.getIntent(this@SplashActivity) else LoginActivity.getIntent(this@SplashActivity)
                 startActivity(intent)
             }

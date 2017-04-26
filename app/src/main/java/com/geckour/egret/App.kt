@@ -4,8 +4,12 @@ import android.app.Application
 import com.facebook.stetho.Stetho
 import com.geckour.egret.util.OkHttpProvider
 import com.geckour.egret.util.OrmaProvider
+import com.geckour.egret.view.adapter.model.adapter.SpannedTypeAdapter
+import paperparcel.Adapter
+import paperparcel.ProcessorConfig
 import timber.log.Timber
 
+@ProcessorConfig(adapters = arrayOf(Adapter(SpannedTypeAdapter::class)))
 class App: Application() {
 
     override fun onCreate() {

@@ -1,5 +1,9 @@
 package com.geckour.egret.util
 
+import android.annotation.TargetApi
+import android.os.Build
+import android.text.Html
+import android.text.Spanned
 import android.text.format.DateFormat
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Account
@@ -18,7 +22,7 @@ class Common {
     companion object {
 
         interface IListener {
-            fun onCheckCertify(hasCertified: Boolean, userId: Long)
+            fun onCheckCertify(hasCertified: Boolean, accountId: Long)
         }
 
         fun hasCertified(listener: IListener) {
@@ -56,7 +60,7 @@ class Common {
                 status.account.displayName,
                 "@${status.account.acct}",
                 status.createdAt.time,
-                status.content,
+                getBodyStringWithoutExtraMarginFromHtml(status.content),
                 status.favourited,
                 status.reblogged)
 
@@ -91,6 +95,19 @@ class Common {
             else "k:mm:ss"
 
             return DateFormat.format(pattern, date).toString()
+        }
+
+        fun getBodyStringWithoutExtraMarginFromHtml(html: String): Spanned {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                return Html.fromHtml(html, Html.FROM_HTML_MODE_COMPACT)
+            } else {
+                val handler = Html.TagHandler { opening, tag, output, xmlReader ->
+                    if (opening && tag == "p") {
+                        output.clearSpans()
+                    }
+                }
+                return Html.fromHtml(html, null, handler)
+            }
         }
     }
 }

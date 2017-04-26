@@ -4,6 +4,7 @@ import android.content.Context
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
+import android.text.Editable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -27,12 +28,21 @@ class NewTootCreateFragment : BaseFragment() {
         val TAG = "createNewTootFragment"
         private val ARGS_KEY_CURRENT_TOKEN_ID = "currentTokenId"
         private val ARGS_KEY_POST_TOKEN_ID = "postTokenId"
+        private val ARGS_KEY_REPLY_TO_STATUS_ID = "replyToStatusId"
+        private val ARGS_KEY_REPLY_TO_ACCOUNT_NAME = "replyToAccountName"
 
-        fun newInstance(currentTokenId: Long, postTokenId: Long = currentTokenId): NewTootCreateFragment {
+        fun newInstance(
+                currentTokenId: Long,
+                postTokenId: Long = currentTokenId,
+                replyToStatusId: Long? = null,
+                replyToAccountName: String? = null): NewTootCreateFragment {
+
             val fragment = NewTootCreateFragment()
             val args = Bundle()
             args.putLong(ARGS_KEY_CURRENT_TOKEN_ID, currentTokenId)
             args.putLong(ARGS_KEY_POST_TOKEN_ID, postTokenId)
+            if (replyToStatusId != null) args.putLong(ARGS_KEY_REPLY_TO_STATUS_ID, replyToStatusId)
+            if (replyToAccountName != null) args.putString(ARGS_KEY_REPLY_TO_ACCOUNT_NAME, replyToAccountName)
             fragment.arguments = args
 
             return fragment
@@ -82,10 +92,24 @@ class NewTootCreateFragment : BaseFragment() {
 
             execToot(binding.tootBody.text.toString())
         }
+
+        if (arguments.containsKey(ARGS_KEY_REPLY_TO_STATUS_ID)
+                && arguments.containsKey(ARGS_KEY_REPLY_TO_ACCOUNT_NAME)
+                && arguments.getString(ARGS_KEY_REPLY_TO_ACCOUNT_NAME) != null) {
+            binding.replyTo.text = "reply: ${arguments.getString(ARGS_KEY_REPLY_TO_ACCOUNT_NAME)}"
+            binding.replyTo.visibility = View.VISIBLE
+            val accountName = "${arguments.getString(ARGS_KEY_REPLY_TO_ACCOUNT_NAME)} "
+            binding.tootBody.text = Editable.Factory.getInstance().newEditable(accountName)
+            binding.tootBody.setSelection(accountName.length)
+        }
     }
 
     fun execToot(body: String) {
-        MastodonClient(Common.resetAuthInfo() ?: return).postNewToot(body)
+        MastodonClient(Common.resetAuthInfo() ?: return)
+                .postNewToot(
+                        body,
+                        if (binding.replyTo.visibility == View.VISIBLE) arguments.getLong(ARGS_KEY_REPLY_TO_STATUS_ID)
+                        else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
