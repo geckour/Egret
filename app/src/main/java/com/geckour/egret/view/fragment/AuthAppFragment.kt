@@ -15,6 +15,7 @@ import com.geckour.egret.databinding.FragmentLoginInstanceBinding
 import com.geckour.egret.model.AccessToken
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
+import com.geckour.egret.view.activity.BaseActivity
 import com.geckour.egret.view.activity.LoginActivity
 import com.trello.rxlifecycle2.components.support.RxFragment
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -107,8 +108,7 @@ class AuthAppFragment: RxFragment() {
     }
 
     private fun focusToEmail() {
-        binding.emailWrap.requestFocusFromTouch()
-        activity.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+        (activity as BaseActivity).showSoftKeyBoardOnFocusEditText(binding.email)
     }
 
     fun requestAuth(email: String, password: String) {

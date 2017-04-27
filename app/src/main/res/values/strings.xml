@@ -28,10 +28,11 @@
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="splash_content">Egret</string>
 
-    <string name="navigation_drawer_item_login">Login to other account</string>
+    <string name="navigation_drawer_item_login">Login to another account</string>
     <string name="navigation_drawer_item_tl_public">Show Public Timeline</string>
     <string name="navigation_drawer_item_tl_user">Show User Timeline</string>
 
+    <string name="error_empty_toot">Can\'t create empty toot. Write anything</string>
     <string name="button_create_toot">Toot</string>
 
     <string name="reblogged_by">Boosted by</string>

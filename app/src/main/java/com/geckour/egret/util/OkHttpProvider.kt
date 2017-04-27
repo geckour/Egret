@@ -17,7 +17,7 @@ object OkHttpProvider {
 
         if (BuildConfig.DEBUG) {
             builder.addNetworkInterceptor(StethoInterceptor())
-            builder.addNetworkInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+            builder.addNetworkInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.HEADERS))
             builder.addNetworkInterceptor(authInterceptor)
         }
 
