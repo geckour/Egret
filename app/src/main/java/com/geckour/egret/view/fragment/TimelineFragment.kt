@@ -218,12 +218,8 @@ class TimelineFragment: BaseFragment() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({ result ->
-                    if (next) adapter.addAllContentsInLast(result.response().body().map {
-                        Common.getTimelineContent(it)
-                    })
-                    else adapter.addAllContents(result.response().body().map {
-                        Common.getTimelineContent(it)
-                    })
+                    if (next) adapter.addAllContentsInLast(result.response().body().map { Common.getTimelineContent(it) })
+                    else adapter.addAllContents(result.response().body().map { Common.getTimelineContent(it) })
                     nextId = result.response().headers().get("Link")?.replace(Regex("^.*<https?://.+\\?max_id=(.+?)>.*"), "$1")?.toLong()
 
                     if (loadStream) showUserTimelineAsStream()
