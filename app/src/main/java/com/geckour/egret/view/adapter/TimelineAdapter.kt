@@ -5,6 +5,7 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.widget.RecyclerView
 import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import com.geckour.egret.R
@@ -23,22 +24,30 @@ class TimelineAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineAda
         fun bindData(content: TimelineContent) {
             binding.content = content
 
-            // TODO: 以下2つもdatabindingできる
-            binding.timeString = Common.getReadableDateString(content.time)
-            Picasso.with(binding.icon.context).load(content.iconUrl).transform(RoundedCornerTransformation(8f, 0f)).into(binding.icon)
-            binding.fav.setColorFilter(ContextCompat.getColor(binding.fav.context, if (content.favourited) R.color.colorAccent else R.color.icon_tint_dark))
-            binding.boost.setColorFilter(ContextCompat.getColor(binding.boost.context, if (content.reblogged) R.color.colorAccent else R.color.icon_tint_dark))
+            if (binding.content.rebloggedStatusContent != null) {
+                binding.wrapRebloggedBy.visibility = View.VISIBLE
+                binding.wrapRebloggedBy.setOnClickListener { listener.showProfile(binding.content.accountId) }
+            }
 
-            binding.icon.setOnClickListener { listener.onClickIcon(content.accountId) }
-            binding.reply.setOnClickListener { listener.onReply(content) }
-            binding.fav.setOnClickListener { listener.onFavStatus(content.id, binding.fav) }
-            binding.boost.setOnClickListener { listener.onBoostStatus(content.id, binding.boost) }
+            binding.fav.setColorFilter(
+                    ContextCompat.getColor(
+                            binding.fav.context,
+                            if (binding.content.rebloggedStatusContent?.favourited ?: binding.content.favourited) R.color.colorAccent else R.color.icon_tint_dark))
+            binding.boost.setColorFilter(
+                    ContextCompat.getColor(
+                            binding.boost.context,
+                            if (binding.content.rebloggedStatusContent?.reblogged ?: binding.content.reblogged) R.color.colorAccent else R.color.icon_tint_dark))
+
+            binding.icon.setOnClickListener { listener.showProfile(binding.content.rebloggedStatusContent?.accountId ?: binding.content.accountId) }
+            binding.reply.setOnClickListener { listener.onReply(binding.content.rebloggedStatusContent ?: binding.content) }
+            binding.fav.setOnClickListener { listener.onFavStatus(binding.content.rebloggedStatusContent?.id ?: binding.content.id, binding.fav) }
+            binding.boost.setOnClickListener { listener.onBoostStatus(binding.content.rebloggedStatusContent?.id ?: binding.content.id, binding.boost) }
             binding.body.movementMethod = LinkMovementMethod.getInstance()
         }
     }
 
     interface IListenr {
-        fun onClickIcon(accountId: Long)
+        fun showProfile(accountId: Long)
 
         fun onReply(content: TimelineContent)
 

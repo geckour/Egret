@@ -3,19 +3,20 @@ package com.geckour.egret.view.adapter.model
 import android.text.Spanned
 import paperparcel.PaperParcel
 import paperparcel.PaperParcelable
+import java.util.*
 
 @PaperParcel
-
 data class TimelineContent(
         var id: Long,
         var accountId: Long,
         var iconUrl: String,
         var nameStrong: String,
         var nameWeak: String,
-        var time: Long,
+        var time: Date,
         var body: Spanned,
         var favourited: Boolean,
-        var reblogged: Boolean
+        var reblogged: Boolean,
+        var rebloggedStatusContent: TimelineContent?
 ): PaperParcelable {
     companion object {
         @JvmField val CREATOR = PaperParcelTimelineContent.CREATOR

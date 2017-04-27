@@ -7,6 +7,7 @@ import android.text.Spanned
 import android.text.format.DateFormat
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Account
+import com.geckour.egret.api.model.Notification
 import com.geckour.egret.api.model.Status
 import com.geckour.egret.model.AccessToken
 import com.geckour.egret.view.adapter.model.NewTootIndentifyContent
@@ -53,16 +54,18 @@ class Common {
             return instanceInfo.instance
         }
 
-        fun getTimelineContent(status: Status): TimelineContent = TimelineContent(
+        fun getTimelineContent(status: Status, notification: Notification? = null): TimelineContent = TimelineContent(
                 status.id,
                 status.account.id,
                 status.account.avatarUrl,
                 status.account.displayName,
                 "@${status.account.acct}",
-                status.createdAt.time,
+                Date(status.createdAt.time),
                 getBodyStringWithoutExtraMarginFromHtml(status.content),
                 status.favourited,
-                status.reblogged)
+                status.reblogged,
+                if (status.reblog != null || notification != null)
+                    getTimelineContent(notification?.status ?: status.reblog!!) else null)
 
         fun getProfileContent(account: Account): ProfileContent = ProfileContent(
                 account.avatarUrl,

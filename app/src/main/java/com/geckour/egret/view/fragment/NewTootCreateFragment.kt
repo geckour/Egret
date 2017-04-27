@@ -1,10 +1,11 @@
 package com.geckour.egret.view.fragment
 
-import android.content.Context
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
+import android.support.design.widget.Snackbar
 import android.text.Editable
+import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,7 +18,6 @@ import com.geckour.egret.view.activity.MainActivity
 import com.squareup.picasso.Picasso
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
-import android.view.inputmethod.InputMethodManager
 
 
 class NewTootCreateFragment : BaseFragment() {
@@ -86,11 +86,11 @@ class NewTootCreateFragment : BaseFragment() {
                 }, Throwable::printStackTrace)
 
         (activity as MainActivity).showSoftKeyBoardOnFocusEditText(binding.tootBody)
-        binding.tootBody.requestFocusFromTouch()
+
         binding.buttonToot.setOnClickListener {
             binding.buttonToot.isEnabled = false
 
-            execToot(binding.tootBody.text.toString())
+            postToot(binding.tootBody.text.toString())
         }
 
         if (arguments.containsKey(ARGS_KEY_REPLY_TO_STATUS_ID)
@@ -104,7 +104,11 @@ class NewTootCreateFragment : BaseFragment() {
         }
     }
 
-    fun execToot(body: String) {
+    fun postToot(body: String) {
+        if (TextUtils.isEmpty(body)) {
+            Snackbar.make(binding.root, R.string.error_empty_toot, Snackbar.LENGTH_SHORT)
+            return
+        }
         MastodonClient(Common.resetAuthInfo() ?: return)
                 .postNewToot(
                         body,
@@ -117,6 +121,6 @@ class NewTootCreateFragment : BaseFragment() {
     }
 
     fun onPostSuccess() {
-        activity.onBackPressed()
+        (activity as MainActivity).supportFragmentManager.popBackStack()
     }
 }

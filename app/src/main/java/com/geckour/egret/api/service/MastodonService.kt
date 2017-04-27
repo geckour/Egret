@@ -7,6 +7,7 @@ import okhttp3.ResponseBody
 import okio.BufferedSource
 import retrofit2.adapter.rxjava2.Result
 import retrofit2.http.*
+import timber.log.Timber
 import java.io.IOException
 import java.net.SocketException
 

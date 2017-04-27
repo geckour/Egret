@@ -16,6 +16,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
+import com.geckour.egret.api.model.Notification
 import com.geckour.egret.api.model.Status
 import com.geckour.egret.api.service.MastodonService
 import com.geckour.egret.databinding.FragmentTimelineBinding
@@ -56,6 +57,7 @@ class TimelineFragment: BaseFragment() {
     private val bundle = Bundle()
 
     private var waitingContent = false
+    private var waitingNotification = false
     private var waitingDeletedId = false
 
     private var nextId: Long? = -1
@@ -112,7 +114,7 @@ class TimelineFragment: BaseFragment() {
             }
         })
         adapter = TimelineAdapter(object: TimelineAdapter.IListenr {
-            override fun onClickIcon(accountId: Long) {
+            override fun showProfile(accountId: Long) {
                 AccountProfileFragment.newObservableInstance(accountId)
                         .subscribe( {
                             fragment ->
@@ -242,11 +244,25 @@ class TimelineFragment: BaseFragment() {
                 adapter.addContent(content)
                 onAddItemToAdapter()
             }
+            if (waitingNotification) {
+                val notification = Gson().fromJson(data, Notification::class.java)
+                if (notification.type == Notification.Companion.NotificationType.reblog.name) {
+                    val status = notification.status
+                    if (status != null) {
+                        val content = Common.getTimelineContent(status, notification)
+                        Log.d("showPublicTimeline", "body: ${status.content}")
+
+                        adapter.addContent(content)
+                        onAddItemToAdapter()
+                    }
+                }
+            }
             if (waitingDeletedId) {
                 adapter.removeContentByTootId(data.toLong())
             }
         } else {
             waitingContent = source == "event: update"
+            waitingNotification = source == "event: notification"
             waitingDeletedId = source == "event: delete"
         }
     }

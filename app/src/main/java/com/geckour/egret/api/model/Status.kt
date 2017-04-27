@@ -3,7 +3,7 @@ package com.geckour.egret.api.model
 import com.google.gson.annotations.SerializedName
 import java.util.*
 
-class Status(
+data class Status(
         val id: Long,
 
         var uri: String,
@@ -18,7 +18,7 @@ class Status(
         @SerializedName("in_reply_to_account_id")
         var inReplyToAccountId: Long?,
 
-        var reblog: Status,
+        var reblog: Status?,
 
         var content: String,
 

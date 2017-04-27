@@ -11,14 +11,18 @@ open class BaseFragment: RxFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (activity is MainActivity) (activity as MainActivity).supportActionBar?.show()
-        ((activity as MainActivity).findViewById(R.id.fab) as FloatingActionButton?)?.show()
+        if (activity is MainActivity) {
+            (activity as MainActivity).supportActionBar?.show()
+            ((activity as MainActivity).findViewById(R.id.fab) as FloatingActionButton?)?.show()
+        }
     }
 
     override fun onResume() {
         super.onResume()
 
-        if (activity is MainActivity) (activity as MainActivity).supportActionBar?.show()
-        ((activity as MainActivity).findViewById(R.id.fab) as FloatingActionButton?)?.show()
+        if (activity is MainActivity) {
+            (activity as MainActivity).supportActionBar?.show()
+            ((activity as MainActivity).findViewById(R.id.fab) as FloatingActionButton?)?.show()
+        }
     }
 }
