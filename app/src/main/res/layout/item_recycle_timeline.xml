@@ -24,7 +24,7 @@
             android:clickable="true"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="@+id/wrap"
-            app:imageUrl="@{content.iconUrl}"/>
+            app:imageUrl="@{(content.rebloggedStatusContent == null) ? content.iconUrl : content.rebloggedStatusContent.iconUrl}"/>
 
         <LinearLayout
             android:id="@+id/wrap_rebloggedBy"
@@ -60,7 +60,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:singleLine="true"
-                android:text="@{content.rebloggedBy}"
+                android:text="@{content.nameStrong}"
                 android:textSize="10sp"
                 tools:text="ゆーざーねーむ"/>
         </LinearLayout>
@@ -86,7 +86,7 @@
                 android:bufferType="spannable"
                 android:clickable="true"
                 android:ellipsize="none"
-                android:text="@{content.body}"
+                android:text="@{(content.rebloggedStatusContent == null) ? content.body : content.rebloggedStatusContent.body}"
                 android:textSize="12sp"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintLeft_toLeftOf="parent"
@@ -128,7 +128,7 @@
                     android:inputType="none"
                     android:maxLines="1"
                     android:singleLine="true"
-                    android:text="@{content.nameStrong}"
+                    android:text="@{(content.rebloggedStatusContent == null) ? content.nameStrong : content.rebloggedStatusContent.nameStrong}"
                     android:textSize="12sp"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
@@ -141,7 +141,7 @@
                     android:layout_marginTop="4dp"
                     android:ellipsize="end"
                     android:singleLine="true"
-                    android:text="@{content.nameWeak}"
+                    android:text="@{(content.rebloggedStatusContent == null) ? content.nameWeak : content.rebloggedStatusContent.nameWeak}"
                     android:textSize="10sp"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/name_strong"
@@ -156,7 +156,7 @@
                 android:layout_marginEnd="8dp"
                 android:layout_marginRight="8dp"
                 android:layout_marginTop="8dp"
-                android:text="@{content.time}"
+                android:text="@{(content.rebloggedStatusContent == null) ? content.time : content.rebloggedStatusContent.time}"
                 android:textSize="10sp"
                 app:layout_constraintBottom_toBottomOf="@+id/name_wrap"
                 app:layout_constraintRight_toLeftOf="@+id/opt"

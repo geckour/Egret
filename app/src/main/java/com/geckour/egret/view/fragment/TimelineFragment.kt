@@ -219,18 +219,10 @@ class TimelineFragment: BaseFragment() {
                 .compose(bindToLifecycle())
                 .subscribe({ result ->
                     if (next) adapter.addAllContentsInLast(result.response().body().map {
-                        Common.getTimelineContent(
-                                it,
-                                if (it.reblog == null) TimelineContent.Companion.TimelineContentType.normal
-                                else TimelineContent.Companion.TimelineContentType.reblog,
-                                if (it.reblog == null) null else  it.account)
+                        Common.getTimelineContent(it)
                     })
                     else adapter.addAllContents(result.response().body().map {
-                        Common.getTimelineContent(
-                                it,
-                                if (it.reblog == null) TimelineContent.Companion.TimelineContentType.normal
-                                else TimelineContent.Companion.TimelineContentType.reblog,
-                                if (it.reblog == null) null else  it.account)
+                        Common.getTimelineContent(it)
                     })
                     nextId = result.response().headers().get("Link")?.replace(Regex("^.*<https?://.+\\?max_id=(.+?)>.*"), "$1")?.toLong()
 
@@ -261,7 +253,7 @@ class TimelineFragment: BaseFragment() {
                 if (notification.type == Notification.Companion.NotificationType.reblog.name) {
                     val status = notification.status
                     if (status != null) {
-                        val content = Common.getTimelineContent(status, TimelineContent.Companion.TimelineContentType.reblog, notification.account)
+                        val content = Common.getTimelineContent(status, notification)
                         Log.d("showPublicTimeline", "body: ${status.content}")
 
                         adapter.addContent(content)

@@ -22,10 +22,9 @@ class TimelineAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineAda
 
     inner class ViewHolder(val binding: ItemRecycleTimelineBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bindData(content: TimelineContent) {
-            val rebloggedContent = if (content.rebloggedBy != null && content.rebloggedStatusContent != null) content.rebloggedStatusContent!! else null
-            binding.content = rebloggedContent ?: content
+            binding.content = content
 
-            if (rebloggedContent != null) {
+            if (binding.content.rebloggedStatusContent != null) {
                 binding.wrapRebloggedBy.visibility = View.VISIBLE
                 binding.wrapRebloggedBy.setOnClickListener { listener.showProfile(binding.content.accountId) }
             }
@@ -33,16 +32,16 @@ class TimelineAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineAda
             binding.fav.setColorFilter(
                     ContextCompat.getColor(
                             binding.fav.context,
-                            if (binding.content.favourited) R.color.colorAccent else R.color.icon_tint_dark))
+                            if (binding.content.rebloggedStatusContent?.favourited ?: binding.content.favourited) R.color.colorAccent else R.color.icon_tint_dark))
             binding.boost.setColorFilter(
                     ContextCompat.getColor(
                             binding.boost.context,
-                            if (binding.content.reblogged) R.color.colorAccent else R.color.icon_tint_dark))
+                            if (binding.content.rebloggedStatusContent?.reblogged ?: binding.content.reblogged) R.color.colorAccent else R.color.icon_tint_dark))
 
-            binding.icon.setOnClickListener { listener.showProfile(binding.content.accountId) }
-            binding.reply.setOnClickListener { listener.onReply(binding.content) }
-            binding.fav.setOnClickListener { listener.onFavStatus(binding.content.id, binding.fav) }
-            binding.boost.setOnClickListener { listener.onBoostStatus(binding.content.id, binding.boost) }
+            binding.icon.setOnClickListener { listener.showProfile(binding.content.rebloggedStatusContent?.accountId ?: binding.content.accountId) }
+            binding.reply.setOnClickListener { listener.onReply(binding.content.rebloggedStatusContent ?: binding.content) }
+            binding.fav.setOnClickListener { listener.onFavStatus(binding.content.rebloggedStatusContent?.id ?: binding.content.id, binding.fav) }
+            binding.boost.setOnClickListener { listener.onBoostStatus(binding.content.rebloggedStatusContent?.id ?: binding.content.id, binding.boost) }
             binding.body.movementMethod = LinkMovementMethod.getInstance()
         }
     }
