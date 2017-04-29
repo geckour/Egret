@@ -140,24 +140,6 @@ class TimelineFragment: BaseFragment() {
         binding.recyclerView.adapter = adapter
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-
-        if (savedInstanceState == null) {
-            when (arguments.getString(ARGS_KEY_CATEGORY)) {
-                ARGS_VALUE_PUBLIC -> showPublicTimeline()
-                ARGS_VALUE_USER -> showUserTimeline(true)
-                ARGS_VALUE_HASH_TAG -> {}
-            }
-        } else {
-            when (arguments.getString(ARGS_KEY_CATEGORY)) {
-                ARGS_VALUE_PUBLIC -> showPublicTimeline()
-                ARGS_VALUE_USER -> showUserTimelineAsStream()
-                ARGS_VALUE_HASH_TAG -> {}
-            }
-        }
-    }
-
     override fun onPause() {
         super.onPause()
 
@@ -168,21 +150,36 @@ class TimelineFragment: BaseFragment() {
         super.onResume()
 
         restoreTimeline(bundle)
-        (activity as MainActivity).resetSelectionNavItem(when (getCategory()) {
-            ARGS_VALUE_PUBLIC -> MainActivity.NAV_ITEM_TL_PUBLIC
-            ARGS_VALUE_USER -> MainActivity.NAV_ITEM_TL_USER
-            else -> -1
-        })
+
+        (activity as MainActivity).resetSelectionNavItem(
+                when (getCategory()) {
+                    ARGS_VALUE_PUBLIC -> MainActivity.NAV_ITEM_TL_PUBLIC
+                    ARGS_VALUE_USER -> MainActivity.NAV_ITEM_TL_USER
+                    else -> -1
+                })
     }
 
     fun getCategory(): String = arguments.getString(ARGS_KEY_CATEGORY) ?: "Unknown"
 
-    fun restoreTimeline(savedInstanceState: Bundle?) {
-        if (savedInstanceState != null && savedInstanceState.containsKey(STATE_ARGS_KEY_CONTENTS)) {
+    fun restoreTimeline(savedInstanceState: Bundle) {
+        if (savedInstanceState.containsKey(STATE_ARGS_KEY_CONTENTS)) {
             adapter.clearContents()
             val parcelables: ArrayList<Parcelable> = savedInstanceState.getParcelableArrayList(STATE_ARGS_KEY_CONTENTS)
             adapter.addAllContents(parcelables.map { it as TimelineContent })
+
+            when (getCategory()) {
+                ARGS_VALUE_PUBLIC -> showPublicTimeline()
+                ARGS_VALUE_USER -> showUserTimelineAsStream()
+                ARGS_VALUE_HASH_TAG -> {}
+            }
+        } else {
+            when (getCategory()) {
+                ARGS_VALUE_PUBLIC -> showPublicTimeline()
+                ARGS_VALUE_USER -> showUserTimeline(true)
+                ARGS_VALUE_HASH_TAG -> {}
+            }
         }
+        savedInstanceState.clear()
     }
 
     fun showPublicTimeline() {
