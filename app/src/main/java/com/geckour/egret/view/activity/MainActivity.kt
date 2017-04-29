@@ -12,11 +12,13 @@ import android.support.v7.widget.SearchView
 import android.support.v7.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.ImageView
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
+import com.geckour.egret.view.adapter.TimelineAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
 import com.geckour.egret.view.fragment.AccountProfileFragment
 import com.geckour.egret.view.fragment.NewTootCreateFragment
@@ -36,6 +38,35 @@ import timber.log.Timber
 class MainActivity : BaseActivity() {
 
     lateinit var drawer: Drawer
+
+    val timelineListener = object: TimelineAdapter.IListenr {
+        override fun showPopup(view: View, content: TimelineContent) {
+
+        }
+
+        override fun showProfile(accountId: Long) {
+            AccountProfileFragment.newObservableInstance(accountId)
+                    .subscribe( {
+                        fragment ->
+                        supportFragmentManager.beginTransaction()
+                                .replace(R.id.container, fragment, AccountProfileFragment.TAG)
+                                .addToBackStack(AccountProfileFragment.TAG)
+                                .commit()
+                    }, Throwable::printStackTrace)
+        }
+
+        override fun onReply(content: TimelineContent) {
+            replyStatusById(content)
+        }
+
+        override fun onFavStatus(statusId: Long, view: ImageView) {
+            favStatusById(statusId, view)
+        }
+
+        override fun onBoostStatus(statusId: Long, view: ImageView) {
+            boostStatusById(statusId, view)
+        }
+    }
 
     companion object {
         val NAV_ITEM_LOGIN: Long = 0

@@ -4,6 +4,7 @@ import com.geckour.egret.api.model.*
 import com.geckour.egret.api.service.MastodonService
 import com.geckour.egret.util.OkHttpProvider
 import com.google.gson.GsonBuilder
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import okhttp3.ResponseBody
@@ -75,4 +76,6 @@ class MastodonClient(baseUrl: String) {
             spoilerText: String? = null,
             visibility: MastodonService.Visibility? = null
     ): Single<Status> = service.postNewToot(body, inReplyToId, mediaIds, isSensitive, spoilerText, visibility?.name)
+
+    fun deleteToot(statusId: Long): Completable = service.deleteToot(statusId)
 }

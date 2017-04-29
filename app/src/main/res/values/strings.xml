@@ -6,8 +6,9 @@
 
     <string name="action_settings">Settings</string>
     <string name="action_search">Search</string>
-    <string name="action_mute">Mute...</string>
-    <string name="action_block">Block</string>
+    <string name="action_mute">Mute…</string>
+    <string name="action_block">Block this account</string>
+    <string name="action_delete">Delete this toot</string>
     <string name="title_activity_login">Sign in</string>
 
     <!-- Strings related to login -->
@@ -26,9 +27,6 @@
         completions."
     </string>
 
-    <string name="title_activity_splash">SplashActivity</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="splash_content">Egret</string>
 
     <string name="navigation_drawer_item_login">Login to another account</string>
