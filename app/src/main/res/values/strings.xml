@@ -5,6 +5,10 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+    <string name="action_search">Search</string>
+    <string name="action_mute">Mute…</string>
+    <string name="action_block">Block this account</string>
+    <string name="action_delete">Delete this toot</string>
     <string name="title_activity_login">Sign in</string>
 
     <!-- Strings related to login -->
@@ -23,9 +27,6 @@
         completions."
     </string>
 
-    <string name="title_activity_splash">SplashActivity</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="splash_content">Egret</string>
 
     <string name="navigation_drawer_item_login">Login to another account</string>
@@ -38,4 +39,11 @@
     <string name="reblogged_by">Boosted by</string>
 
     <string name="hint_new_toot">What\'s go on with you?</string>
+
+    <string name="dialog_title_mute">Choose mute option</string>
+    
+    <string name="array_item_mute_account">Mute ACCOUNT: %1$s</string>
+    <string name="array_item_mute_keyword">Mute KEYWORD: %1$s</string>
+    <string name="array_item_mute_instance">Mute INSTANCE: %1$s</string>
+    <string name="array_item_mute_client">Mute APP: %1$s</string>
 </resources>

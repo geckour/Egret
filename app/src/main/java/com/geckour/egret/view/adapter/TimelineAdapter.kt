@@ -1,26 +1,28 @@
 package com.geckour.egret.view.adapter
 
 import android.databinding.DataBindingUtil
+import android.support.design.widget.Snackbar
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.RecyclerView
 import android.text.method.LinkMovementMethod
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.ImageView
+import android.widget.PopupMenu
 import com.geckour.egret.R
+import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.databinding.ItemRecycleTimelineBinding
 import com.geckour.egret.util.Common
-import com.geckour.egret.util.RoundedCornerTransformation
+import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.adapter.model.TimelineContent
-import com.squareup.picasso.Picasso
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import java.util.*
 
-class TimelineAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineAdapter.ViewHolder>() {
+class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAdapter.ViewHolder>() {
 
     private val contents: ArrayList<TimelineContent> = ArrayList()
 
-    inner class ViewHolder(val binding: ItemRecycleTimelineBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class ViewHolder(val binding: ItemRecycleTimelineBinding): RecyclerView.ViewHolder(binding.root) {
         fun bindData(content: TimelineContent) {
             binding.content = content
 
@@ -38,15 +40,62 @@ class TimelineAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineAda
                             binding.boost.context,
                             if (binding.content.rebloggedStatusContent?.reblogged ?: binding.content.reblogged) R.color.colorAccent else R.color.icon_tint_dark))
 
+            binding.opt.setOnClickListener { showPopup(it) }
             binding.icon.setOnClickListener { listener.showProfile(binding.content.rebloggedStatusContent?.accountId ?: binding.content.accountId) }
             binding.reply.setOnClickListener { listener.onReply(binding.content.rebloggedStatusContent ?: binding.content) }
             binding.fav.setOnClickListener { listener.onFavStatus(binding.content.rebloggedStatusContent?.id ?: binding.content.id, binding.fav) }
             binding.boost.setOnClickListener { listener.onBoostStatus(binding.content.rebloggedStatusContent?.id ?: binding.content.id, binding.boost) }
             binding.body.movementMethod = LinkMovementMethod.getInstance()
         }
+
+        fun showPopup(view: View) {
+            val popup = PopupMenu(view.context, view)
+            val currentAccountId = OrmaProvider.db.selectFromAccessToken().isCurrentEq(true).last().accountId
+            val contentAccountId = binding.content.accountId
+
+            popup.setOnMenuItemClickListener { item ->
+                when (item?.itemId) {
+                    R.id.action_mute -> {
+                        listener.showMuteDialog(binding.content)
+                        true
+                    }
+
+                    R.id.action_block -> {
+                        Common.resetAuthInfo()?.let {
+                            MastodonClient(it).blockAccount(binding.content.accountId)
+                                    .subscribeOn(Schedulers.newThread())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .subscribe({
+                                        Snackbar.make(view, "Blocked: ${binding.content.nameWeak}", Snackbar.LENGTH_SHORT).show()
+                                    }, Throwable::printStackTrace)
+                        }
+                        true
+                    }
+
+                    R.id.action_delete -> {
+                        Common.resetAuthInfo()?.let {
+                            MastodonClient(it).deleteToot(binding.content.id)
+                                    .subscribeOn(Schedulers.newThread())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .subscribe({
+                                        removeContentByTootId(binding.content.id)
+                                        Snackbar.make(view, "Deleted: ${binding.content.body}", Snackbar.LENGTH_SHORT).show()
+                                    }, Throwable::printStackTrace)
+                        }
+                        true
+                    }
+
+                    else -> false
+                }
+            }
+            popup.inflate(if (contentAccountId == currentAccountId) R.menu.toot_own else R.menu.toot_general)
+            popup.show()
+        }
     }
 
-    interface IListenr {
+    interface IListener {
+        fun showMuteDialog(content: TimelineContent)
+
         fun showProfile(accountId: Long)
 
         fun onReply(content: TimelineContent)
@@ -70,18 +119,26 @@ class TimelineAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineAda
         return contents.size
     }
 
+    fun getContent(index: Int): TimelineContent = this.contents[index]
+
     fun getContents(): List<TimelineContent> = this.contents
 
     fun addContent(content: TimelineContent, limit: Int = DEFAULT_ITEMS_LIMIT) {
-        this.contents.add(0, content)
-        notifyItemInserted(0)
-        removeItemsWhenOverLimit(limit)
+        val c = content.takeIf { c -> shouldMute(c) }?.let {
+            this.contents.add(0, it)
+            notifyItemInserted(0)
+            removeItemsWhenOverLimit(limit)
+        }
     }
 
     fun addAllContents(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
-        this.contents.addAll(0, contents)
-        notifyItemRangeInserted(0, contents.size)
-        removeItemsWhenOverLimit(limit)
+        val c = contents.takeWhile { c -> shouldMute(c) }
+
+        if (c.isNotEmpty()) {
+            this.contents.addAll(0, c)
+            notifyItemRangeInserted(0, contents.size)
+            removeItemsWhenOverLimit(limit)
+        }
     }
 
     fun addAllContentsInLast(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
@@ -112,6 +169,22 @@ class TimelineAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineAda
             contents.remove(content)
             notifyItemRemoved(index)
         }
+    }
+
+    fun shouldMute(content: TimelineContent): Boolean {
+        OrmaProvider.db.selectFromMuteKeyword().forEach {
+            if (it.isRegex) {
+                if (content.body.matches(Regex(it.keyword))) return false
+            } else if (content.body.contains(it.keyword)) return false
+        }
+        OrmaProvider.db.selectFromMuteInstance().forEach {
+            if (content.nameWeak.matches(Regex("@.+${it.instance}"))) return false
+        }
+        OrmaProvider.db.selectFromMuteClient().forEach {
+            if (content.app == it.client) return false
+        }
+
+        return true
     }
 
     private fun removeItemsWhenOverLimit(limit: Int) {

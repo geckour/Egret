@@ -1,26 +1,31 @@
 package com.geckour.egret.view.activity
 
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
-import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.Snackbar
-import android.support.design.widget.NavigationView
 import android.support.v4.content.ContextCompat
-import android.support.v4.view.GravityCompat
-import android.support.v4.widget.DrawerLayout
+import android.support.v7.widget.SearchView
 import android.support.v7.widget.Toolbar
+import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.ImageView
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
-import com.geckour.egret.api.model.Account
+import com.geckour.egret.model.MuteClient
+import com.geckour.egret.model.MuteInstance
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
+import com.geckour.egret.view.adapter.TimelineAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
 import com.geckour.egret.view.fragment.AccountProfileFragment
+import com.geckour.egret.view.fragment.ListDialogFragment
 import com.geckour.egret.view.fragment.NewTootCreateFragment
 import com.geckour.egret.view.fragment.TimelineFragment
 import com.mikepenz.materialdrawer.AccountHeaderBuilder
@@ -30,7 +35,6 @@ import com.mikepenz.materialdrawer.model.DividerDrawerItem
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem
 import com.squareup.picasso.Picasso
-import com.trello.rxlifecycle2.components.support.RxAppCompatActivity
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -39,6 +43,106 @@ import timber.log.Timber
 class MainActivity : BaseActivity() {
 
     lateinit var drawer: Drawer
+
+    val timelineListener = object: TimelineAdapter.IListener {
+        override fun showMuteDialog(content: TimelineContent) {
+            var itemStrings = resources.getStringArray(R.array.mute_from_toot).toList()
+            itemStrings = itemStrings.mapIndexed { i, s ->
+                when (i) {
+                    0 -> s.format(content.nameWeak)
+                    1 -> s.format(content.body)
+                    2 -> {
+                        var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
+                        
+                        if (content.nameWeak == instance) {
+                            val instanceId = Common.getCurrentAccessToken()?.instanceId
+                            if (instanceId == null) return@mapIndexed ""
+                            else instance = "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance}"
+                        }
+                        s.format(instance)
+                    }
+                    3 -> if (content.app != null) s.format(content.app) else ""
+                    else -> s
+                }
+            }
+            ListDialogFragment.newInstance(
+                    getString(R.string.dialog_title_mute),
+                    itemStrings,
+                    DialogInterface.OnClickListener { dialogInterface, i ->
+                        when (i) {
+                            0 -> {
+                                Common.resetAuthInfo()?.let {
+                                    MastodonClient(it).muteAccount(content.accountId)
+                                            .subscribeOn(Schedulers.newThread())
+                                            .observeOn(AndroidSchedulers.mainThread())
+                                            .subscribe({
+                                                Snackbar.make(findViewById(R.id.container), "Muted account: ${content.nameWeak}", Snackbar.LENGTH_SHORT).show()
+                                            }, Throwable::printStackTrace)
+                                }
+                            }
+
+                            1 -> {
+                                // TODO: キーワードミュート用のFragmentを作って content.body を投げる
+                            }
+
+                            2 -> {
+                                var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
+
+                                if (content.nameWeak == instance) {
+                                    val instanceId = Common.getCurrentAccessToken()?.instanceId
+                                    if (instanceId == null) return@OnClickListener
+                                    else instance = "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance}"
+                                }
+
+                                OrmaProvider.db.prepareInsertIntoMuteInstanceAsSingle()
+                                        .map { inserter -> inserter.executeAsSingle(MuteInstance(-1L, instance)) }
+                                        .subscribeOn(Schedulers.newThread())
+                                        .observeOn(AndroidSchedulers.mainThread())
+                                        .compose(bindToLifecycle())
+                                        .subscribe({
+                                            Snackbar.make(findViewById(R.id.container), "Muted instance: $instance", Snackbar.LENGTH_SHORT).show()
+                                        }, Throwable::printStackTrace)
+                            }
+
+                            3 -> {
+                                content.app?.let {
+                                    OrmaProvider.db.prepareInsertIntoMuteClientAsSingle()
+                                            .map { inserter -> inserter.executeAsSingle(MuteClient(-1L, it)) }
+                                            .subscribeOn(Schedulers.newThread())
+                                            .observeOn(AndroidSchedulers.mainThread())
+                                            .compose(bindToLifecycle())
+                                            .subscribe({
+                                                Snackbar.make(findViewById(R.id.container), "Muted client: ${content.app}", Snackbar.LENGTH_SHORT).show()
+                                            }, Throwable::printStackTrace)
+                                }
+                            }
+                        }
+                    }).show(supportFragmentManager, ListDialogFragment.TAG)
+        }
+
+        override fun showProfile(accountId: Long) {
+            AccountProfileFragment.newObservableInstance(accountId)
+                    .subscribe( {
+                        fragment ->
+                        supportFragmentManager.beginTransaction()
+                                .replace(R.id.container, fragment, AccountProfileFragment.TAG)
+                                .addToBackStack(AccountProfileFragment.TAG)
+                                .commit()
+                    }, Throwable::printStackTrace)
+        }
+
+        override fun onReply(content: TimelineContent) {
+            replyStatusById(content)
+        }
+
+        override fun onFavStatus(statusId: Long, view: ImageView) {
+            favStatusById(statusId, view)
+        }
+
+        override fun onBoostStatus(statusId: Long, view: ImageView) {
+            boostStatusById(statusId, view)
+        }
+    }
 
     companion object {
         val NAV_ITEM_LOGIN: Long = 0
@@ -211,15 +315,28 @@ class MainActivity : BaseActivity() {
         return true
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        menu?.findItem(R.id.action_search)?.icon?.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP)
+        (menu?.findItem(R.id.action_search)?.actionView as SearchView?)?.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
+            override fun onQueryTextChange(text: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextSubmit(text: String?): Boolean {
+                Snackbar.make(findViewById(R.id.container), "Not implemented", Snackbar.LENGTH_SHORT).show()
+                return false
+            }
+        })
+
+        return super.onPrepareOptionsMenu(menu)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        val id = item.itemId
 
-
-        if (id == R.id.action_settings) {
-            return true
+        when (item.itemId) {
         }
 
         return super.onOptionsItemSelected(item)
