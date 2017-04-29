@@ -16,7 +16,8 @@ data class TimelineContent(
         var body: Spanned,
         var favourited: Boolean,
         var reblogged: Boolean,
-        var rebloggedStatusContent: TimelineContent?
+        var rebloggedStatusContent: TimelineContent?,
+        var app: String?
 ): PaperParcelable {
     companion object {
         @JvmField val CREATOR = PaperParcelTimelineContent.CREATOR

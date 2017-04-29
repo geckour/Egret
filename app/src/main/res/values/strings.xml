@@ -39,4 +39,11 @@
     <string name="reblogged_by">Boosted by</string>
 
     <string name="hint_new_toot">What\'s go on with you?</string>
+
+    <string name="dialog_title_mute">Choose mute option</string>
+    
+    <string name="array_item_mute_account">Mute ACCOUNT: %1$s</string>
+    <string name="array_item_mute_keyword">Mute KEYWORD: %1$s</string>
+    <string name="array_item_mute_instance">Mute INSTANCE: %1$s</string>
+    <string name="array_item_mute_client">Mute APP: %1$s</string>
 </resources>

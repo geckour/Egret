@@ -18,7 +18,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.util.*
 
-class TimelineAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineAdapter.ViewHolder>() {
+class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAdapter.ViewHolder>() {
 
     private val contents: ArrayList<TimelineContent> = ArrayList()
 
@@ -56,14 +56,7 @@ class TimelineAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineAda
             popup.setOnMenuItemClickListener { item ->
                 when (item?.itemId) {
                     R.id.action_mute -> {
-                        Common.resetAuthInfo()?.let {
-                            MastodonClient(it).muteAccount(binding.content.accountId)
-                                    .subscribeOn(Schedulers.newThread())
-                                    .observeOn(AndroidSchedulers.mainThread())
-                                    .subscribe({
-                                        Snackbar.make(view, "Muted: ${binding.content.nameWeak}", Snackbar.LENGTH_SHORT).show()
-                                    }, Throwable::printStackTrace)
-                        }
+                        listener.showMuteDialog(binding.content)
                         true
                     }
 
@@ -100,8 +93,8 @@ class TimelineAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineAda
         }
     }
 
-    interface IListenr {
-        fun showPopup(view: View, content: TimelineContent)
+    interface IListener {
+        fun showMuteDialog(content: TimelineContent)
 
         fun showProfile(accountId: Long)
 
@@ -131,15 +124,21 @@ class TimelineAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineAda
     fun getContents(): List<TimelineContent> = this.contents
 
     fun addContent(content: TimelineContent, limit: Int = DEFAULT_ITEMS_LIMIT) {
-        this.contents.add(0, content)
-        notifyItemInserted(0)
-        removeItemsWhenOverLimit(limit)
+        val c = content.takeIf { c -> shouldMute(c) }?.let {
+            this.contents.add(0, it)
+            notifyItemInserted(0)
+            removeItemsWhenOverLimit(limit)
+        }
     }
 
     fun addAllContents(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
-        this.contents.addAll(0, contents)
-        notifyItemRangeInserted(0, contents.size)
-        removeItemsWhenOverLimit(limit)
+        val c = contents.takeWhile { c -> shouldMute(c) }
+
+        if (c.isNotEmpty()) {
+            this.contents.addAll(0, c)
+            notifyItemRangeInserted(0, contents.size)
+            removeItemsWhenOverLimit(limit)
+        }
     }
 
     fun addAllContentsInLast(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
@@ -170,6 +169,22 @@ class TimelineAdapter(val listener: IListenr) : RecyclerView.Adapter<TimelineAda
             contents.remove(content)
             notifyItemRemoved(index)
         }
+    }
+
+    fun shouldMute(content: TimelineContent): Boolean {
+        OrmaProvider.db.selectFromMuteKeyword().forEach {
+            if (it.isRegex) {
+                if (content.body.matches(Regex(it.keyword))) return false
+            } else if (content.body.contains(it.keyword)) return false
+        }
+        OrmaProvider.db.selectFromMuteInstance().forEach {
+            if (content.nameWeak.matches(Regex("@.+${it.instance}"))) return false
+        }
+        OrmaProvider.db.selectFromMuteClient().forEach {
+            if (content.app == it.client) return false
+        }
+
+        return true
     }
 
     private fun removeItemsWhenOverLimit(limit: Int) {

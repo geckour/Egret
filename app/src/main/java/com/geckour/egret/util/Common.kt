@@ -65,7 +65,8 @@ class Common {
                 status.favourited,
                 status.reblogged,
                 if (status.reblog != null || notification != null)
-                    getTimelineContent(notification?.status ?: status.reblog!!) else null)
+                    getTimelineContent(notification?.status ?: status.reblog!!) else null,
+                status.application?.name)
 
         fun getProfileContent(account: Account): ProfileContent = ProfileContent(
                 account.avatarUrl,
