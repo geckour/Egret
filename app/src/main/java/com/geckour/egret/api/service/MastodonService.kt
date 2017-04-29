@@ -1,6 +1,7 @@
 package com.geckour.egret.api.service
 
 import com.geckour.egret.api.model.*
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import okhttp3.ResponseBody
@@ -182,6 +183,12 @@ interface MastodonService {
             @Path("id")
             accountId: Long
     ): Single<Relationship>
+
+    @DELETE("api/v1/statuses/{id}")
+    fun deleteToot(
+            @Path("id")
+            statusId: Long
+    ): Completable
 
     companion object {
         fun events(source: BufferedSource): Observable<String> {

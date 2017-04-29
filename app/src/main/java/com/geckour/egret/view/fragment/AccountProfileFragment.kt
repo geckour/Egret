@@ -172,27 +172,7 @@ class AccountProfileFragment: BaseFragment() {
                 }, Throwable::printStackTrace)
 
         binding.recyclerView.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
-        adapter = TimelineAdapter(object: TimelineAdapter.IListenr {
-            override fun showProfile(accountId: Long) {
-                newObservableInstance(accountId)
-                        .subscribe( {
-                            fragment ->
-                            activity.supportFragmentManager.beginTransaction().replace(R.id.container, fragment, TAG).addToBackStack(TAG).commit()
-                        }, Throwable::printStackTrace)
-            }
-
-            override fun onReply(content: TimelineContent) {
-                (activity as MainActivity).replyStatusById(content)
-            }
-
-            override fun onFavStatus(statusId: Long, view: ImageView) {
-                (activity as MainActivity).favStatusById(statusId, view)
-            }
-
-            override fun onBoostStatus(statusId: Long, view: ImageView) {
-                (activity as MainActivity).boostStatusById(statusId, view)
-            }
-        })
+        adapter = TimelineAdapter((activity as MainActivity).timelineListener)
         binding.recyclerView.adapter = adapter
 
         binding.recyclerView.addOnScrollListener(object: RecyclerView.OnScrollListener() {

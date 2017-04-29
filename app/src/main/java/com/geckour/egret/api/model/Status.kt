@@ -49,5 +49,5 @@ data class Status(
 
         var tags: List<Tag>,
 
-        var application: Application
+        var application: Application?
 )

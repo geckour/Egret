@@ -13,6 +13,7 @@
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:clickable="true"
         android:orientation="horizontal"
         android:padding="8dp">
 
@@ -22,9 +23,9 @@
             android:layout_height="42dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
+            app:imageUrl="@{(content.rebloggedStatusContent == null) ? content.iconUrl : content.rebloggedStatusContent.iconUrl}"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/wrap"
-            app:imageUrl="@{(content.rebloggedStatusContent == null) ? content.iconUrl : content.rebloggedStatusContent.iconUrl}"/>
+            app:layout_constraintTop_toTopOf="@+id/wrap"/>
 
         <LinearLayout
             android:id="@+id/wrap_rebloggedBy"

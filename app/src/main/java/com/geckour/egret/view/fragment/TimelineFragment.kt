@@ -9,11 +9,10 @@ import android.support.design.widget.FloatingActionButton
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.RecyclerView
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import android.widget.ExpandableListView
 import android.widget.ImageView
+import android.widget.PopupMenu
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Notification
@@ -113,30 +112,7 @@ class TimelineFragment: BaseFragment() {
                 }
             }
         })
-        adapter = TimelineAdapter(object: TimelineAdapter.IListenr {
-            override fun showProfile(accountId: Long) {
-                AccountProfileFragment.newObservableInstance(accountId)
-                        .subscribe( {
-                            fragment ->
-                            activity.supportFragmentManager.beginTransaction()
-                                    .replace(R.id.container, fragment, AccountProfileFragment.TAG)
-                                    .addToBackStack(AccountProfileFragment.TAG)
-                                    .commit()
-                        }, Throwable::printStackTrace)
-            }
-
-            override fun onReply(content: TimelineContent) {
-                (activity as MainActivity).replyStatusById(content)
-            }
-
-            override fun onFavStatus(statusId: Long, view: ImageView) {
-                (activity as MainActivity).favStatusById(statusId, view)
-            }
-
-            override fun onBoostStatus(statusId: Long, view: ImageView) {
-                (activity as MainActivity).boostStatusById(statusId, view)
-            }
-        })
+        adapter = TimelineAdapter((activity as MainActivity).timelineListener)
         binding.recyclerView.adapter = adapter
     }
 
