@@ -79,7 +79,6 @@ class TimelineFragment: BaseFragment() {
         val category = getCategory()
         (activity as MainActivity).supportActionBar?.title = "$category TL - $domain"
 
-        binding.recyclerView.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
         binding.recyclerView.setOnTouchListener { view, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
