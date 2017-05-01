@@ -19,6 +19,10 @@ android {
         javaMaxHeapSize "2g"
         preDexLibraries true
     }
+    dexOptions {
+        javaMaxHeapSize "2g"
+        preDexLibraries true
+    }
     buildTypes {
         release {
             minifyEnabled false
