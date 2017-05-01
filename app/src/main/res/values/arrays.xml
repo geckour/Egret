@@ -6,4 +6,16 @@
         <item>@string/array_item_mute_instance</item>
         <item>@string/array_item_mute_client</item>
     </string-array>
+
+    <string-array name="pref_manage_stream_entries">
+        <item>@string/pref_stream_always</item>
+        <item>@string/pref_stream_wifi</item>
+        <item>@string/pref_stream_never</item>
+    </string-array>
+
+    <string-array name="pref_manage_stream_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
 </resources>

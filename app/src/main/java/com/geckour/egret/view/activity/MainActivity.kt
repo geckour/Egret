@@ -148,6 +148,7 @@ class MainActivity : BaseActivity() {
         val NAV_ITEM_LOGIN: Long = 0
         val NAV_ITEM_TL_PUBLIC: Long = 1
         val NAV_ITEM_TL_USER: Long = 2
+        val NAV_ITEM_SETTINGS: Long = 3
 
         fun getIntent(context: Context): Intent {
             val intent = Intent(context, MainActivity::class.java)
@@ -167,9 +168,9 @@ class MainActivity : BaseActivity() {
         val accountHeader = AccountHeaderBuilder().withActivity(this)
                 .withHeaderBackground(R.drawable.side_nav_bar)
                 .withOnAccountHeaderListener { v, profile, current ->
-                    val token = Common.resetAuthInfo()
-                    if (token != null && v.id == R.id.material_drawer_account_header_current) {
-                        MastodonClient(token).getSelfAccount()
+                    if (v.id == R.id.material_drawer_account_header_current) {
+                        Common.resetAuthInfo()?.let {
+                            MastodonClient(it).getSelfAccount()
                                 .subscribeOn(Schedulers.newThread())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .compose(bindToLifecycle())
@@ -180,6 +181,7 @@ class MainActivity : BaseActivity() {
                                             .addToBackStack(AccountProfileFragment.TAG)
                                             .commit()
                                 }, Throwable::printStackTrace)
+                        }
                         false
                     } else if (!current) {
                         OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).executeAsSingle()
@@ -206,7 +208,9 @@ class MainActivity : BaseActivity() {
                         PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_public).withIdentifier(NAV_ITEM_TL_PUBLIC),
                         PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_user).withIdentifier(NAV_ITEM_TL_USER),
                         DividerDrawerItem(),
-                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_login).withIdentifier(NAV_ITEM_LOGIN)
+                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_login).withIdentifier(NAV_ITEM_LOGIN),
+                        DividerDrawerItem(),
+                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_settings).withIdentifier(NAV_ITEM_SETTINGS)
                 )
                 .withOnDrawerItemClickListener { v, position, item ->
                     return@withOnDrawerItemClickListener when (item.identifier) {
@@ -240,6 +244,12 @@ class MainActivity : BaseActivity() {
                                         .addToBackStack(TimelineFragment.TAG)
                                         .commit()
                             }
+                            false
+                        }
+
+                        NAV_ITEM_SETTINGS -> {
+                            val intent = SettingActivity.getIntent(this)
+                            startActivity(intent)
                             false
                         }
 
