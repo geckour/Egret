@@ -1,10 +1,16 @@
 package com.geckour.egret.util
 
-import android.annotation.TargetApi
+import android.app.Activity
+import android.content.Context
+import android.net.Uri
 import android.os.Build
+import android.support.customtabs.CustomTabsIntent
+import android.support.v4.content.ContextCompat
 import android.text.Html
 import android.text.Spanned
 import android.text.format.DateFormat
+import android.widget.TextView
+import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Account
 import com.geckour.egret.api.model.Notification
@@ -111,6 +117,20 @@ class Common {
                     }
                 }
                 return Html.fromHtml(html, null, handler)
+            }
+        }
+
+        fun getMutableLinkMovementMethodForCustomTab(context: Context) = MutableLinkMovementMethod(getOnUrlClickListenerForCustomTab(context))
+
+        fun getOnUrlClickListenerForCustomTab(context: Context): MutableLinkMovementMethod.OnUrlClickListener {
+            return object: MutableLinkMovementMethod.OnUrlClickListener {
+                override fun onUrlClick(view: TextView?, uri: Uri) {
+                    CustomTabsIntent.Builder()
+                            .setShowTitle(true)
+                            .setToolbarColor(ContextCompat.getColor(context, R.color.colorPrimary))
+                            .build()
+                            .launchUrl(context, uri)
+                }
             }
         }
     }

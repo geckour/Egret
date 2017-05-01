@@ -45,7 +45,7 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
             binding.reply.setOnClickListener { listener.onReply(binding.content.rebloggedStatusContent ?: binding.content) }
             binding.fav.setOnClickListener { listener.onFavStatus(binding.content.rebloggedStatusContent?.id ?: binding.content.id, binding.fav) }
             binding.boost.setOnClickListener { listener.onBoostStatus(binding.content.rebloggedStatusContent?.id ?: binding.content.id, binding.boost) }
-            binding.body.movementMethod = LinkMovementMethod.getInstance()
+            binding.body.movementMethod = Common.getMutableLinkMovementMethodForCustomTab(binding.body.context) // TODO: LinkMovementMethod.getInstance() と切替可能に
         }
 
         fun showPopup(view: View) {
