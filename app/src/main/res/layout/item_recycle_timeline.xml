@@ -8,36 +8,69 @@
         <variable
             name="content"
             type="com.geckour.egret.view.adapter.model.TimelineContent" />
-        <variable
-            name="timeString"
-            type="String" />
     </data>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:clickable="true"
+        android:orientation="horizontal"
+        android:padding="8dp">
 
         <ImageView
             android:id="@+id/icon"
             android:layout_width="42dp"
             android:layout_height="42dp"
-            android:layout_marginBottom="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginStart="8dp"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            app:imageUrl="@{(content.rebloggedStatusContent == null) ? content.iconUrl : content.rebloggedStatusContent.iconUrl}"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/wrap"
-            app:layout_constraintVertical_bias="0.0"
-            app:srcCompat="@drawable/egret" />
+            app:layout_constraintTop_toTopOf="@+id/wrap"/>
+
+        <LinearLayout
+            android:id="@+id/wrap_rebloggedBy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintLeft_toLeftOf="@+id/wrap"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/indicate_reblog"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginRight="4dp"
+                android:tint="@color/secondary_text_material_light"
+                app:srcCompat="@drawable/ic_repeat_black_24px"/>
+
+            <TextView
+                android:id="@+id/rebloggedBy"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="4dp"
+                android:text="@string/reblogged_by"
+                android:textSize="10sp"/>
+
+            <TextView
+                android:id="@+id/reblogged_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:text="@{content.nameStrong}"
+                android:textSize="10sp"
+                tools:text="ゆーざーねーむ"/>
+        </LinearLayout>
 
         <android.support.constraint.ConstraintLayout
             android:id="@+id/wrap"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
             android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
             android:layout_marginTop="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintHeight_default="wrap"
@@ -45,29 +78,29 @@
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toRightOf="@+id/icon"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toBottomOf="@+id/wrap_rebloggedBy"
+            app:layout_constraintVertical_bias="1.0">
 
             <TextView
                 android:id="@+id/body"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
+                android:bufferType="spannable"
+                android:clickable="true"
                 android:ellipsize="none"
-                android:text="@{Html.fromHtml(content.body)}"
-                tools:text="これはトゥート本文です"
+                android:text="@{(content.rebloggedStatusContent == null) ? content.body : content.rebloggedStatusContent.body}"
                 android:textSize="12sp"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/name_wrap" />
+                app:layout_constraintTop_toBottomOf="@+id/name_wrap"
+                tools:text="これはトゥート本文です"/>
 
             <ImageView
                 android:id="@+id/image"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="32dp"
-                android:layout_marginRight="32dp"
-                android:layout_marginTop="8dp"
                 android:adjustViewBounds="true"
                 android:maxHeight="140dp"
                 android:scaleType="centerCrop"
@@ -78,12 +111,13 @@
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/body"
                 app:layout_constraintVertical_bias="0.0"
-                app:srcCompat="@drawable/egret" />
+                app:srcCompat="@drawable/egret"/>
 
             <android.support.constraint.ConstraintLayout
                 android:id="@+id/name_wrap"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
                 android:layout_marginRight="8dp"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toLeftOf="@+id/time"
@@ -97,11 +131,11 @@
                     android:inputType="none"
                     android:maxLines="1"
                     android:singleLine="true"
-                    android:text="@{content.nameStrong}"
+                    android:text="@{(content.rebloggedStatusContent == null) ? content.nameStrong : content.rebloggedStatusContent.nameStrong}"
                     android:textSize="12sp"
-                    tools:text="つよいなまえ"
                     app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="つよいなまえ"/>
 
                 <TextView
                     android:id="@+id/name_weak"
@@ -110,11 +144,11 @@
                     android:layout_marginTop="4dp"
                     android:ellipsize="end"
                     android:singleLine="true"
-                    android:text="@{content.nameWeak}"
+                    android:text="@{(content.rebloggedStatusContent == null) ? content.nameWeak : content.rebloggedStatusContent.nameWeak}"
                     android:textSize="10sp"
-                    tools:text="よわいなまえ"
                     app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/name_strong" />
+                    app:layout_constraintTop_toBottomOf="@+id/name_strong"
+                    tools:text="よわいなまえ"/>
             </android.support.constraint.ConstraintLayout>
 
             <TextView
@@ -122,15 +156,92 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:layout_marginEnd="8dp"
                 android:layout_marginRight="8dp"
                 android:layout_marginTop="8dp"
-                android:text="@{timeString}"
+                android:text="@{(content.rebloggedStatusContent == null) ? content.time : content.rebloggedStatusContent.time}"
                 android:textSize="10sp"
-                tools:text="HH:MM"
                 app:layout_constraintBottom_toBottomOf="@+id/name_wrap"
+                app:layout_constraintRight_toLeftOf="@+id/opt"
+                app:layout_constraintTop_toTopOf="@+id/name_wrap"
+                tools:text="HH:MM"/>
+
+            <ImageView
+                android:id="@+id/opt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:tint="@color/icon_tint_dark"
+                app:layout_constraintBottom_toBottomOf="@+id/time"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/name_wrap" />
+                app:layout_constraintTop_toTopOf="@+id/time"
+                app:srcCompat="@drawable/ic_more_vert_black_24px"/>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/body">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1">
+
+                    <ImageView
+                        android:id="@+id/reply"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:tint="@color/icon_tint_dark"
+                        app:srcCompat="@drawable/ic_reply_black_24px"/>
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1">
+
+                    <ImageView
+                        android:id="@+id/fav"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:tint="@color/icon_tint_dark"
+                        app:srcCompat="@drawable/ic_star_black_24px"/>
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1">
+
+                    <ImageView
+                        android:id="@+id/boost"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:tint="@color/icon_tint_dark"
+                        app:srcCompat="@drawable/ic_repeat_black_24px"/>
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1">
+
+                </FrameLayout>
+
+            </LinearLayout>
 
         </android.support.constraint.ConstraintLayout>
-    </LinearLayout>
+    </android.support.constraint.ConstraintLayout>
 </layout>

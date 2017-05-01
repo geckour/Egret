@@ -18,7 +18,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 
-class AccessInstanceFragment: RxFragment() {
+class AccessInstanceFragment: BaseFragment() {
 
     companion object {
         val TAG = "accessInstanceFragment"
@@ -51,7 +51,7 @@ class AccessInstanceFragment: RxFragment() {
     }
 
     fun attemptChoseInstance() {
-        val domain = binding.editText.text.toString()
+        val domain = binding.editText.text.toString().replace(Regex("^https?://(.+)"), "$1")
         if (Patterns.WEB_URL.matcher(domain).matches()) requestResister(domain)
         else binding.editText.error = getString(R.string.error_incorrect_domain)
     }
@@ -85,6 +85,6 @@ class AccessInstanceFragment: RxFragment() {
     }
 
     fun createInstanceAuthInfo(domain: String, info: UserSpecificApp): InstanceAuthInfo {
-        return InstanceAuthInfo(-1L, domain, info.userId, info.clientId, info.clientSecret)
+        return InstanceAuthInfo(-1L, domain, info.id, info.clientId, info.clientSecret)
     }
 }

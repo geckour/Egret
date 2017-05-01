@@ -1,19 +1,26 @@
 package com.geckour.egret.api.service
 
-import com.geckour.egret.api.model.Account
-import com.geckour.egret.api.model.InstanceAccess
-import com.geckour.egret.api.model.UserSpecificApp
+import com.geckour.egret.api.model.*
+import io.reactivex.Completable
 import io.reactivex.Observable
-import io.reactivex.ObservableOnSubscribe
 import io.reactivex.Single
-import io.reactivex.disposables.Disposable
 import okhttp3.ResponseBody
 import okio.BufferedSource
+import retrofit2.adapter.rxjava2.Result
 import retrofit2.http.*
+import timber.log.Timber
 import java.io.IOException
 import java.net.SocketException
 
 interface MastodonService {
+
+    enum class Visibility(val rawValue: Int) {
+        `public`(0),
+        unlisted(1),
+        `private`(2),
+        direct(3)
+    }
+
     @FormUrlEncoded
     @POST("api/v1/apps")
     fun registerApp(
@@ -42,15 +49,146 @@ interface MastodonService {
             password: String,
 
             @Query("grant_type")
-            grantType: String = "password"
+            grantType: String = "password",
+
+            @Query("scope")
+            authorityScope: String = "read write follow"
     ): Single<InstanceAccess>
 
     @GET("api/v1/accounts/verify_credentials")
-    fun getSelfInfo(): Single<Account>
+    fun getSelfAccount(): Single<Account>
+
+    @GET("api/v1/accounts/{id}")
+    fun getAccount(
+            @Path("id")
+            accountId: Long
+    ): Observable<Account>
 
     @GET("api/v1/streaming/public")
     @Streaming
-    fun getPublicTimeline(): Observable<ResponseBody>
+    fun getPublicTimelineAsStream(): Observable<ResponseBody>
+
+    @GET("api/v1/streaming/user")
+    @Streaming
+    fun getUserTimelineAsStream(): Observable<ResponseBody>
+
+    @GET("api/v1/timelines/home")
+    fun getUserTimeline(): Single<Result<List<Status>>>
+
+    @GET("api/v1/timelines/home")
+    fun getUserTimeline(
+            @Query("max_id")
+            maxId: Long?
+    ): Single<Result<List<Status>>>
+
+    @GET("api/v1/accounts/{id}/statuses")
+    fun getAccountAllToots(
+            @Path("id")
+            accountId: Long,
+
+            @Query("max_id")
+            maxId: Long?
+    ): Single<Result<List<Status>>>
+
+    @FormUrlEncoded
+    @POST("api/v1/statuses")
+    fun postNewToot(
+            @Field("status")
+            body: String,
+
+            @Field("in_reply_to_id")
+            inReplyToId: Long?,
+
+            @Field("media_ids")
+            mediaIds: List<Long>?,
+
+            @Field("sensitive")
+            isSensitive: Boolean?,
+
+            @Field("spoiler_text")
+            spoilerText: String?,
+
+            @Field("visibility")
+            visibility: String?
+    ): Single<Status>
+
+    @POST("api/v1/statuses/{id}/favourite")
+    fun favoriteStatusById(
+            @Path("id")
+            statusId: Long
+    ): Single<Status>
+
+    @POST("api/v1/statuses/{id}/unfavourite")
+    fun unFavoriteStatusById(
+            @Path("id")
+            statusId: Long
+    ): Single<Status>
+
+    @POST("api/v1/statuses/{id}/reblog")
+    fun reblogStatusById(
+            @Path("id")
+            statusId: Long
+    ): Single<Status>
+
+    @POST("api/v1/statuses/{id}/unreblog")
+    fun unReblogStatusById(
+            @Path("id")
+            statusId: Long
+    ): Single<Status>
+
+    @GET("api/v1/statuses/{id}")
+    fun getStatusById(
+            @Path("id")
+            statusId: Long
+    ): Single<Status>
+
+    @GET("api/v1/accounts/relationships")
+    fun getAccountRelationships(
+            @Query("id")
+            vararg accountId: Long
+    ): Single<List<Relationship>>
+
+    @POST("api/v1/accounts/{id}/follow")
+    fun followAccount(
+            @Path("id")
+            accountId: Long
+    ): Single<Relationship>
+
+    @POST("api/v1/accounts/{id}/unfollow")
+    fun unFollowAccount(
+            @Path("id")
+            accountId: Long
+    ): Single<Relationship>
+
+    @POST("api/v1/accounts/{id}/block")
+    fun blockAccount(
+            @Path("id")
+            accountId: Long
+    ): Single<Relationship>
+
+    @POST("api/v1/accounts/{id}/unblock")
+    fun unBlockAccount(
+            @Path("id")
+            accountId: Long
+    ): Single<Relationship>
+
+    @POST("api/v1/accounts/{id}/mute")
+    fun muteAccount(
+            @Path("id")
+            accountId: Long
+    ): Single<Relationship>
+
+    @POST("api/v1/accounts/{id}/unmute")
+    fun unMuteAccount(
+            @Path("id")
+            accountId: Long
+    ): Single<Relationship>
+
+    @DELETE("api/v1/statuses/{id}")
+    fun deleteToot(
+            @Path("id")
+            statusId: Long
+    ): Completable
 
     companion object {
         fun events(source: BufferedSource): Observable<String> {
@@ -59,10 +197,12 @@ interface MastodonService {
                     while (!source.exhausted()) {
                         emitter.onNext(source.readUtf8Line())
                     }
-                } catch (e: IOException) {
-                    emitter.onError(e)
                 } catch (e: SocketException) {
-                    emitter.onError(e)
+                    //emitter.onError(e)
+                    e.printStackTrace()
+                } catch (e: IOException) {
+                    //emitter.onError(e)
+                    e.printStackTrace()
                 }
                 emitter.onComplete()
             }

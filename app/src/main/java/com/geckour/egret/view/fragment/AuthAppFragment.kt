@@ -1,20 +1,13 @@
 package com.geckour.egret.view.fragment
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.databinding.DataBindingUtil
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.provider.ContactsContract
-import android.support.design.widget.Snackbar
-import android.support.v4.content.ContextCompat.checkSelfPermission
 import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
-import android.widget.ArrayAdapter
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.InstanceAccess
@@ -22,12 +15,12 @@ import com.geckour.egret.databinding.FragmentLoginInstanceBinding
 import com.geckour.egret.model.AccessToken
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
+import com.geckour.egret.view.activity.BaseActivity
 import com.geckour.egret.view.activity.LoginActivity
 import com.trello.rxlifecycle2.components.support.RxFragment
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
-import java.util.ArrayList
 
 class AuthAppFragment: RxFragment() {
 
@@ -36,11 +29,6 @@ class AuthAppFragment: RxFragment() {
             val fragment = AuthAppFragment()
             return fragment
         }
-
-        /**
-         * Id to identity READ_CONTACTS permission request.
-         */
-        private val REQUEST_READ_CONTACTS = 0
     }
 
     private lateinit var binding: FragmentLoginInstanceBinding
@@ -52,9 +40,6 @@ class AuthAppFragment: RxFragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        // Set up the login form.
-        populateAutoComplete()
-
         binding.password.setOnEditorActionListener { textView, id, keyEvent ->
             if (id == R.id.login || id == EditorInfo.IME_NULL) {
                 attemptLogin()
@@ -63,47 +48,12 @@ class AuthAppFragment: RxFragment() {
         }
 
         binding.emailSignInButton.setOnClickListener { attemptLogin() }
+        focusToEmail()
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_login_instance, container, false)
         return binding.root
-    }
-
-    private fun populateAutoComplete() {
-        if (!mayRequestContacts()) {
-            return
-        }
-
-        addEmailsToAutoComplete(getEmailsFromContact())
-    }
-
-    private fun mayRequestContacts(): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return true
-        }
-        if (checkSelfPermission(activity, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
-            return true
-        }
-        if (shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)) {
-            Snackbar.make(binding.email, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(android.R.string.ok, { requestPermissions(arrayOf(Manifest.permission.READ_CONTACTS), REQUEST_READ_CONTACTS) })
-        } else {
-            requestPermissions(arrayOf(Manifest.permission.READ_CONTACTS), REQUEST_READ_CONTACTS)
-        }
-        return false
-    }
-
-    /**
-     * Callback received when a permissions request has been completed.
-     */
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>,
-                                            grantResults: IntArray) {
-        if (requestCode == REQUEST_READ_CONTACTS) {
-            if (grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                populateAutoComplete()
-            }
-        }
     }
 
     /**
@@ -157,22 +107,8 @@ class AuthAppFragment: RxFragment() {
         return email.matches(Regex(".+@.+\\..+"))
     }
 
-    private fun addEmailsToAutoComplete(emailAddressCollection: List<String>) {
-        //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
-        val adapter = ArrayAdapter(activity,
-                android.R.layout.simple_dropdown_item_1line, emailAddressCollection)
-
-        binding.email.setAdapter(adapter)
-    }
-
-
-    private interface ProfileQuery {
-        companion object {
-            val PROJECTION = arrayOf(ContactsContract.CommonDataKinds.Email.ADDRESS, ContactsContract.CommonDataKinds.Email.IS_PRIMARY)
-
-            val ADDRESS = 0
-            val IS_PRIMARY = 1
-        }
+    private fun focusToEmail() {
+        (activity as BaseActivity).showSoftKeyBoardOnFocusEditText(binding.email)
     }
 
     fun requestAuth(email: String, password: String) {
@@ -194,55 +130,31 @@ class AuthAppFragment: RxFragment() {
     }
 
     fun storeAccessToken(instanceId: Long, value: InstanceAccess) {
-        OrmaProvider.db.updateAccessToken().isCurrent(false).executeAsSingle()
+        OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).executeAsSingle()
+                .flatMap { OrmaProvider.db.relationOfAccessToken().upsertAsSingle(createAccessToken(instanceId, value)) }
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
-                .subscribe( { rowCount ->
-                    Timber.d("updated rows: $rowCount")
+                .subscribe({ value ->
+                    Timber.d("token: ${value.token}")
 
-                    OrmaProvider.db.relationOfAccessToken().upsertAsSingle(createAccessToken(instanceId, value))
-                            .subscribeOn(Schedulers.newThread())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .compose(bindToLifecycle())
-                            .subscribe({ value ->
-                                Timber.d("$value")
-                                Common().hasCertified(object : Common.IListener {
-                                    override fun onCheckCertify(hasCertified: Boolean) {
-                                        if (hasCertified) (activity as LoginActivity).showMainActivity()
-                                    }
-                                })
-                            }, Throwable::printStackTrace)
+                    Common.hasCertified(object : Common.Companion.IListener {
+                        override fun onCheckCertify(hasCertified: Boolean, accountId: Long) {
+                            if (hasCertified) {
+                                OrmaProvider.db.updateAccessToken().isCurrentEq(true).accountId(accountId).executeAsSingle()
+                                        .subscribeOn(Schedulers.newThread())
+                                        .observeOn(AndroidSchedulers.mainThread())
+                                        .compose(bindToLifecycle())
+                                        .subscribe(
+                                                { (activity as LoginActivity).showMainActivity() },
+                                                Throwable::printStackTrace)
+                            }
+                        }
+                    })
                 }, Throwable::printStackTrace)
     }
 
     fun createAccessToken(instanceId: Long, value: InstanceAccess): AccessToken {
-        return AccessToken(-1L, value.accessToken, instanceId, true)
-    }
-
-    fun getEmailsFromContact(): List<String> {
-        val emails: ArrayList<String> = ArrayList()
-
-        val cursor = activity.contentResolver.query(
-                // Retrieve data rows for the device user's 'profile' contact.
-                Uri.withAppendedPath(
-                        ContactsContract.Profile.CONTENT_URI,
-                        ContactsContract.Contacts.Data.CONTENT_DIRECTORY),
-                ProfileQuery.PROJECTION,
-
-                // Select only email addresses.
-                ContactsContract.Contacts.Data.MIMETYPE + " = ?",
-                arrayOf(ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE),
-
-                // Show primary email addresses first. Note that there won't be
-                // a primary email address if the user hasn't specified one.
-                ContactsContract.Contacts.Data.IS_PRIMARY + " DESC")
-
-        while (cursor.moveToNext()) {
-            emails.add(cursor.getString(ProfileQuery.ADDRESS))
-        }
-        cursor.close()
-
-        return emails
+        return AccessToken(-1L, value.accessToken, instanceId, -1L, true)
     }
 }

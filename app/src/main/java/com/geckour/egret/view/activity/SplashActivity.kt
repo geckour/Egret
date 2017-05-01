@@ -7,15 +7,15 @@ import com.geckour.egret.util.Common
 import com.trello.rxlifecycle2.components.support.RxAppCompatActivity
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper
 
-class SplashActivity : RxAppCompatActivity() {
+class SplashActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_splash)
 
-        Common().hasCertified(object: Common.IListener {
-            override fun onCheckCertify(hasCertified: Boolean) {
+        Common.hasCertified(object: Common.Companion.IListener {
+            override fun onCheckCertify(hasCertified: Boolean, accountId: Long) {
                 val intent = if (hasCertified) MainActivity.getIntent(this@SplashActivity) else LoginActivity.getIntent(this@SplashActivity)
                 startActivity(intent)
             }

@@ -13,6 +13,11 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         dataBinding.enabled = true
+        vectorDrawables.useSupportLibrary = true
+    }
+    dexOptions {
+        javaMaxHeapSize "2g"
+        preDexLibraries true
     }
     dexOptions {
         javaMaxHeapSize "2g"
@@ -69,6 +74,16 @@ dependencies {
     compile 'com.squareup.picasso:picasso:2.5.2'
 
     compile 'com.jakewharton.timber:timber:4.5.1'
+
+    compile 'nz.bradcampbell:paperparcel:2.0.1'
+    compile 'nz.bradcampbell:paperparcel-kotlin:2.0.1'
+    kapt 'nz.bradcampbell:paperparcel-compiler:2.0.1'
+
+    compile('com.mikepenz:materialdrawer:5.9.0@aar') {
+        transitive = true
+    }
+
+    compile 'com.mikhaellopez:circularimageview:3.0.2'
 
     compile 'uk.co.chrisjenx:calligraphy:2.2.0'
 }
