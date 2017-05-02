@@ -8,5 +8,9 @@
         <attr name="metaButtonBarStyle" format="reference"/>
         <attr name="metaButtonBarButtonStyle" format="reference"/>
     </declare-styleable>
+    
+    <declare-styleable name="TimelineContaineerTheme">
+        <attr name="colorDivider" format="color"/>
+    </declare-styleable>
 
 </resources>

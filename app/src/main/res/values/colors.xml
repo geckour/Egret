@@ -15,4 +15,7 @@
     <color name="icon_tint_dark">#455a64</color>
     <color name="button_bg_light">#eceff1</color>
     <color name="secondary_text_material_light">#757575</color>
+    <color name="timeline_bg_dark">#263238</color>
+    <color name="timeline_divider_light">#eceff1</color>
+    <color name="timeline_divider_dark">#37474f</color>
 </resources>
