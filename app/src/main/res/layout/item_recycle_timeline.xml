@@ -13,8 +13,8 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingBottom="0.8dp"
-        android:background="@color/icon_tint_dark">
+        android:background="?attr/colorDivider"
+        android:paddingBottom="0.8dp">
 
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
@@ -32,7 +32,7 @@
                 android:clickable="true"
                 app:imageUrl="@{(content.rebloggedStatusContent == null) ? content.iconUrl : content.rebloggedStatusContent.iconUrl}"
                 app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/wrap" />
+                app:layout_constraintTop_toTopOf="@+id/wrap"/>
 
             <LinearLayout
                 android:id="@+id/wrap_rebloggedBy"
@@ -51,7 +51,7 @@
                     android:layout_height="16dp"
                     android:layout_marginRight="4dp"
                     android:tint="@color/secondary_text_material_light"
-                    app:srcCompat="@drawable/ic_repeat_black_24px" />
+                    app:srcCompat="@drawable/ic_repeat_black_24px"/>
 
                 <TextView
                     android:id="@+id/rebloggedBy"
@@ -59,7 +59,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginRight="4dp"
                     android:text="@string/reblogged_by"
-                    android:textSize="10sp" />
+                    android:textSize="10sp"/>
 
                 <TextView
                     android:id="@+id/reblogged_name"
@@ -70,7 +70,7 @@
                     android:singleLine="true"
                     android:text="@{content.nameStrong}"
                     android:textSize="10sp"
-                    tools:text="ゆーざーねーむ" />
+                    tools:text="ゆーざーねーむ"/>
             </LinearLayout>
 
             <android.support.constraint.ConstraintLayout
@@ -100,7 +100,7 @@
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/name_wrap"
-                    tools:text="これはトゥート本文です" />
+                    tools:text="これはトゥート本文です"/>
 
                 <ImageView
                     android:id="@+id/image"
@@ -116,7 +116,7 @@
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/body"
                     app:layout_constraintVertical_bias="0.0"
-                    app:srcCompat="@drawable/egret" />
+                    app:srcCompat="@drawable/egret"/>
 
                 <android.support.constraint.ConstraintLayout
                     android:id="@+id/name_wrap"
@@ -140,7 +140,7 @@
                         android:textSize="12sp"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        tools:text="つよいなまえ" />
+                        tools:text="つよいなまえ"/>
 
                     <TextView
                         android:id="@+id/name_weak"
@@ -153,7 +153,7 @@
                         android:textSize="10sp"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/name_strong"
-                        tools:text="よわいなまえ" />
+                        tools:text="よわいなまえ"/>
                 </android.support.constraint.ConstraintLayout>
 
                 <TextView
@@ -169,7 +169,7 @@
                     app:layout_constraintBottom_toBottomOf="@+id/name_wrap"
                     app:layout_constraintRight_toLeftOf="@+id/opt"
                     app:layout_constraintTop_toTopOf="@+id/name_wrap"
-                    tools:text="HH:MM" />
+                    tools:text="HH:MM"/>
 
                 <ImageView
                     android:id="@+id/opt"
@@ -181,7 +181,7 @@
                     app:layout_constraintBottom_toBottomOf="@+id/time"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintTop_toTopOf="@+id/time"
-                    app:srcCompat="@drawable/ic_more_vert_black_24px" />
+                    app:srcCompat="@drawable/ic_more_vert_black_24px"/>
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -205,7 +205,7 @@
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:clickable="true"
                             android:tint="@color/icon_tint_dark"
-                            app:srcCompat="@drawable/ic_reply_black_24px" />
+                            app:srcCompat="@drawable/ic_reply_black_24px"/>
                     </FrameLayout>
 
                     <FrameLayout
@@ -220,7 +220,7 @@
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:clickable="true"
                             android:tint="@color/icon_tint_dark"
-                            app:srcCompat="@drawable/ic_star_black_24px" />
+                            app:srcCompat="@drawable/ic_star_black_24px"/>
                     </FrameLayout>
 
                     <FrameLayout
@@ -235,7 +235,7 @@
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:clickable="true"
                             android:tint="@color/icon_tint_dark"
-                            app:srcCompat="@drawable/ic_repeat_black_24px" />
+                            app:srcCompat="@drawable/ic_repeat_black_24px"/>
                     </FrameLayout>
 
                     <FrameLayout
