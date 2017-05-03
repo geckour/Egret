@@ -21,6 +21,7 @@ import com.geckour.egret.api.service.MastodonService
 import com.geckour.egret.databinding.FragmentTimelineBinding
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
+import com.geckour.egret.view.activity.BaseActivity
 import com.geckour.egret.view.activity.MainActivity
 import com.geckour.egret.view.adapter.TimelineAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
@@ -38,6 +39,7 @@ class TimelineFragment: BaseFragment() {
         val ARGS_VALUE_USER = "User"
         val ARGS_VALUE_HASH_TAG = "Hash tag"
         val STATE_ARGS_KEY_CONTENTS = "contents"
+        val STATE_KEY_THEME_MODE = "theme mode"
 
         fun newInstance(category: String): TimelineFragment {
             val fragment = TimelineFragment()
@@ -119,10 +121,17 @@ class TimelineFragment: BaseFragment() {
         super.onPause()
 
         bundle.putParcelableArrayList(STATE_ARGS_KEY_CONTENTS, ArrayList(adapter.getContents()))
+        bundle.putBoolean(STATE_KEY_THEME_MODE, (activity as BaseActivity).isModeDark())
     }
 
     override fun onResume() {
         super.onResume()
+
+        if (bundle.containsKey(STATE_KEY_THEME_MODE) && (bundle.getBoolean(STATE_KEY_THEME_MODE, false) xor (activity as BaseActivity).isModeDark())) {
+            bundle.clear()
+            bundle.putBoolean(STATE_KEY_THEME_MODE, (activity as BaseActivity).isModeDark())
+            (activity as MainActivity).showDefaultTimeline()
+        }
 
         restoreTimeline(bundle)
 

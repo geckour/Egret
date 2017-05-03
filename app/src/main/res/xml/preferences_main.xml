@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceScreen android:key="manage_accounts"
+        android:title="@string/pref_manage_accounts" />
+
+    <PreferenceCategory android:title="@string/pref_category_general">
+
+        <ListPreference android:key="manage_stream"
+            android:title="@string/pref_manage_stream"
+            android:dialogTitle="@string/pref_manage_stream"
+            android:entries="@array/pref_manage_stream_entries"
+            android:entryValues="@array/pref_manage_stream_values"
+            android:defaultValue="@string/pref_manage_stream_default" />
+
+        <PreferenceScreen android:key="manage_restriction"
+            android:title="@string/pref_manage_restriction" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/pref_category_others">
+
+        <SwitchPreferenceCompat android:key="switch_to_dark_theme"
+            android:title="@string/pref_switch_to_dark_theme"
+            android:switchTextOn="@string/pref_switch_to_dark_theme_text_on"
+            android:switchTextOff="@string/pref_switch_to_dark_theme_text_off"
+            android:summaryOn="@string/pref_switch_to_dark_theme_summary_on"
+            android:summaryOff="@string/pref_switch_to_dark_theme_summary_off" />
+
+        <SwitchPreferenceCompat android:key="switch_to_use_chrome_app"
+            android:title="@string/pref_switch_to_use_chrome_app"
+            android:switchTextOn="@string/pref_switch_to_use_chrome_app_text_on"
+            android:switchTextOff="@string/pref_switch_to_use_chrome_app_text_off"
+            android:summaryOn="@string/pref_switch_to_use_chrome_app_summary_on"
+            android:summaryOff="@string/pref_switch_to_use_chrome_app_summary_off" />
+    </PreferenceCategory>
+</PreferenceScreen>
