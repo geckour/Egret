@@ -1,18 +1,19 @@
 # Egret
-Mastodonと遊ぶどん！
+Let's play with Mastodon！
 
 ## What's this?
-MastodonのAndroidクライアントです。
+Android app for client of Mastodon.
 
 ## Features
-- Public timelineのストリーム表示
-- User timelineのストリーム表示
-- 複数アカウントの切り替え
-- アカウントプロフィールの表示
-- アカウントの(アン)フォロー・ミュート・ブロック
-- トゥートの投稿(文字のみ)
-- トゥートへの返信の投稿(文字のみ)
-- トゥートのお気に入り・ブースト
+- Show Public timeline as sreaming
+- Show User timeline as streaming
+- Switch multiple accounts
+- Switch theme color (Light / Dark)
+- Show an account's profile
+- (Un) Follow / Block the account
+- Post the toot (characters only)
+- Post reply to an toot (characters only)
+- (Un) Favourite / Boost the toot
 - and more in future...
 
 ## Contributor
