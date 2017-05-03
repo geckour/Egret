@@ -11,10 +11,8 @@ import android.support.design.widget.Snackbar
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.SearchView
 import android.support.v7.widget.Toolbar
-import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.widget.ImageView
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
@@ -28,6 +26,7 @@ import com.geckour.egret.view.fragment.AccountProfileFragment
 import com.geckour.egret.view.fragment.ListDialogFragment
 import com.geckour.egret.view.fragment.NewTootCreateFragment
 import com.geckour.egret.view.fragment.TimelineFragment
+import com.mikepenz.materialdrawer.AccountHeader
 import com.mikepenz.materialdrawer.AccountHeaderBuilder
 import com.mikepenz.materialdrawer.Drawer
 import com.mikepenz.materialdrawer.DrawerBuilder
@@ -43,6 +42,7 @@ import timber.log.Timber
 class MainActivity : BaseActivity() {
 
     lateinit var drawer: Drawer
+    lateinit private var accountHeader: AccountHeader
 
     val timelineListener = object: TimelineAdapter.IListener {
         override fun showMuteDialog(content: TimelineContent) {
@@ -158,7 +158,7 @@ class MainActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // setTheme(R.style.AppThemeDark) // TODO: 設定を参照して切り替える
+        setTheme(if (isModeDark()) R.style.AppThemeDark_NoActionBar else R.style.AppTheme_NoActionBar)
         setContentView(R.layout.activity_main)
         val toolbar = findViewById(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
@@ -166,42 +166,151 @@ class MainActivity : BaseActivity() {
         val recentToken = Common.getCurrentAccessToken()
 
         // NavDrawer内のアカウント情報表示部
-        val accountHeader = AccountHeaderBuilder().withActivity(this)
-                .withHeaderBackground(R.drawable.side_nav_bar)
-                .withOnAccountHeaderListener { v, profile, current ->
-                    if (v.id == R.id.material_drawer_account_header_current) {
-                        Common.resetAuthInfo()?.let {
-                            MastodonClient(it).getSelfAccount()
-                                .subscribeOn(Schedulers.newThread())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .compose(bindToLifecycle())
-                                .subscribe({ account ->
-                                    val fragment = AccountProfileFragment.newInstance(account)
-                                    supportFragmentManager.beginTransaction()
-                                            .replace(R.id.container, fragment, AccountProfileFragment.TAG)
-                                            .addToBackStack(AccountProfileFragment.TAG)
-                                            .commit()
-                                }, Throwable::printStackTrace)
-                        }
-                        false
-                    } else if (!current) {
-                        OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).executeAsSingle()
-                                .flatMap { OrmaProvider.db.updateAccessToken().idEq(profile.identifier).isCurrent(true).executeAsSingle() }
-                                .subscribeOn(Schedulers.newThread())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .compose(bindToLifecycle())
-                                .subscribe({ i ->
-                                    Timber.d("updated row count: $i")
-                                    val fragment = TimelineFragment.newInstance(TimelineFragment.ARGS_VALUE_PUBLIC)
-                                    supportFragmentManager.beginTransaction().replace(R.id.container, fragment, TimelineFragment.TAG).commit()
-                                }, Throwable::printStackTrace)
-                        false
-                    } else true
+        accountHeader = getAccountHeader()
+
+        setNavDrawer()
+
+        // アカウント情報をNavDrawerに追加
+        Observable.fromIterable(OrmaProvider.db.selectFromAccessToken())
+                .map { token ->
+                    val domain = OrmaProvider.db.selectFromInstanceAuthInfo().idEq(token.instanceId).last().instance
+                    Pair(domain, token)
                 }
-                .build()
+                .flatMap { pair ->
+                    OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).execute()
+                    OrmaProvider.db.updateAccessToken().idEq(pair.second.id).isCurrent(true).execute()
+                    MastodonClient(Common.resetAuthInfo() ?: throw IllegalArgumentException()).getAccount(pair.second.accountId)
+                            .map { account -> Pair(pair, account) }
+                }
+                .flatMap { pair ->
+                    if (pair.second.avatarUrl.startsWith("http")) {
+                        Observable.just(Picasso.with(this).load(pair.second.avatarUrl).get())
+                                .map { bitmap -> Pair(pair, bitmap) }
+                    } else Observable.just(Pair(pair, null))
+                }
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe({ (first, second) ->
+                    val item = ProfileDrawerItem()
+                            .withName(first.second.displayName)
+                            .withEmail("@${first.second.username}@${first.first.first}")
+                            .withIdentifier(first.first.second.id)
+                    if (second != null) item.withIcon(second)
+                    accountHeader.addProfiles(item)
+                }, Throwable::printStackTrace, {
+
+                    if (recentToken != null) {
+                        OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).executeAsSingle()
+                                .flatMap { OrmaProvider.db.updateAccessToken().idEq(recentToken.id).isCurrent(true).executeAsSingle() }
+                                .subscribeOn(Schedulers.newThread())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .compose(bindToLifecycle())
+                                .subscribe({}, Throwable::printStackTrace)
+                        accountHeader.setActiveProfile(recentToken.id)
+                    }
+
+                    supportActionBar?.setDisplayShowHomeEnabled(true)
+
+                    showDefaultTimeline()
+                })
+
+        (findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showCreateNewTootFragment() }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if (isModeDark()) {
+            setTheme(R.style.AppThemeDark_NoActionBar)
+            findViewById(R.id.drawer_layout).rootView.setBackgroundResource(R.color.material_gray_dark)
+        } else {
+            setTheme(R.style.AppTheme_NoActionBar)
+            findViewById(R.id.drawer_layout).rootView.setBackgroundResource(R.color.material_gray_light)
+        }
+        setNavDrawer()
+    }
+
+    override fun onBackPressed() {
+        if (drawer.isDrawerOpen) {
+            drawer.closeDrawer()
+        } else {
+            super.onBackPressed()
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        menuInflater.inflate(R.menu.main, menu)
+        return true
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        menu?.findItem(R.id.action_search)?.icon?.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP)
+        (menu?.findItem(R.id.action_search)?.actionView as SearchView?)?.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
+            override fun onQueryTextChange(text: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextSubmit(text: String?): Boolean {
+                Snackbar.make(findViewById(R.id.container), "Not implemented", Snackbar.LENGTH_SHORT).show()
+                return false
+            }
+        })
+
+        return super.onPrepareOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+
+        when (item.itemId) {
+        }
+
+        return super.onOptionsItemSelected(item)
+    }
+
+    fun getAccountHeader(): AccountHeader =
+            AccountHeaderBuilder().withActivity(this)
+                    .withHeaderBackground(R.drawable.side_nav_bar)
+                    .withOnAccountHeaderListener { v, profile, current ->
+                        if (v.id == R.id.material_drawer_account_header_current) {
+                            Common.resetAuthInfo()?.let {
+                                MastodonClient(it).getSelfAccount()
+                                        .subscribeOn(Schedulers.newThread())
+                                        .observeOn(AndroidSchedulers.mainThread())
+                                        .compose(bindToLifecycle())
+                                        .subscribe({ account ->
+                                            val fragment = AccountProfileFragment.newInstance(account)
+                                            supportFragmentManager.beginTransaction()
+                                                    .replace(R.id.container, fragment, AccountProfileFragment.TAG)
+                                                    .addToBackStack(AccountProfileFragment.TAG)
+                                                    .commit()
+                                        }, Throwable::printStackTrace)
+                            }
+                            false
+                        } else if (!current) {
+                            OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).executeAsSingle()
+                                    .flatMap { OrmaProvider.db.updateAccessToken().idEq(profile.identifier).isCurrent(true).executeAsSingle() }
+                                    .subscribeOn(Schedulers.newThread())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .compose(bindToLifecycle())
+                                    .subscribe({ i ->
+                                        Timber.d("updated row count: $i")
+                                        val fragment = TimelineFragment.newInstance(TimelineFragment.ARGS_VALUE_PUBLIC)
+                                        supportFragmentManager.beginTransaction().replace(R.id.container, fragment, TimelineFragment.TAG).commit()
+                                    }, Throwable::printStackTrace)
+                            false
+                        } else true
+                    }
+                    .build()
+
+    fun setNavDrawer() {
+        val toolbar = findViewById(R.id.toolbar) as Toolbar
 
         drawer = DrawerBuilder().withActivity(this)
-                .withSavedInstance(savedInstanceState)
                 .withTranslucentStatusBar(false)
                 .withActionBarDrawerToggleAnimated(true)
                 .withToolbar(toolbar)
@@ -249,6 +358,7 @@ class MainActivity : BaseActivity() {
                         }
 
                         NAV_ITEM_SETTINGS -> {
+
                             val intent = SettingActivity.getIntent(this)
                             startActivity(intent)
                             false
@@ -259,98 +369,6 @@ class MainActivity : BaseActivity() {
                 }
                 .withAccountHeader(accountHeader)
                 .build()
-
-        // アカウント情報をNavDrawerに追加してNavDrawerを表示
-        Observable.fromIterable(OrmaProvider.db.selectFromAccessToken())
-                .map { token ->
-                    val domain = OrmaProvider.db.selectFromInstanceAuthInfo().idEq(token.instanceId).last().instance
-                    Pair(domain, token)
-                }
-                .flatMap { pair ->
-                    OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).execute()
-                    OrmaProvider.db.updateAccessToken().idEq(pair.second.id).isCurrent(true).execute()
-                    MastodonClient(Common.resetAuthInfo() ?: throw IllegalArgumentException()).getAccount(pair.second.accountId)
-                            .map { account -> Pair(pair, account) }
-                }
-                .flatMap { pair ->
-                    if (pair.second.avatarUrl.startsWith("http")) {
-                        Observable.just(Picasso.with(this).load(pair.second.avatarUrl).get())
-                                .map { bitmap -> Pair(pair, bitmap) }
-                    } else Observable.just(Pair(pair, null))
-                }
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .compose(bindToLifecycle())
-                .subscribe({ pair ->
-                    val item = ProfileDrawerItem()
-                            .withName(pair.first.second.displayName)
-                            .withEmail("@${pair.first.second.username}@${pair.first.first.first}")
-                            .withIdentifier(pair.first.first.second.id)
-                    if (pair.second != null) item.withIcon(pair.second)
-                    accountHeader.addProfiles(item)
-                }, Throwable::printStackTrace, {
-
-                    if (recentToken != null) {
-                        OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).executeAsSingle()
-                                .flatMap { OrmaProvider.db.updateAccessToken().idEq(recentToken.id).isCurrent(true).executeAsSingle() }
-                                .subscribeOn(Schedulers.newThread())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .compose(bindToLifecycle())
-                                .subscribe({}, Throwable::printStackTrace)
-                        accountHeader.setActiveProfile(recentToken.id)
-                    }
-
-                    supportActionBar?.setDisplayShowHomeEnabled(true)
-
-                    showDefaultTimeline()
-                })
-
-        (findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showCreateNewTootFragment() }
-    }
-
-    override fun onBackPressed() {
-        if (drawer.isDrawerOpen) {
-            drawer.closeDrawer()
-        } else {
-            super.onBackPressed()
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.main, menu)
-        return true
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        menu?.findItem(R.id.action_search)?.icon?.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP)
-        (menu?.findItem(R.id.action_search)?.actionView as SearchView?)?.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
-            override fun onQueryTextChange(text: String?): Boolean {
-                return false
-            }
-
-            override fun onQueryTextSubmit(text: String?): Boolean {
-                Snackbar.make(findViewById(R.id.container), "Not implemented", Snackbar.LENGTH_SHORT).show()
-                return false
-            }
-        })
-
-        return super.onPrepareOptionsMenu(menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-
-        when (item.itemId) {
-        }
-
-        return super.onOptionsItemSelected(item)
     }
 
     fun resetSelectionNavItem(identifier: Long) {
