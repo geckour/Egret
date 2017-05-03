@@ -1,18 +1,11 @@
 package com.geckour.egret.view.fragment
 
 import android.databinding.DataBindingUtil
-import android.graphics.Rect
 import android.os.Bundle
-import android.os.Parcel
 import android.os.Parcelable
-import android.support.design.widget.FloatingActionButton
-import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.*
-import android.widget.ExpandableListView
-import android.widget.ImageView
-import android.widget.PopupMenu
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Notification
@@ -27,8 +20,8 @@ import com.geckour.egret.view.adapter.TimelineAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
 import com.google.gson.Gson
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
-import timber.log.Timber
 
 class TimelineFragment: BaseFragment() {
 
@@ -57,15 +50,14 @@ class TimelineFragment: BaseFragment() {
     private var inTouch = false
     private val bundle = Bundle()
 
+    lateinit private var publicStream: Disposable
+    lateinit private var userStream: Disposable
+
     private var waitingContent = false
     private var waitingNotification = false
     private var waitingDeletedId = false
 
     private var nextId: Long? = -1
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_timeline, container, false)
@@ -120,6 +112,7 @@ class TimelineFragment: BaseFragment() {
     override fun onPause() {
         super.onPause()
 
+        stopTimelineStreams()
         bundle.putParcelableArrayList(STATE_ARGS_KEY_CONTENTS, ArrayList(adapter.getContents()))
         bundle.putBoolean(STATE_KEY_THEME_MODE, (activity as BaseActivity).isModeDark())
     }
@@ -145,51 +138,74 @@ class TimelineFragment: BaseFragment() {
 
     fun getCategory(): String = arguments.getString(ARGS_KEY_CATEGORY) ?: "Unknown"
 
-    fun restoreTimeline(savedInstanceState: Bundle) {
-        if (savedInstanceState.containsKey(STATE_ARGS_KEY_CONTENTS)) {
+    fun restoreTimeline(bundle: Bundle) {
+        if (bundle.containsKey(STATE_ARGS_KEY_CONTENTS)) {
             adapter.clearContents()
-            val parcelables: ArrayList<Parcelable> = savedInstanceState.getParcelableArrayList(STATE_ARGS_KEY_CONTENTS)
+            val parcelables: ArrayList<Parcelable> = bundle.getParcelableArrayList(STATE_ARGS_KEY_CONTENTS)
             adapter.addAllContents(parcelables.map { it as TimelineContent })
 
-            when (getCategory()) {
-                ARGS_VALUE_PUBLIC -> showPublicTimeline()
-                ARGS_VALUE_USER -> showUserTimelineAsStream()
+            showTimelineByCategory(getCategory(), true)
+        } else {
+            showTimelineByCategory(getCategory())
+        }
+        bundle.clear()
+    }
+
+    fun showTimelineByCategory(category: String, hasContents: Boolean = false) {
+        if (hasContents) {
+            when (category) {
+                ARGS_VALUE_PUBLIC -> startPublicTimelineStream()
+                ARGS_VALUE_USER -> startUserTimelineStream()
                 ARGS_VALUE_HASH_TAG -> {}
             }
         } else {
-            when (getCategory()) {
-                ARGS_VALUE_PUBLIC -> showPublicTimeline()
+            when (category) {
+                ARGS_VALUE_PUBLIC -> startPublicTimelineStream()
                 ARGS_VALUE_USER -> showUserTimeline(true)
                 ARGS_VALUE_HASH_TAG -> {}
             }
         }
-        savedInstanceState.clear()
     }
 
-    fun showPublicTimeline() {
-        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimelineAsStream()
-                .flatMap { responseBody -> MastodonService.events(responseBody.source()) }
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .compose(bindToLifecycle())
-                .subscribe({ source ->
-                    Log.d("showPublicTimeline", "source: $source")
-
-                    parseTimelineStream(source)
-                }, Throwable::printStackTrace)
+    fun stopTimelineStreams() {
+        stopPublicTimelineStream()
+        stopUserTimelineStream()
     }
 
-    fun showUserTimelineAsStream() {
-        MastodonClient(Common.resetAuthInfo() ?: return).getUserTimelineAsStream()
-                .flatMap { responseBody -> MastodonService.events(responseBody.source()) }
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .compose(bindToLifecycle())
-                .subscribe({ source ->
-                    Log.d("showUserTimeline", "source: $source")
+    fun startPublicTimelineStream() {
+        Common.resetAuthInfo()?.let {
+            publicStream =
+                    MastodonClient(it).getPublicTimelineAsStream()
+                            .flatMap { responseBody -> MastodonService.events(responseBody.source()) }
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .compose(bindToLifecycle())
+                            .subscribe({
+                                parseTimelineStream(it)
+                            }, Throwable::printStackTrace)
+        }
+    }
 
-                    parseTimelineStream(source)
-                }, Throwable::printStackTrace)
+    fun stopPublicTimelineStream() {
+        if (getCategory() == ARGS_VALUE_PUBLIC && !publicStream.isDisposed) publicStream.dispose()
+    }
+
+    fun startUserTimelineStream() {
+        Common.resetAuthInfo()?.let {
+            userStream =
+                    MastodonClient(it).getUserTimelineAsStream()
+                            .flatMap { responseBody -> MastodonService.events(responseBody.source()) }
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .compose(bindToLifecycle())
+                            .subscribe({
+                                parseTimelineStream(it)
+                            }, Throwable::printStackTrace)
+        }
+    }
+
+    fun stopUserTimelineStream() {
+        if (getCategory() == ARGS_VALUE_USER && !userStream.isDisposed) userStream.dispose()
     }
 
     fun showUserTimeline(loadStream: Boolean = false, loadNext: Boolean = false) {
@@ -203,7 +219,7 @@ class TimelineFragment: BaseFragment() {
                     else adapter.addAllContents(result.response().body().map { Common.getTimelineContent(it) })
                     nextId = result.response().headers().get("Link")?.replace(Regex("^.*<https?://.+\\?max_id=(.+?)>.*"), "$1")?.toLong()
 
-                    if (loadStream) showUserTimelineAsStream()
+                    if (loadStream) startUserTimelineStream()
                 }, Throwable::printStackTrace)
     }
 
@@ -220,7 +236,7 @@ class TimelineFragment: BaseFragment() {
             if (waitingContent) {
                 val status = Gson().fromJson(data, Status::class.java)
                 val content = Common.getTimelineContent(status)
-                Log.d("showPublicTimeline", "body: ${status.content}")
+                Log.d("parse", "body: ${status.content}")
 
                 adapter.addContent(content)
                 onAddItemToAdapter()
@@ -231,7 +247,7 @@ class TimelineFragment: BaseFragment() {
                     val status = notification.status
                     if (status != null) {
                         val content = Common.getTimelineContent(status, notification)
-                        Log.d("showPublicTimeline", "body: ${status.content}")
+                        Log.d("parse", "body: ${status.content}")
 
                         adapter.addContent(content)
                         onAddItemToAdapter()
