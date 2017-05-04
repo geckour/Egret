@@ -124,7 +124,7 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
     fun getContents(): List<TimelineContent> = this.contents
 
     fun addContent(content: TimelineContent, limit: Int = DEFAULT_ITEMS_LIMIT) {
-        val c = content.takeIf { c -> shouldMute(c) }?.let {
+        content.takeIf { c -> !shouldMute(c) }?.let {
             this.contents.add(0, it)
             notifyItemInserted(0)
             removeItemsWhenOverLimit(limit)
@@ -132,7 +132,7 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
     }
 
     fun addAllContents(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
-        val c = contents.takeWhile { c -> shouldMute(c) }
+        val c = contents.takeWhile { c -> !shouldMute(c) }
 
         if (c.isNotEmpty()) {
             this.contents.addAll(0, c)
@@ -154,7 +154,7 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
         notifyItemRangeRemoved(0, size)
     }
 
-    fun resetContent(contents: List<TimelineContent>) {
+    fun resetContents(contents: List<TimelineContent>) {
         clearContents()
         addAllContents(contents)
     }
@@ -174,17 +174,25 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
     fun shouldMute(content: TimelineContent): Boolean {
         OrmaProvider.db.selectFromMuteKeyword().forEach {
             if (it.isRegex) {
-                if (content.body.matches(Regex(it.keyword))) return false
-            } else if (content.body.contains(it.keyword)) return false
+                if (content.body.matches(Regex(it.keyword))) return true
+            } else if (content.body.contains(it.keyword)) return true
         }
         OrmaProvider.db.selectFromMuteInstance().forEach {
-            if (content.nameWeak.matches(Regex("@.+${it.instance}"))) return false
+            var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
+            if (content.nameWeak == instance) {
+                instance = ""
+                Common.getCurrentAccessToken()?.instanceId?.let {
+                    instance = "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(it).last().instance}"
+                }
+            }
+
+            if (it.instance == instance) return true
         }
         OrmaProvider.db.selectFromMuteClient().forEach {
-            if (content.app == it.client) return false
+            if (content.app == it.client) return true
         }
 
-        return true
+        return false
     }
 
     private fun removeItemsWhenOverLimit(limit: Int) {

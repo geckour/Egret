@@ -11,6 +11,7 @@ import android.support.design.widget.Snackbar
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.SearchView
 import android.support.v7.widget.Toolbar
+import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ImageView
@@ -55,9 +56,10 @@ class MainActivity : BaseActivity() {
                         var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
                         
                         if (content.nameWeak == instance) {
-                            val instanceId = Common.getCurrentAccessToken()?.instanceId
-                            if (instanceId == null) return@mapIndexed ""
-                            else instance = "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance}"
+                            instance = ""
+                            Common.getCurrentAccessToken()?.instanceId?.let {
+                                instance = "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(it).last().instance}"
+                            }
                         }
                         s.format(instance)
                     }
@@ -72,7 +74,7 @@ class MainActivity : BaseActivity() {
                         when (i) {
                             0 -> {
                                 Common.resetAuthInfo()?.let {
-                                    MastodonClient(it).muteAccount(content.accountId)
+                                    MastodonClient(it).muteAccount(content.accountId) // TODO: 自分自身をミュートしないようにする
                                             .subscribeOn(Schedulers.newThread())
                                             .observeOn(AndroidSchedulers.mainThread())
                                             .subscribe({
@@ -89,25 +91,28 @@ class MainActivity : BaseActivity() {
                                 var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
 
                                 if (content.nameWeak == instance) {
-                                    val instanceId = Common.getCurrentAccessToken()?.instanceId
-                                    if (instanceId == null) return@OnClickListener
-                                    else instance = "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance}"
+                                    instance = ""
+                                    Common.getCurrentAccessToken()?.instanceId?.let {
+                                        instance = "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(it).last().instance}"
+                                    }
                                 }
 
-                                OrmaProvider.db.prepareInsertIntoMuteInstanceAsSingle()
-                                        .map { inserter -> inserter.executeAsSingle(MuteInstance(-1L, instance)) }
-                                        .subscribeOn(Schedulers.newThread())
-                                        .observeOn(AndroidSchedulers.mainThread())
-                                        .compose(bindToLifecycle())
-                                        .subscribe({
-                                            Snackbar.make(findViewById(R.id.container), "Muted instance: $instance", Snackbar.LENGTH_SHORT).show()
-                                        }, Throwable::printStackTrace)
+                                if (!TextUtils.isEmpty(instance)) {
+                                    OrmaProvider.db.prepareInsertIntoMuteInstanceAsSingle()
+                                            .map { inserter -> inserter.execute(MuteInstance(-1L, instance)) }
+                                            .subscribeOn(Schedulers.newThread())
+                                            .observeOn(AndroidSchedulers.mainThread())
+                                            .compose(bindToLifecycle())
+                                            .subscribe({
+                                                Snackbar.make(findViewById(R.id.container), "Muted instance: $instance", Snackbar.LENGTH_SHORT).show()
+                                            }, Throwable::printStackTrace)
+                                }
                             }
 
                             3 -> {
                                 content.app?.let {
                                     OrmaProvider.db.prepareInsertIntoMuteClientAsSingle()
-                                            .map { inserter -> inserter.executeAsSingle(MuteClient(-1L, it)) }
+                                            .map { inserter -> inserter.execute(MuteClient(-1L, it)) }
                                             .subscribeOn(Schedulers.newThread())
                                             .observeOn(AndroidSchedulers.mainThread())
                                             .compose(bindToLifecycle())
