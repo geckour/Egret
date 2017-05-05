@@ -68,6 +68,7 @@ class Common {
                 "@${status.account.acct}",
                 Date(status.createdAt.time),
                 getBodyStringWithoutExtraMarginFromHtml(status.content),
+                status.tags.map { it.name },
                 status.favourited,
                 status.reblogged,
                 if (status.reblog != null || notification != null)

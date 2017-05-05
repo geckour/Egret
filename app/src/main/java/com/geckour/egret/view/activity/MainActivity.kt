@@ -1,16 +1,17 @@
 package com.geckour.egret.view.activity
 
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PorterDuff
+import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.Snackbar
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.SearchView
 import android.support.v7.widget.Toolbar
+import android.text.Html
 import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
@@ -21,6 +22,7 @@ import com.geckour.egret.model.MuteClient
 import com.geckour.egret.model.MuteInstance
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
+import com.geckour.egret.view.adapter.ListDialogAdapter
 import com.geckour.egret.view.adapter.TimelineAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
 import com.geckour.egret.view.fragment.AccountProfileFragment
@@ -45,80 +47,109 @@ class MainActivity : BaseActivity() {
     lateinit var drawer: Drawer
     lateinit private var accountHeader: AccountHeader
 
+    companion object {
+        val NAV_ITEM_LOGIN: Long = 0
+        val NAV_ITEM_TL_PUBLIC: Long = 1
+        val NAV_ITEM_TL_USER: Long = 2
+        val NAV_ITEM_SETTINGS: Long = 3
+
+        fun getIntent(context: Context): Intent {
+            val intent = Intent(context, MainActivity::class.java)
+            return intent
+        }
+    }
+
     val timelineListener = object: TimelineAdapter.IListener {
         override fun showMuteDialog(content: TimelineContent) {
-            var itemStrings = resources.getStringArray(R.array.mute_from_toot).toList()
-            itemStrings = itemStrings.mapIndexed { i, s ->
+            val itemStrings = resources.getStringArray(R.array.mute_from_toot).toList()
+            val items = itemStrings.mapIndexed { i, s ->
                 when (i) {
-                    0 -> s.format(content.nameWeak)
-                    1 -> s.format(content.body)
-                    2 -> {
+                    0 -> Pair(R.string.array_item_mute_account, s.format(content.nameWeak))
+                    1 -> Pair(
+                            R.string.array_item_mute_keyword,
+                            s.format(
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                        Html.fromHtml(content.body.toString(), Html.FROM_HTML_MODE_COMPACT).toString()
+                                    } else {
+                                        Html.fromHtml(content.body.toString()).toString()
+                                    }
+                            )
+                    )
+                    2 -> Pair(R.string.array_item_mute_hashtag, if (content.tags.isEmpty()) "" else s.format(content.tags.map { s -> "#$s" }.joinToString()))
+                    3 -> {
                         var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
-                        
+
                         if (content.nameWeak == instance) {
                             instance = ""
                             Common.getCurrentAccessToken()?.instanceId?.let {
                                 instance = "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(it).last().instance}"
                             }
                         }
-                        s.format(instance)
+                        Pair(R.string.array_item_mute_instance, s.format(instance))
                     }
-                    3 -> if (content.app != null) s.format(content.app) else ""
-                    else -> s
+                    4 -> Pair(R.string.array_item_mute_client, if (TextUtils.isEmpty(content.app)) "" else s.format(content.app))
+                    else -> Pair(-1, s)
                 }
-            }
+            }.filter { !TextUtils.isEmpty(it.second) }
+            items.forEach { Timber.d("items: ${it.first}, ${it.second}") }
             ListDialogFragment.newInstance(
                     getString(R.string.dialog_title_mute),
-                    itemStrings,
-                    DialogInterface.OnClickListener { dialogInterface, i ->
-                        when (i) {
-                            0 -> {
-                                Common.resetAuthInfo()?.let {
-                                    MastodonClient(it).muteAccount(content.accountId) // TODO: 自分自身をミュートしないようにする
-                                            .subscribeOn(Schedulers.newThread())
-                                            .observeOn(AndroidSchedulers.mainThread())
-                                            .subscribe({
-                                                Snackbar.make(findViewById(R.id.container), "Muted account: ${content.nameWeak}", Snackbar.LENGTH_SHORT).show()
-                                            }, Throwable::printStackTrace)
-                                }
-                            }
-
-                            1 -> {
-                                // TODO: キーワードミュート用のFragmentを作って content.body を投げる
-                            }
-
-                            2 -> {
-                                var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
-
-                                if (content.nameWeak == instance) {
-                                    instance = ""
-                                    Common.getCurrentAccessToken()?.instanceId?.let {
-                                        instance = "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(it).last().instance}"
+                    items,
+                    object: ListDialogFragment.OnItemClickListener {
+                        override fun onClick(resId: Int) {
+                            when (resId) {
+                                R.string.array_item_mute_account -> {
+                                    Common.resetAuthInfo()?.let {
+                                        MastodonClient(it).muteAccount(content.accountId) // TODO: 自分自身をミュートしないようにする
+                                                .subscribeOn(Schedulers.newThread())
+                                                .observeOn(AndroidSchedulers.mainThread())
+                                                .subscribe({
+                                                    Snackbar.make(findViewById(R.id.container), "Muted account: ${content.nameWeak}", Snackbar.LENGTH_SHORT).show()
+                                                }, Throwable::printStackTrace)
                                     }
                                 }
 
-                                if (!TextUtils.isEmpty(instance)) {
-                                    OrmaProvider.db.prepareInsertIntoMuteInstanceAsSingle()
-                                            .map { inserter -> inserter.execute(MuteInstance(-1L, instance)) }
-                                            .subscribeOn(Schedulers.newThread())
-                                            .observeOn(AndroidSchedulers.mainThread())
-                                            .compose(bindToLifecycle())
-                                            .subscribe({
-                                                Snackbar.make(findViewById(R.id.container), "Muted instance: $instance", Snackbar.LENGTH_SHORT).show()
-                                            }, Throwable::printStackTrace)
+                                R.string.array_item_mute_keyword -> {
+                                    // TODO: キーワードミュート用のFragmentを作って content.body を投げる
                                 }
-                            }
 
-                            3 -> {
-                                content.app?.let {
-                                    OrmaProvider.db.prepareInsertIntoMuteClientAsSingle()
-                                            .map { inserter -> inserter.execute(MuteClient(-1L, it)) }
-                                            .subscribeOn(Schedulers.newThread())
-                                            .observeOn(AndroidSchedulers.mainThread())
-                                            .compose(bindToLifecycle())
-                                            .subscribe({
-                                                Snackbar.make(findViewById(R.id.container), "Muted client: ${content.app}", Snackbar.LENGTH_SHORT).show()
-                                            }, Throwable::printStackTrace)
+                                R.string.array_item_mute_hashtag -> {
+                                    // TODO: ハッシュタグミュートのFragmentを作って content.tags を投げる
+                                }
+
+                                R.string.array_item_mute_instance -> {
+                                    var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
+
+                                    if (content.nameWeak == instance) {
+                                        instance = ""
+                                        Common.getCurrentAccessToken()?.instanceId?.let {
+                                            instance = "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(it).last().instance}"
+                                        }
+                                    }
+
+                                    if (!TextUtils.isEmpty(instance)) {
+                                        OrmaProvider.db.prepareInsertIntoMuteInstanceAsSingle()
+                                                .map { inserter -> inserter.execute(MuteInstance(-1L, instance)) }
+                                                .subscribeOn(Schedulers.newThread())
+                                                .observeOn(AndroidSchedulers.mainThread())
+                                                .compose(bindToLifecycle())
+                                                .subscribe({
+                                                    Snackbar.make(findViewById(R.id.container), "Muted instance: $instance", Snackbar.LENGTH_SHORT).show()
+                                                }, Throwable::printStackTrace)
+                                    }
+                                }
+
+                                R.string.array_item_mute_client -> {
+                                    content.app?.let {
+                                        OrmaProvider.db.prepareInsertIntoMuteClientAsSingle()
+                                                .map { inserter -> inserter.execute(MuteClient(-1L, it)) }
+                                                .subscribeOn(Schedulers.newThread())
+                                                .observeOn(AndroidSchedulers.mainThread())
+                                                .compose(bindToLifecycle())
+                                                .subscribe({
+                                                    Snackbar.make(findViewById(R.id.container), "Muted client: ${content.app}", Snackbar.LENGTH_SHORT).show()
+                                                }, Throwable::printStackTrace)
+                                    }
                                 }
                             }
                         }
@@ -146,18 +177,6 @@ class MainActivity : BaseActivity() {
 
         override fun onBoostStatus(statusId: Long, view: ImageView) {
             boostStatusById(statusId, view)
-        }
-    }
-
-    companion object {
-        val NAV_ITEM_LOGIN: Long = 0
-        val NAV_ITEM_TL_PUBLIC: Long = 1
-        val NAV_ITEM_TL_USER: Long = 2
-        val NAV_ITEM_SETTINGS: Long = 3
-
-        fun getIntent(context: Context): Intent {
-            val intent = Intent(context, MainActivity::class.java)
-            return intent
         }
     }
 
