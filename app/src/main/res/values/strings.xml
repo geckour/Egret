@@ -46,6 +46,7 @@
     
     <string name="array_item_mute_account">Mute ACCOUNT: %1$s</string>
     <string name="array_item_mute_keyword">Mute KEYWORD: %1$s</string>
+    <string name="array_item_mute_hashtag">Mute HASH TAG: %1$s</string>
     <string name="array_item_mute_instance">Mute INSTANCE: %1$s</string>
     <string name="array_item_mute_client">Mute APP: %1$s</string>
 
