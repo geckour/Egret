@@ -11,6 +11,8 @@
     <string name="action_delete">Delete this toot</string>
     <string name="title_activity_login">Sign in</string>
     <string name="title_activity_setting">Settings</string>
+    <string name="title_fragment_mute_keyword">Mute keywords</string>
+    <string name="desc_fragment_mute_keyword">List of keywords going to mute:</string>
 
     <!-- Strings related to login -->
     <string name="prompt_instance">Instance domain</string>
@@ -41,6 +43,9 @@
     <string name="reblogged_by">Boosted by</string>
 
     <string name="hint_new_toot">What\'s go on with you?</string>
+    <string name="hint_add_mute_keyword">Enter new keyword to mute</string>
+
+    <string name="check_mute_keyword_is_regex">Regex</string>
 
     <string name="dialog_title_mute">Choose mute option</string>
     
