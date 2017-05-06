@@ -12,7 +12,7 @@ Android app for client of Mastodon.
 - Show an account's profile
 - (Un) Follow / Block the account
 - Post the toot (characters only)
-- Post reply to an toot (characters only)
+- Post reply to the toot (characters only)
 - (Un) Favourite / Boost the toot
 - and more in future...
 
