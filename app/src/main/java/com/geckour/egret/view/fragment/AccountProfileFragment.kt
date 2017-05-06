@@ -83,8 +83,9 @@ class AccountProfileFragment: BaseFragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.url.movementMethod = LinkMovementMethod.getInstance()
-        binding.note.movementMethod = LinkMovementMethod.getInstance()
+        val movementMethod = Common.getMovementMethodFromPreference(binding.root.context)
+        binding.url.movementMethod = movementMethod
+        binding.note.movementMethod = movementMethod
 
         val domain = Common.resetAuthInfo()
         if (domain != null) MastodonClient(domain).getAccountRelationships(account.id)

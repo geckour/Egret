@@ -6,9 +6,12 @@ import android.net.Uri
 import android.os.Build
 import android.support.customtabs.CustomTabsIntent
 import android.support.v4.content.ContextCompat
+import android.support.v7.preference.PreferenceManager
 import android.text.Html
 import android.text.Spanned
 import android.text.format.DateFormat
+import android.text.method.LinkMovementMethod
+import android.text.method.MovementMethod
 import android.widget.TextView
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
@@ -133,6 +136,11 @@ class Common {
                             .launchUrl(context, uri)
                 }
             }
+        }
+
+        fun getMovementMethodFromPreference(context: Context): MovementMethod {
+            val isModeDefaultBrowser = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("switch_to_use_default_browser", false)
+            return if (isModeDefaultBrowser) LinkMovementMethod.getInstance() else Common.getMutableLinkMovementMethodForCustomTab(context)
         }
     }
 }

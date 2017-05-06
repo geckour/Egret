@@ -46,8 +46,7 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
             binding.reply.setOnClickListener { listener.onReply(binding.content.rebloggedStatusContent ?: binding.content) }
             binding.fav.setOnClickListener { listener.onFavStatus(binding.content.rebloggedStatusContent?.id ?: binding.content.id, binding.fav) }
             binding.boost.setOnClickListener { listener.onBoostStatus(binding.content.rebloggedStatusContent?.id ?: binding.content.id, binding.boost) }
-            val isModeDefaultBrowser = PreferenceManager.getDefaultSharedPreferences(binding.body.context).getBoolean("switch_to_use_default_browser", false)
-            binding.body.movementMethod = if (isModeDefaultBrowser) LinkMovementMethod.getInstance() else Common.getMutableLinkMovementMethodForCustomTab(binding.body.context)
+            binding.body.movementMethod = Common.getMovementMethodFromPreference(binding.body.context)
         }
 
         fun showPopup(view: View) {

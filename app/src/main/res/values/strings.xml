@@ -62,7 +62,7 @@
     <string name="pref_manage_stream_default">0</string>
     <string name="pref_manage_restriction">Manage restrictions</string>
     <string name="pref_switch_to_dark_theme">Change theme color darken</string>
-    <string name="pref_switch_to_use_chrome_app">Change scheme to open links</string>
+    <string name="pref_switch_to_use_default_browser">Change scheme to open links</string>
 
     <string name="pref_stream_always">Always</string>
     <string name="pref_stream_wifi">When connect with Wi-Fi</string>
