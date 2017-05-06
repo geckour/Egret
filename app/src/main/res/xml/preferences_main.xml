@@ -26,11 +26,11 @@
             android:summaryOn="@string/pref_switch_to_dark_theme_summary_on"
             android:summaryOff="@string/pref_switch_to_dark_theme_summary_off" />
 
-        <SwitchPreferenceCompat android:key="switch_to_use_chrome_app"
-            android:title="@string/pref_switch_to_use_chrome_app"
-            android:switchTextOn="@string/pref_switch_to_use_chrome_app_text_on"
-            android:switchTextOff="@string/pref_switch_to_use_chrome_app_text_off"
-            android:summaryOn="@string/pref_switch_to_use_chrome_app_summary_on"
-            android:summaryOff="@string/pref_switch_to_use_chrome_app_summary_off" />
+        <SwitchPreferenceCompat android:key="switch_to_use_default_browser"
+            android:title="@string/pref_switch_to_use_default_browser"
+            android:switchTextOn="@string/pref_switch_to_use_default_browser_text_on"
+            android:switchTextOff="@string/pref_switch_to_use_default_browser_text_off"
+            android:summaryOn="@string/pref_switch_to_use_default_browser_summary_on"
+            android:summaryOff="@string/pref_switch_to_use_default_browser_summary_off" />
     </PreferenceCategory>
 </PreferenceScreen>

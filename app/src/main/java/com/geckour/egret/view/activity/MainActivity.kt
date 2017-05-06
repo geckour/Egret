@@ -75,7 +75,7 @@ class MainActivity : BaseActivity() {
                                     }
                             )
                     )
-                    2 -> Pair(R.string.array_item_mute_hashtag, if (content.tags.isEmpty()) "" else s.format(content.tags.map { s -> "#$s" }.joinToString()))
+                    2 -> Pair(R.string.array_item_mute_hash_tag, if (content.tags.isEmpty()) "" else s.format(content.tags.map { s -> "#$s" }.joinToString()))
                     3 -> {
                         var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
 
@@ -113,7 +113,7 @@ class MainActivity : BaseActivity() {
                                     // TODO: キーワードミュート用のFragmentを作って content.body を投げる
                                 }
 
-                                R.string.array_item_mute_hashtag -> {
+                                R.string.array_item_mute_hash_tag -> {
                                     // TODO: ハッシュタグミュートのFragmentを作って content.tags を投げる
                                 }
 
