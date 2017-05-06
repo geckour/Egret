@@ -23,6 +23,14 @@ class MastodonClient(baseUrl: String) {
             .build()
             .create(MastodonService::class.java)
 
+    private val streamService = Retrofit.Builder()
+            .client(OkHttpProvider.streamClient)
+            .baseUrl("https://$baseUrl/")
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
+            .build()
+            .create(MastodonService::class.java)
+
     fun registerApp(): Single<UserSpecificApp> = service.registerApp()
 
     fun authUser(
@@ -36,9 +44,9 @@ class MastodonClient(baseUrl: String) {
 
     fun getAccount(accountId: Long): Observable<Account> = service.getAccount(accountId)
 
-    fun getPublicTimelineAsStream(): Observable<ResponseBody> = service.getPublicTimelineAsStream()
+    fun getPublicTimelineAsStream(): Observable<ResponseBody> = streamService.getPublicTimelineAsStream()
 
-    fun getUserTimelineAsStream(): Observable<ResponseBody> = service.getUserTimelineAsStream()
+    fun getUserTimelineAsStream(): Observable<ResponseBody> = streamService.getUserTimelineAsStream()
 
     fun getUserTimeline(maxId: Long? = null): Single<Result<List<Status>>> = service.getUserTimeline(maxId)
 

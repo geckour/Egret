@@ -9,11 +9,11 @@ import java.util.concurrent.TimeUnit
 object OkHttpProvider {
 
     lateinit var client: OkHttpClient
+    lateinit var streamClient: OkHttpClient
     val authInterceptor = AuthInterceptor()
 
     fun init() {
         val builder : OkHttpClient.Builder = OkHttpClient.Builder()
-        builder.readTimeout(0, TimeUnit.SECONDS).writeTimeout(0, TimeUnit.SECONDS)
 
         if (BuildConfig.DEBUG) {
             builder.addNetworkInterceptor(StethoInterceptor())
@@ -22,5 +22,8 @@ object OkHttpProvider {
         }
 
         client = builder.build()
+
+        builder.readTimeout(0, TimeUnit.SECONDS).writeTimeout(0, TimeUnit.SECONDS)
+        streamClient = builder.build()
     }
 }
