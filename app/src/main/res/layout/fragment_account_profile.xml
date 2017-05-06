@@ -4,7 +4,6 @@
         xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
-        <import type="android.text.Html" />
         <variable
             name="content"
             type="com.geckour.egret.view.adapter.model.ProfileContent" />
@@ -116,7 +115,6 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
                         android:layout_marginLeft="4dp"
-                        android:layout_marginStart="4dp"
                         android:layout_marginTop="8dp"
                         android:ellipsize="end"
                         android:minLines="1"
@@ -185,7 +183,7 @@
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:singleLine="true"
-                        android:text="@{Html.fromHtml(content.url)}"
+                        android:text="@{content.url}"
                         android:textSize="12sp"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintLeft_toLeftOf="parent"
@@ -220,7 +218,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
                 android:clickable="true"
-                android:text="@{Html.fromHtml(content.note)}"
+                android:text="@{content.note}"
                 android:textAlignment="center"
                 android:textSize="14sp"
                 app:layout_constraintLeft_toLeftOf="parent"
@@ -228,7 +226,7 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintWidth_default="wrap"
                 app:layout_constraintWidth_max="480sp"
-                tools:text="TextTextTextTextTextTextTextText"/>
+                tools:text="TextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextText"/>
 
             <LinearLayout
                 android:id="@+id/tootsCount_wrap"
@@ -276,13 +274,11 @@
                 android:id="@+id/createdAt_wrap"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
                 android:layout_marginLeft="8dp"
                 android:layout_marginRight="8dp"
                 android:layout_marginTop="4dp"
                 android:gravity="center"
                 android:orientation="horizontal"
-                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="@+id/tootsCount_wrap"
                 app:layout_constraintRight_toRightOf="@+id/tootsCount_wrap"
                 app:layout_constraintTop_toBottomOf="@+id/tootsCount_wrap">
@@ -317,7 +313,7 @@
                 android:layout_marginLeft="14dp"
                 android:clickable="true"
                 android:tint="@color/icon_tint_dark"
-                android:visibility="gone"
+                android:visibility="invisible"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:srcCompat="@drawable/ic_volume_off_black_24px"/>
@@ -332,7 +328,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:tint="@color/icon_tint_dark"
-                android:visibility="gone"
+                android:visibility="invisible"
                 app:layout_constraintBottom_toBottomOf="@+id/mute"
                 app:layout_constraintLeft_toRightOf="@+id/mute"
                 app:layout_constraintTop_toTopOf="@+id/mute"
@@ -347,7 +343,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:tint="@color/icon_tint_dark"
-                android:visibility="gone"
+                android:visibility="invisible"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:srcCompat="@drawable/ic_person_add_black_24px"/>
@@ -361,13 +357,14 @@
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
             android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:scrollbars="vertical"
             app:layoutManager="android.support.v7.widget.LinearLayoutManager"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/bio_wrap"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginBottom="8dp"/>
+            tools:listitem="@layout/item_recycle_timeline"/>
 
     </android.support.constraint.ConstraintLayout>
 </layout>

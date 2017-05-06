@@ -1,6 +1,5 @@
 package com.geckour.egret.util
 
-import android.app.Activity
 import android.content.Context
 import android.net.Uri
 import android.os.Build
@@ -77,7 +76,7 @@ class Common {
                 status.account.displayName,
                 "@${status.account.acct}",
                 Date(status.createdAt.time),
-                getBodyStringWithoutExtraMarginFromHtml(status.content),
+                getSpannedWithoutExtraMarginFromHtml(status.content),
                 status.tags.map { it.name },
                 status.favourited,
                 status.reblogged,
@@ -90,8 +89,8 @@ class Common {
                 account.headerUrl,
                 account.displayName,
                 "@${account.acct}",
-                "<a href=\"${account.url}\">${account.url}</a>",
-                account.note,
+                getSpannedWithoutExtraMarginFromHtml("<a href=\"${account.url}\">${account.url}</a>"),
+                getSpannedWithoutExtraMarginFromHtml(account.note),
                 account.followingCount,
                 account.followersCount,
                 account.statusesCount,
@@ -118,7 +117,7 @@ class Common {
             return DateFormat.format(pattern, date).toString()
         }
 
-        fun getBodyStringWithoutExtraMarginFromHtml(html: String): Spanned {
+        fun getSpannedWithoutExtraMarginFromHtml(html: String): Spanned {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 return Html.fromHtml(html, Html.FROM_HTML_MODE_COMPACT)
             } else {
