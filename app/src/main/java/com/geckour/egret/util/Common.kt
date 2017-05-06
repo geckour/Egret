@@ -63,6 +63,13 @@ class Common {
             return instanceInfo.instance
         }
 
+        fun setAuthInfo(accessToken: AccessToken): String? {
+            val instanceInfo = OrmaProvider.db.selectFromInstanceAuthInfo().idEq(accessToken.instanceId).last() ?: return null
+            OkHttpProvider.authInterceptor.setToken(accessToken.token)
+
+            return instanceInfo.instance
+        }
+
         fun getTimelineContent(status: Status, notification: Notification? = null): TimelineContent = TimelineContent(
                 status.id,
                 status.account.id,

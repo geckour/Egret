@@ -58,6 +58,7 @@
                     android:id="@+id/icon"
                     android:layout_width="100sp"
                     android:layout_height="100sp"
+                    app:imageUrl="@{content.iconUrl}"
                     app:srcCompat="@drawable/egret"/>
 
                 <android.support.constraint.ConstraintLayout

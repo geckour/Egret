@@ -22,7 +22,6 @@ import com.geckour.egret.model.MuteClient
 import com.geckour.egret.model.MuteInstance
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
-import com.geckour.egret.view.adapter.ListDialogAdapter
 import com.geckour.egret.view.adapter.TimelineAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
 import com.geckour.egret.view.fragment.AccountProfileFragment
@@ -187,8 +186,6 @@ class MainActivity : BaseActivity() {
         val toolbar = findViewById(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
 
-        val recentToken = Common.getCurrentAccessToken()
-
         // NavDrawer内のアカウント情報表示部
         accountHeader = getAccountHeader()
 
@@ -201,9 +198,7 @@ class MainActivity : BaseActivity() {
                     Pair(domain, token)
                 }
                 .flatMap { pair ->
-                    OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).execute()
-                    OrmaProvider.db.updateAccessToken().idEq(pair.second.id).isCurrent(true).execute()
-                    MastodonClient(Common.resetAuthInfo() ?: throw IllegalArgumentException()).getAccount(pair.second.accountId)
+                    MastodonClient(Common.setAuthInfo(pair.second) ?: throw IllegalArgumentException()).getAccount(pair.second.accountId)
                             .map { account -> Pair(pair, account) }
                 }
                 .flatMap { pair ->
@@ -223,20 +218,10 @@ class MainActivity : BaseActivity() {
                     if (second != null) item.withIcon(second)
                     accountHeader.addProfiles(item)
                 }, Throwable::printStackTrace, {
-
-                    if (recentToken != null) {
-                        OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).executeAsSingle()
-                                .flatMap { OrmaProvider.db.updateAccessToken().idEq(recentToken.id).isCurrent(true).executeAsSingle() }
-                                .subscribeOn(Schedulers.newThread())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .compose(bindToLifecycle())
-                                .subscribe({}, Throwable::printStackTrace)
-                        accountHeader.setActiveProfile(recentToken.id)
-                    }
-
+                    Common.getCurrentAccessToken()?.id?.let { accountHeader.setActiveProfile(it) }
                     supportActionBar?.setDisplayShowHomeEnabled(true)
 
-                    showDefaultTimeline()
+                    if (savedInstanceState == null) showDefaultTimeline()
                 })
 
         (findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showCreateNewTootFragment() }
@@ -321,8 +306,8 @@ class MainActivity : BaseActivity() {
                                     .subscribeOn(Schedulers.newThread())
                                     .observeOn(AndroidSchedulers.mainThread())
                                     .compose(bindToLifecycle())
-                                    .subscribe({ i ->
-                                        Timber.d("updated row count: $i")
+                                    .subscribe({
+                                        Timber.d("identifier: ${profile.identifier}")
                                         val fragment = TimelineFragment.newInstance(TimelineFragment.ARGS_VALUE_PUBLIC)
                                         supportFragmentManager.beginTransaction().replace(R.id.container, fragment, TimelineFragment.TAG).commit()
                                     }, Throwable::printStackTrace)

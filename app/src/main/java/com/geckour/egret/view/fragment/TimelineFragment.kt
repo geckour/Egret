@@ -32,7 +32,7 @@ class TimelineFragment: BaseFragment() {
         val ARGS_VALUE_USER = "User"
         val ARGS_VALUE_HASH_TAG = "Hash tag"
         val STATE_ARGS_KEY_CONTENTS = "contents"
-        val STATE_KEY_THEME_MODE = "theme mode"
+        private val STATE_KEY_THEME_MODE = "theme mode"
 
         fun newInstance(category: String): TimelineFragment {
             val fragment = TimelineFragment()
@@ -122,7 +122,6 @@ class TimelineFragment: BaseFragment() {
 
         if (bundle.containsKey(STATE_KEY_THEME_MODE) && (bundle.getBoolean(STATE_KEY_THEME_MODE, false) xor (activity as BaseActivity).isModeDark())) {
             bundle.clear()
-            bundle.putBoolean(STATE_KEY_THEME_MODE, (activity as BaseActivity).isModeDark())
             (activity as MainActivity).showDefaultTimeline()
         }
 
