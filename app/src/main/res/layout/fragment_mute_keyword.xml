@@ -3,6 +3,10 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools">
 
+    <data>
+        <variable name="defaultKeyword" type="String" />
+    </data>
+
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -26,17 +30,17 @@
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
+            android:layout_height="0dp"
+            android:layout_marginBottom="8dp"
             android:layout_marginTop="8dp"
-            app:layout_constraintBottom_toTopOf="@+id/constraintLayout2"
+            app:layout_constraintBottom_toTopOf="@+id/wrap_add_new_keyword"
             app:layout_constraintLeft_toLeftOf="@+id/desc"
             app:layout_constraintRight_toRightOf="@+id/desc"
             app:layout_constraintTop_toBottomOf="@+id/desc"
-            app:layout_constraintVertical_bias="0.0"
-            tools:listitem="@layout/item_recycle_mute_keyword"/>
+            tools:listitem="@layout/item_recycle_mute_keyword" />
 
         <android.support.constraint.ConstraintLayout
+            android:id="@+id/wrap_add_new_keyword"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
@@ -56,7 +60,7 @@
                 app:buttonTint="@color/icon_tint_dark"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
+                app:layout_constraintTop_toTopOf="parent" />
 
             <EditText
                 android:id="@+id/editText_add_mute_keyword"
@@ -68,6 +72,7 @@
                 android:layout_marginTop="8dp"
                 android:background="@android:color/transparent"
                 android:hint="@string/hint_add_mute_keyword"
+                android:text="@{defaultKeyword}"
                 android:maxLines="1"
                 android:singleLine="true"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -75,7 +80,7 @@
                 app:layout_constraintLeft_toRightOf="@+id/check_is_regex"
                 app:layout_constraintRight_toLeftOf="@+id/button_add"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.481"/>
+                app:layout_constraintVertical_bias="0.481" />
 
             <Button
                 android:id="@+id/button_add"
@@ -88,7 +93,7 @@
                 android:text="add"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
+                app:layout_constraintTop_toTopOf="parent" />
         </android.support.constraint.ConstraintLayout>
 
     </android.support.constraint.ConstraintLayout>

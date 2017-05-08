@@ -24,10 +24,7 @@ import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.adapter.TimelineAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
-import com.geckour.egret.view.fragment.AccountProfileFragment
-import com.geckour.egret.view.fragment.ListDialogFragment
-import com.geckour.egret.view.fragment.NewTootCreateFragment
-import com.geckour.egret.view.fragment.TimelineFragment
+import com.geckour.egret.view.fragment.*
 import com.mikepenz.materialdrawer.AccountHeader
 import com.mikepenz.materialdrawer.AccountHeaderBuilder
 import com.mikepenz.materialdrawer.Drawer
@@ -109,7 +106,11 @@ class MainActivity : BaseActivity() {
                                 }
 
                                 R.string.array_item_mute_keyword -> {
-                                    // TODO: キーワードミュート用のFragmentを作って content.body を投げる
+                                    val fragment = KeywordMuteFragment.newInstance(content.body.toString())
+                                    supportFragmentManager.beginTransaction()
+                                            .replace(R.id.container, fragment, KeywordMuteFragment.TAG)
+                                            .addToBackStack(KeywordMuteFragment.TAG)
+                                            .commit()
                                 }
 
                                 R.string.array_item_mute_hash_tag -> {
