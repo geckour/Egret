@@ -24,7 +24,7 @@ class SettingActivity: BaseActivity() {
         setSupportActionBar(toolbar)
 
         supportFragmentManager.beginTransaction()
-                .replace(R.id.container, SettingMainFragment.newInstance())
+                .replace(R.id.container, SettingMainFragment.newInstance(), SettingMainFragment.TAG)
                 .commit()
     }
 }

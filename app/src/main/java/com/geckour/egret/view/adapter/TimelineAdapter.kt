@@ -125,7 +125,7 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
     fun getContents(): List<TimelineContent> = this.contents
 
     fun addContent(content: TimelineContent, limit: Int = DEFAULT_ITEMS_LIMIT) {
-        content.takeIf { c -> !shouldMute(c) }?.let {
+        content.takeIf { !shouldMute(it) }?.let {
             this.contents.add(0, it)
             notifyItemInserted(0)
             removeItemsWhenOverLimit(limit)
@@ -133,7 +133,7 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
     }
 
     fun addAllContents(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
-        val c = contents.takeWhile { c -> !shouldMute(c) }
+        val c = contents.filter { !shouldMute(it) }
 
         if (c.isNotEmpty()) {
             this.contents.addAll(0, c)

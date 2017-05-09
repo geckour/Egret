@@ -14,7 +14,20 @@
             android:defaultValue="@string/pref_manage_stream_default" />
 
         <PreferenceScreen android:key="manage_restriction"
-            android:title="@string/pref_manage_restriction" />
+            android:title="@string/pref_manage_restriction">
+
+            <Preference android:key="manage_mute_accounts"
+                android:title="@string/pref_manage_mute_accounts"/>
+
+            <Preference android:key="manage_mute_keywords"
+                android:title="@string/pref_manage_mute_keywords"/>
+
+            <Preference android:key="manage_mute_hash_tags"
+                android:title="@string/pref_manage_mute_hash_tags"/>
+
+            <Preference android:key="manage_mute_instances"
+                android:title="@string/pref_manage_mute_instances"/>
+        </PreferenceScreen>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_category_others">

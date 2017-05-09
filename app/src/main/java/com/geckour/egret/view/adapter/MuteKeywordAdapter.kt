@@ -16,7 +16,7 @@ class MuteKeywordAdapter: RecyclerView.Adapter<MuteKeywordAdapter.ViewHolder>() 
 
     inner class ViewHolder(val binding: ItemRecycleMuteKeywordBinding): RecyclerView.ViewHolder(binding.root) {
         fun bindData(item: MuteKeyword) {
-
+            binding.item = item
             binding.checkIsRegex.setOnCheckedChangeListener { v, isChecked -> item.isRegex = isChecked }
             binding.itemKeyword.addTextChangedListener(object: TextWatcher {
                 override fun afterTextChanged(s: Editable?) {
@@ -60,9 +60,14 @@ class MuteKeywordAdapter: RecyclerView.Adapter<MuteKeywordAdapter.ViewHolder>() 
         }
     }
 
-    fun clearContents() {
+    fun clearItems() {
         val size = this.items.size
         this.items.clear()
         notifyItemRangeRemoved(0, size)
+    }
+
+    fun resetItems(items: List<MuteKeyword>) {
+        clearItems()
+        addAllItems(items)
     }
 }

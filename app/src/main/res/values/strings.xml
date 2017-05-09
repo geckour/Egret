@@ -13,6 +13,7 @@
     <string name="title_activity_setting">Settings</string>
     <string name="title_fragment_mute_keyword">Mute keywords</string>
     <string name="desc_fragment_mute_keyword">List of keywords going to mute:</string>
+    <string name="desc_fragment_manage_mute_keyword">List of muting keywords:</string>
 
     <!-- Strings related to login -->
     <string name="prompt_instance">Instance domain</string>
@@ -61,6 +62,10 @@
     <string name="pref_manage_stream">When the timeline could be streaming</string>
     <string name="pref_manage_stream_default">0</string>
     <string name="pref_manage_restriction">Manage restrictions</string>
+    <string name="pref_manage_mute_accounts">Manage muting accounts</string>
+    <string name="pref_manage_mute_keywords">Manage muting keywords</string>
+    <string name="pref_manage_mute_hash_tags">Manage muting hashtags</string>
+    <string name="pref_manage_mute_instances">Manage muting instances</string>
     <string name="pref_switch_to_dark_theme">Change theme color darken</string>
     <string name="pref_switch_to_use_default_browser">Change scheme to open links</string>
 

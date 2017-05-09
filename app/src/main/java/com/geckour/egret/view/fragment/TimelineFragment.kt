@@ -50,8 +50,8 @@ class TimelineFragment: BaseFragment() {
     private var inTouch = false
     private val bundle = Bundle()
 
-    lateinit private var publicStream: Disposable
-    lateinit private var userStream: Disposable
+    private var publicStream: Disposable? = null
+    private var userStream: Disposable? = null
 
     private var waitingContent = false
     private var waitingNotification = false
@@ -186,7 +186,7 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun stopPublicTimelineStream() {
-        if (getCategory() == ARGS_VALUE_PUBLIC && !publicStream.isDisposed) publicStream.dispose()
+        if (getCategory() == ARGS_VALUE_PUBLIC && !(publicStream?.isDisposed ?: true)) publicStream?.dispose()
     }
 
     fun startUserTimelineStream() {
@@ -204,7 +204,7 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun stopUserTimelineStream() {
-        if (getCategory() == ARGS_VALUE_USER && !userStream.isDisposed) userStream.dispose()
+        if (getCategory() == ARGS_VALUE_USER && !(userStream?.isDisposed ?: true)) userStream?.dispose()
     }
 
     fun showUserTimeline(loadStream: Boolean = false, loadNext: Boolean = false) {

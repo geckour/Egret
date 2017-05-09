@@ -15,28 +15,28 @@
             android:id="@+id/desc"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginStart="10dp"
-            android:layout_marginTop="8dp"
-            android:text="@string/desc_fragment_mute_keyword"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="12dp"
+            android:layout_marginTop="10dp"
             android:textColor="@color/material_gray_dark"
             android:textSize="20sp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent" />
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginBottom="8dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="40dp"
             android:layout_marginTop="8dp"
             app:layout_constraintBottom_toTopOf="@+id/wrap_add_new_keyword"
-            app:layout_constraintLeft_toLeftOf="@+id/desc"
-            app:layout_constraintRight_toRightOf="@+id/desc"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/desc"
+            app:layoutManager="android.support.v7.widget.LinearLayoutManager"
             tools:listitem="@layout/item_recycle_mute_keyword" />
 
         <android.support.constraint.ConstraintLayout
@@ -44,9 +44,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
+            android:layout_marginRight="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="@+id/recyclerView"
-            app:layout_constraintRight_toRightOf="@+id/recyclerView">
+            app:layout_constraintRight_toRightOf="parent">
 
             <CheckBox
                 android:id="@+id/check_is_regex"
@@ -72,9 +73,9 @@
                 android:layout_marginTop="8dp"
                 android:background="@android:color/transparent"
                 android:hint="@string/hint_add_mute_keyword"
-                android:text="@{defaultKeyword}"
                 android:maxLines="1"
                 android:singleLine="true"
+                android:text="@{defaultKeyword}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintLeft_toRightOf="@+id/check_is_regex"
@@ -95,6 +96,20 @@
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
         </android.support.constraint.ConstraintLayout>
+
+        <ImageView
+            android:id="@+id/button_register"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/selectable_background_color_material_oval"
+            android:elevation="0dp"
+            android:tint="@android:color/white"
+            app:backgroundTint="@color/colorPrimary"
+            app:layout_constraintBottom_toTopOf="@+id/wrap_add_new_keyword"
+            app:layout_constraintRight_toRightOf="parent"
+            app:srcCompat="@drawable/ic_menu_send" />
 
     </android.support.constraint.ConstraintLayout>
 </layout>

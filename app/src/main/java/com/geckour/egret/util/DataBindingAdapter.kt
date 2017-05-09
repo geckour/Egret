@@ -2,6 +2,7 @@ package com.geckour.egret.util
 
 import android.databinding.BindingAdapter
 import android.util.Patterns
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import com.squareup.picasso.Picasso
@@ -19,6 +20,13 @@ class DataBindingAdapter {
         @BindingAdapter("android:text")
         fun setText(view: TextView, time: Date) {
             view.text = Common.getReadableDateString(time.time)
+        }
+
+        @JvmStatic
+        @BindingAdapter("android:text")
+        fun setText(view: EditText, value: String) {
+            view.setText(value)
+            view.setSelection(value.length)
         }
     }
 }

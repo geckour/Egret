@@ -106,7 +106,7 @@ class MainActivity : BaseActivity() {
                                 }
 
                                 R.string.array_item_mute_keyword -> {
-                                    val fragment = KeywordMuteFragment.newInstance(content.body.toString())
+                                    val fragment = KeywordMuteFragment.newInstance(KeywordMuteFragment.ARGS_VALUE_MODE_ADD, content.body.toString())
                                     supportFragmentManager.beginTransaction()
                                             .replace(R.id.container, fragment, KeywordMuteFragment.TAG)
                                             .addToBackStack(KeywordMuteFragment.TAG)
