@@ -6,6 +6,8 @@ import android.os.Build
 import android.support.customtabs.CustomTabsIntent
 import android.support.v4.content.ContextCompat
 import android.support.v7.preference.PreferenceManager
+import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.helper.ItemTouchHelper
 import android.text.Html
 import android.text.Spanned
 import android.text.format.DateFormat
@@ -18,6 +20,7 @@ import com.geckour.egret.api.model.Account
 import com.geckour.egret.api.model.Notification
 import com.geckour.egret.api.model.Status
 import com.geckour.egret.model.AccessToken
+import com.geckour.egret.view.adapter.MuteKeywordAdapter
 import com.geckour.egret.view.adapter.model.NewTootIndentifyContent
 import com.geckour.egret.view.adapter.model.ProfileContent
 import com.geckour.egret.view.adapter.model.TimelineContent
@@ -148,5 +151,19 @@ class Common {
             val isModeDefaultBrowser = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("switch_to_use_default_browser", false)
             return if (isModeDefaultBrowser) LinkMovementMethod.getInstance() else Common.getMutableLinkMovementMethodForCustomTab(context)
         }
+
+        fun getSwipeToDismissTouchHelperForMuteKeyword(adapter: MuteKeywordAdapter): ItemTouchHelper = ItemTouchHelper(object: ItemTouchHelper.Callback() {
+            override fun getMovementFlags(recyclerView: RecyclerView?, viewHolder: RecyclerView.ViewHolder?): Int {
+                return makeFlag(ItemTouchHelper.ACTION_STATE_SWIPE, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT)
+            }
+
+            override fun onMove(recyclerView: RecyclerView?, viewHolder: RecyclerView.ViewHolder?, target: RecyclerView.ViewHolder?): Boolean {
+                return true
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder?, direction: Int) {
+                viewHolder?.adapterPosition?.let { adapter.removeItemsByIndex(it) }
+            }
+        })
     }
 }

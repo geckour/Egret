@@ -60,6 +60,11 @@ class MuteKeywordAdapter: RecyclerView.Adapter<MuteKeywordAdapter.ViewHolder>() 
         }
     }
 
+    fun removeItemsByIndex(index: Int) {
+        items.removeAt(index)
+        notifyItemRemoved(index)
+    }
+
     fun clearItems() {
         val size = this.items.size
         this.items.clear()

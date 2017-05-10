@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import com.geckour.egret.R
 import com.geckour.egret.databinding.FragmentMuteKeywordBinding
 import com.geckour.egret.model.MuteKeyword
+import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.MainActivity
 import com.geckour.egret.view.adapter.MuteKeywordAdapter
@@ -21,8 +22,9 @@ import timber.log.Timber
 
 class KeywordMuteFragment: BaseFragment() {
 
-    lateinit var binding: FragmentMuteKeywordBinding
-    lateinit var adapter: MuteKeywordAdapter
+    lateinit private var binding: FragmentMuteKeywordBinding
+    lateinit private var adapter: MuteKeywordAdapter
+    private val preItems: ArrayList<MuteKeyword> = ArrayList()
 
     companion object {
         val TAG = "KeywordMuteFragment"
@@ -78,6 +80,9 @@ class KeywordMuteFragment: BaseFragment() {
         binding.editTextAddMuteKeyword.setSelection(keyword.length)
         binding.buttonRegister.setOnClickListener { registerKeywords() }
         adapter = MuteKeywordAdapter()
+        val helper = Common.getSwipeToDismissTouchHelperForMuteKeyword(adapter)
+        helper.attachToRecyclerView(binding.recyclerView)
+        binding.recyclerView.addItemDecoration(helper)
         binding.recyclerView.adapter = adapter
     }
 
@@ -98,6 +103,7 @@ class KeywordMuteFragment: BaseFragment() {
     fun bindSavedKeywords() {
         val items = OrmaProvider.db.selectFromMuteKeyword().toList()
         adapter.addAllItems(items)
+        preItems.addAll(items)
     }
 
     fun addKeyword(isRegex: Boolean, keyword: String) {
@@ -108,7 +114,20 @@ class KeywordMuteFragment: BaseFragment() {
     }
 
     fun registerKeywords() {
-        val items = adapter.getItems()
+        val mode = getMode()
+        val items: ArrayList<MuteKeyword> = ArrayList()
+        items.addAll(adapter.getItems())
+
+        if (mode == ARGS_VALUE_MODE_MANAGE) {
+            Observable.fromIterable(preItems.filter { !items.contains(it) })
+                    .map { Pair(it, OrmaProvider.db.deleteFromMuteKeyword().idEq(it.id).execute()) }
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .compose(bindToLifecycle())
+                    .subscribe({
+                        Timber.d("deleted mute keyword id: ${it.first.id}")
+                    }, Throwable::printStackTrace)
+        }
 
         Observable.fromIterable(items)
                 .map { OrmaProvider.db.relationOfMuteKeyword().upsert(it) }
@@ -122,8 +141,7 @@ class KeywordMuteFragment: BaseFragment() {
                             Snackbar.make(binding.root, "Failed to add keyword.", Snackbar.LENGTH_SHORT)
                         },
                         {
-                            Snackbar.make(binding.root, "Added mute keywords.", Snackbar.LENGTH_SHORT)
-                            val mode = getMode()
+                            Snackbar.make(binding.root, if (mode == ARGS_VALUE_MODE_MANAGE) "Edited mute keywords." else "Added mute keywords.", Snackbar.LENGTH_SHORT)
                             if (mode == ARGS_VALUE_MODE_ADD) adapter.clearItems()
                             if (mode == ARGS_VALUE_MODE_MANAGE) {
                                 val newItems = OrmaProvider.db.selectFromMuteKeyword().toList()
