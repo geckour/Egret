@@ -74,6 +74,7 @@ class Common {
 
         fun getTimelineContent(status: Status, notification: Notification? = null): TimelineContent = TimelineContent(
                 status.id,
+                status.url,
                 status.account.id,
                 status.account.avatarUrl,
                 status.account.displayName,
@@ -138,18 +139,20 @@ class Common {
         fun getOnUrlClickListenerForCustomTab(context: Context): MutableLinkMovementMethod.OnUrlClickListener {
             return object: MutableLinkMovementMethod.OnUrlClickListener {
                 override fun onUrlClick(view: TextView?, uri: Uri) {
-                    CustomTabsIntent.Builder()
-                            .setShowTitle(true)
-                            .setToolbarColor(ContextCompat.getColor(context, R.color.colorPrimary))
-                            .build()
-                            .launchUrl(context, uri)
+                    getCustomTabsIntent(context).launchUrl(context, uri)
                 }
             }
         }
 
+        fun getCustomTabsIntent(context: Context): CustomTabsIntent = CustomTabsIntent.Builder()
+                .setShowTitle(true)
+                .setToolbarColor(ContextCompat.getColor(context, R.color.colorPrimary))
+                .build()
+
+        fun isModeDefaultBrowser(context: Context): Boolean = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("switch_to_use_default_browser", false)
+
         fun getMovementMethodFromPreference(context: Context): MovementMethod {
-            val isModeDefaultBrowser = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("switch_to_use_default_browser", false)
-            return if (isModeDefaultBrowser) LinkMovementMethod.getInstance() else Common.getMutableLinkMovementMethodForCustomTab(context)
+            return if (isModeDefaultBrowser(context)) LinkMovementMethod.getInstance() else Common.getMutableLinkMovementMethodForCustomTab(context)
         }
 
         fun getSwipeToDismissTouchHelperForMuteKeyword(adapter: MuteKeywordAdapter): ItemTouchHelper = ItemTouchHelper(object: ItemTouchHelper.Callback() {

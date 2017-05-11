@@ -1,9 +1,12 @@
 package com.geckour.egret.view.activity
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PorterDuff
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
@@ -56,6 +59,21 @@ class MainActivity : BaseActivity() {
     }
 
     val timelineListener = object: TimelineAdapter.IListener {
+        override fun showTootInBrowser(content: TimelineContent) {
+            val uri = Uri.parse(content.tootUrl)
+            if (Common.isModeDefaultBrowser(this@MainActivity)) {
+                startActivity(Intent(Intent.ACTION_VIEW, uri))
+            } else {
+                Common.getCustomTabsIntent(this@MainActivity).launchUrl(this@MainActivity, uri)
+            }
+        }
+
+        override fun copyTootToClipboard(content: TimelineContent) {
+            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = ClipData.newPlainText("toot", content.body.toString())
+            clipboard.primaryClip = clip
+        }
+
         override fun showMuteDialog(content: TimelineContent) {
             val itemStrings = resources.getStringArray(R.array.mute_from_toot).toList()
             val items = itemStrings.mapIndexed { i, s ->

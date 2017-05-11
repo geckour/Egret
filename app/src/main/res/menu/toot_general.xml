@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/action_open"
+        android:title="@string/action_open_toot_in_web" />
+
+    <item android:id="@+id/action_copy"
+        android:title="@string/action_copy_toot_body" />
+
     <item android:id="@+id/action_mute"
         android:title="@string/action_mute" />
+
     <item android:id="@+id/action_block"
         android:title="@string/action_block" />
 </menu>

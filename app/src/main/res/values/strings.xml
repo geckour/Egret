@@ -6,6 +6,8 @@
 
     <string name="action_settings">Settings</string>
     <string name="action_search">Search</string>
+    <string name="action_open_toot_in_web">Open in browser</string>
+    <string name="action_copy_toot_body">Copy toot</string>
     <string name="action_mute">Mute…</string>
     <string name="action_block">Block this account</string>
     <string name="action_delete">Delete this toot</string>

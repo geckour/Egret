@@ -56,6 +56,16 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
 
             popup.setOnMenuItemClickListener { item ->
                 when (item?.itemId) {
+                    R.id.action_open -> {
+                        listener.showTootInBrowser(binding.content)
+                        true
+                    }
+
+                    R.id.action_copy -> {
+                        listener.copyTootToClipboard(binding.content)
+                        true
+                    }
+
                     R.id.action_mute -> {
                         listener.showMuteDialog(binding.content)
                         true
@@ -95,6 +105,10 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
     }
 
     interface IListener {
+        fun showTootInBrowser(content: TimelineContent)
+
+        fun copyTootToClipboard(content: TimelineContent)
+
         fun showMuteDialog(content: TimelineContent)
 
         fun showProfile(accountId: Long)
