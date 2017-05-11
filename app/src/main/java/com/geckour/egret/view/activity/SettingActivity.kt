@@ -19,12 +19,12 @@ class SettingActivity: BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setTheme(if (isModeDark()) R.style.AppThemeDark_NoActionBar else R.style.AppTheme_NoActionBar)
-        setContentView(R.layout.activity_setting)
+        setContentView(R.layout.activity_no_fab)
         val toolbar = findViewById(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
 
         supportFragmentManager.beginTransaction()
-                .replace(R.id.container, SettingMainFragment.newInstance())
+                .replace(R.id.container, SettingMainFragment.newInstance(), SettingMainFragment.TAG)
                 .commit()
     }
 }

@@ -16,6 +16,6 @@ class SpannedTypeAdapter: TypeAdapter<Spanned> {
     }
 
     override fun readFromParcel(inParcel: Parcel): Spanned {
-        return Common.getBodyStringWithoutExtraMarginFromHtml(inParcel.readString())
+        return Common.getSpannedWithoutExtraMarginFromHtml(inParcel.readString())
     }
 }

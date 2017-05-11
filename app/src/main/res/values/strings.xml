@@ -6,13 +6,16 @@
 
     <string name="action_settings">Settings</string>
     <string name="action_search">Search</string>
-    <string name="action_open_toot_in_web">Search</string>
-    <string name="action_copy_toot_body">Search</string>
+    <string name="action_open_toot_in_web">Open in browser</string>
+    <string name="action_copy_toot_body">Copy toot</string>
     <string name="action_mute">Mute…</string>
     <string name="action_block">Block this account</string>
     <string name="action_delete">Delete this toot</string>
     <string name="title_activity_login">Sign in</string>
     <string name="title_activity_setting">Settings</string>
+    <string name="title_fragment_mute_keyword">Mute keywords</string>
+    <string name="desc_fragment_mute_keyword">List of keywords going to mute:</string>
+    <string name="desc_fragment_manage_mute_keyword">List of muting keywords:</string>
 
     <!-- Strings related to login -->
     <string name="prompt_instance">Instance domain</string>
@@ -44,11 +47,15 @@
     <string name="reblogged_by">Boosted by</string>
 
     <string name="hint_new_toot">What\'s go on with you?</string>
+    <string name="hint_add_mute_keyword">Enter new keyword to mute</string>
+
+    <string name="check_mute_keyword_is_regex">Regex</string>
 
     <string name="dialog_title_mute">Choose mute option</string>
     
     <string name="array_item_mute_account">Mute ACCOUNT: %1$s</string>
     <string name="array_item_mute_keyword">Mute KEYWORD: %1$s</string>
+    <string name="array_item_mute_hash_tag">Mute HASH TAG: %1$s</string>
     <string name="array_item_mute_instance">Mute INSTANCE: %1$s</string>
     <string name="array_item_mute_client">Mute APP: %1$s</string>
 
@@ -58,6 +65,10 @@
     <string name="pref_manage_stream">When the timeline could be streaming</string>
     <string name="pref_manage_stream_default">0</string>
     <string name="pref_manage_restriction">Manage restrictions</string>
+    <string name="pref_manage_mute_accounts">Manage muting accounts</string>
+    <string name="pref_manage_mute_keywords">Manage muting keywords</string>
+    <string name="pref_manage_mute_hash_tags">Manage muting hashtags</string>
+    <string name="pref_manage_mute_instances">Manage muting instances</string>
     <string name="pref_switch_to_dark_theme">Change theme color darken</string>
     <string name="pref_switch_to_use_default_browser">Change scheme to open links</string>
     <string name="pref_switch_to_show_extreme_toot_bar">Show bar to post new toot on footer of TL</string>

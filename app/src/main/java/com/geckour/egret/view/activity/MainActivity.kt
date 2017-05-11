@@ -1,16 +1,21 @@
 package com.geckour.egret.view.activity
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PorterDuff
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.Snackbar
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.SearchView
 import android.support.v7.widget.Toolbar
+import android.text.Html
+import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ImageView
@@ -22,10 +27,7 @@ import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.adapter.TimelineAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
-import com.geckour.egret.view.fragment.AccountProfileFragment
-import com.geckour.egret.view.fragment.ListDialogFragment
-import com.geckour.egret.view.fragment.NewTootCreateFragment
-import com.geckour.egret.view.fragment.TimelineFragment
+import com.geckour.egret.view.fragment.*
 import com.mikepenz.materialdrawer.AccountHeader
 import com.mikepenz.materialdrawer.AccountHeaderBuilder
 import com.mikepenz.materialdrawer.Drawer
@@ -58,75 +60,115 @@ class MainActivity : BaseActivity() {
     }
 
     val timelineListener = object: TimelineAdapter.IListener {
-        override fun showMuteDialog(content: TimelineContent) {
-            var itemStrings = resources.getStringArray(R.array.mute_from_toot).toList()
-            itemStrings = itemStrings.mapIndexed { i, s ->
-                when (i) {
-                    0 -> s.format(content.nameWeak)
-                    1 -> s.format(content.body)
-                    2 -> {
-                        var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
-                        
-                        if (content.nameWeak == instance) {
-                            val instanceId = Common.getCurrentAccessToken()?.instanceId
-                            if (instanceId == null) return@mapIndexed ""
-                            else instance = "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance}"
-                        }
-                        s.format(instance)
-                    }
-                    3 -> if (content.app != null) s.format(content.app) else ""
-                    else -> s
-                }
+        override fun showTootInBrowser(content: TimelineContent) {
+            val uri = Uri.parse(content.tootUrl)
+            if (Common.isModeDefaultBrowser(this@MainActivity)) {
+                startActivity(Intent(Intent.ACTION_VIEW, uri))
+            } else {
+                Common.getCustomTabsIntent(this@MainActivity).launchUrl(this@MainActivity, uri)
             }
+        }
+
+        override fun copyTootToClipboard(content: TimelineContent) {
+            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = ClipData.newPlainText("toot", content.body.toString())
+            clipboard.primaryClip = clip
+        }
+
+        override fun showMuteDialog(content: TimelineContent) {
+            val itemStrings = resources.getStringArray(R.array.mute_from_toot).toList()
+            val items = itemStrings.mapIndexed { i, s ->
+                when (i) {
+                    0 -> Pair(R.string.array_item_mute_account, s.format(content.nameWeak))
+                    1 -> Pair(
+                            R.string.array_item_mute_keyword,
+                            s.format(
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                        Html.fromHtml(content.body.toString(), Html.FROM_HTML_MODE_COMPACT).toString()
+                                    } else {
+                                        Html.fromHtml(content.body.toString()).toString()
+                                    }
+                            )
+                    )
+                    2 -> Pair(R.string.array_item_mute_hash_tag, if (content.tags.isEmpty()) "" else s.format(content.tags.map { s -> "#$s" }.joinToString()))
+                    3 -> {
+                        var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
+
+                        if (content.nameWeak == instance) {
+                            instance = ""
+                            Common.getCurrentAccessToken()?.instanceId?.let {
+                                instance = "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(it).last().instance}"
+                            }
+                        }
+                        Pair(R.string.array_item_mute_instance, s.format(instance))
+                    }
+                    4 -> Pair(R.string.array_item_mute_client, if (TextUtils.isEmpty(content.app)) "" else s.format(content.app))
+                    else -> Pair(-1, s)
+                }
+            }.filter { !TextUtils.isEmpty(it.second) }
+            items.forEach { Timber.d("items: ${it.first}, ${it.second}") }
             ListDialogFragment.newInstance(
                     getString(R.string.dialog_title_mute),
-                    itemStrings,
-                    DialogInterface.OnClickListener { dialogInterface, i ->
-                        when (i) {
-                            0 -> {
-                                Common.resetAuthInfo()?.let {
-                                    MastodonClient(it).muteAccount(content.accountId)
-                                            .subscribeOn(Schedulers.newThread())
-                                            .observeOn(AndroidSchedulers.mainThread())
-                                            .subscribe({
-                                                Snackbar.make(findViewById(R.id.container), "Muted account: ${content.nameWeak}", Snackbar.LENGTH_SHORT).show()
-                                            }, Throwable::printStackTrace)
-                                }
-                            }
-
-                            1 -> {
-                                // TODO: キーワードミュート用のFragmentを作って content.body を投げる
-                            }
-
-                            2 -> {
-                                var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
-
-                                if (content.nameWeak == instance) {
-                                    val instanceId = Common.getCurrentAccessToken()?.instanceId
-                                    if (instanceId == null) return@OnClickListener
-                                    else instance = "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance}"
+                    items,
+                    object: ListDialogFragment.OnItemClickListener {
+                        override fun onClick(resId: Int) {
+                            when (resId) {
+                                R.string.array_item_mute_account -> {
+                                    Common.resetAuthInfo()?.let {
+                                        MastodonClient(it).muteAccount(content.accountId) // TODO: 自分自身をミュートしないようにする
+                                                .subscribeOn(Schedulers.newThread())
+                                                .observeOn(AndroidSchedulers.mainThread())
+                                                .subscribe({
+                                                    Snackbar.make(findViewById(R.id.container), "Muted account: ${content.nameWeak}", Snackbar.LENGTH_SHORT).show()
+                                                }, Throwable::printStackTrace)
+                                    }
                                 }
 
-                                OrmaProvider.db.prepareInsertIntoMuteInstanceAsSingle()
-                                        .map { inserter -> inserter.executeAsSingle(MuteInstance(-1L, instance)) }
-                                        .subscribeOn(Schedulers.newThread())
-                                        .observeOn(AndroidSchedulers.mainThread())
-                                        .compose(bindToLifecycle())
-                                        .subscribe({
-                                            Snackbar.make(findViewById(R.id.container), "Muted instance: $instance", Snackbar.LENGTH_SHORT).show()
-                                        }, Throwable::printStackTrace)
-                            }
+                                R.string.array_item_mute_keyword -> {
+                                    val fragment = KeywordMuteFragment.newInstance(KeywordMuteFragment.ARGS_VALUE_MODE_ADD, content.body.toString())
+                                    supportFragmentManager.beginTransaction()
+                                            .replace(R.id.container, fragment, KeywordMuteFragment.TAG)
+                                            .addToBackStack(KeywordMuteFragment.TAG)
+                                            .commit()
+                                }
 
-                            3 -> {
-                                content.app?.let {
-                                    OrmaProvider.db.prepareInsertIntoMuteClientAsSingle()
-                                            .map { inserter -> inserter.executeAsSingle(MuteClient(-1L, it)) }
-                                            .subscribeOn(Schedulers.newThread())
-                                            .observeOn(AndroidSchedulers.mainThread())
-                                            .compose(bindToLifecycle())
-                                            .subscribe({
-                                                Snackbar.make(findViewById(R.id.container), "Muted client: ${content.app}", Snackbar.LENGTH_SHORT).show()
-                                            }, Throwable::printStackTrace)
+                                R.string.array_item_mute_hash_tag -> {
+                                    // TODO: ハッシュタグミュートのFragmentを作って content.tags を投げる
+                                }
+
+                                R.string.array_item_mute_instance -> {
+                                    var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
+
+                                    if (content.nameWeak == instance) {
+                                        instance = ""
+                                        Common.getCurrentAccessToken()?.instanceId?.let {
+                                            instance = "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(it).last().instance}"
+                                        }
+                                    }
+
+                                    if (!TextUtils.isEmpty(instance)) {
+                                        OrmaProvider.db.prepareInsertIntoMuteInstanceAsSingle()
+                                                .map { inserter -> inserter.execute(MuteInstance(-1L, instance)) }
+                                                .subscribeOn(Schedulers.newThread())
+                                                .observeOn(AndroidSchedulers.mainThread())
+                                                .compose(bindToLifecycle())
+                                                .subscribe({
+                                                    Snackbar.make(findViewById(R.id.container), "Muted instance: $instance", Snackbar.LENGTH_SHORT).show()
+                                                }, Throwable::printStackTrace)
+                                    }
+                                }
+
+                                R.string.array_item_mute_client -> {
+                                    content.app?.let {
+                                        OrmaProvider.db.prepareInsertIntoMuteClientAsSingle()
+                                                .map { inserter -> inserter.execute(MuteClient(-1L, it)) }
+                                                .subscribeOn(Schedulers.newThread())
+                                                .observeOn(AndroidSchedulers.mainThread())
+                                                .compose(bindToLifecycle())
+                                                .subscribe({
+                                                    Snackbar.make(findViewById(R.id.container), "Muted client: ${content.app}", Snackbar.LENGTH_SHORT).show()
+                                                }, Throwable::printStackTrace)
+                                    }
                                 }
                             }
                         }
@@ -164,8 +206,6 @@ class MainActivity : BaseActivity() {
         val toolbar = findViewById(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
 
-        val recentToken = Common.getCurrentAccessToken()
-
         // NavDrawer内のアカウント情報表示部
         accountHeader = getAccountHeader()
 
@@ -178,9 +218,7 @@ class MainActivity : BaseActivity() {
                     Pair(domain, token)
                 }
                 .flatMap { pair ->
-                    OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).execute()
-                    OrmaProvider.db.updateAccessToken().idEq(pair.second.id).isCurrent(true).execute()
-                    MastodonClient(Common.resetAuthInfo() ?: throw IllegalArgumentException()).getAccount(pair.second.accountId)
+                    MastodonClient(Common.setAuthInfo(pair.second) ?: throw IllegalArgumentException()).getAccount(pair.second.accountId)
                             .map { account -> Pair(pair, account) }
                 }
                 .flatMap { pair ->
@@ -200,20 +238,10 @@ class MainActivity : BaseActivity() {
                     if (second != null) item.withIcon(second)
                     accountHeader.addProfiles(item)
                 }, Throwable::printStackTrace, {
-
-                    if (recentToken != null) {
-                        OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).executeAsSingle()
-                                .flatMap { OrmaProvider.db.updateAccessToken().idEq(recentToken.id).isCurrent(true).executeAsSingle() }
-                                .subscribeOn(Schedulers.newThread())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .compose(bindToLifecycle())
-                                .subscribe({}, Throwable::printStackTrace)
-                        accountHeader.setActiveProfile(recentToken.id)
-                    }
-
+                    Common.getCurrentAccessToken()?.id?.let { accountHeader.setActiveProfile(it) }
                     supportActionBar?.setDisplayShowHomeEnabled(true)
 
-                    showDefaultTimeline()
+                    if (savedInstanceState == null) showDefaultTimeline()
                 })
 
         (findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showCreateNewTootFragment() }

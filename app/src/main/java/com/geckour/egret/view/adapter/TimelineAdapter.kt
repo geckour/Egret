@@ -3,6 +3,7 @@ package com.geckour.egret.view.adapter
 import android.databinding.DataBindingUtil
 import android.support.design.widget.Snackbar
 import android.support.v4.content.ContextCompat
+import android.support.v7.preference.PreferenceManager
 import android.support.v7.widget.RecyclerView
 import android.text.method.LinkMovementMethod
 import android.view.*
@@ -45,7 +46,7 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
             binding.reply.setOnClickListener { listener.onReply(binding.content.rebloggedStatusContent ?: binding.content) }
             binding.fav.setOnClickListener { listener.onFavStatus(binding.content.rebloggedStatusContent?.id ?: binding.content.id, binding.fav) }
             binding.boost.setOnClickListener { listener.onBoostStatus(binding.content.rebloggedStatusContent?.id ?: binding.content.id, binding.boost) }
-            binding.body.movementMethod = Common.getMutableLinkMovementMethodForCustomTab(binding.body.context) // TODO: LinkMovementMethod.getInstance() と切替可能に
+            binding.body.movementMethod = Common.getMovementMethodFromPreference(binding.body.context)
         }
 
         fun showPopup(view: View) {
@@ -55,6 +56,16 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
 
             popup.setOnMenuItemClickListener { item ->
                 when (item?.itemId) {
+                    R.id.action_open -> {
+                        listener.showTootInBrowser(binding.content)
+                        true
+                    }
+
+                    R.id.action_copy -> {
+                        listener.copyTootToClipboard(binding.content)
+                        true
+                    }
+
                     R.id.action_mute -> {
                         listener.showMuteDialog(binding.content)
                         true
@@ -94,6 +105,10 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
     }
 
     interface IListener {
+        fun showTootInBrowser(content: TimelineContent)
+
+        fun copyTootToClipboard(content: TimelineContent)
+
         fun showMuteDialog(content: TimelineContent)
 
         fun showProfile(accountId: Long)
@@ -124,7 +139,7 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
     fun getContents(): List<TimelineContent> = this.contents
 
     fun addContent(content: TimelineContent, limit: Int = DEFAULT_ITEMS_LIMIT) {
-        val c = content.takeIf { c -> shouldMute(c) }?.let {
+        content.takeIf { !shouldMute(it) }?.let {
             this.contents.add(0, it)
             notifyItemInserted(0)
             removeItemsWhenOverLimit(limit)
@@ -132,7 +147,7 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
     }
 
     fun addAllContents(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
-        val c = contents.takeWhile { c -> shouldMute(c) }
+        val c = contents.filter { !shouldMute(it) }
 
         if (c.isNotEmpty()) {
             this.contents.addAll(0, c)
@@ -154,7 +169,7 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
         notifyItemRangeRemoved(0, size)
     }
 
-    fun resetContent(contents: List<TimelineContent>) {
+    fun resetContents(contents: List<TimelineContent>) {
         clearContents()
         addAllContents(contents)
     }
@@ -174,17 +189,25 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
     fun shouldMute(content: TimelineContent): Boolean {
         OrmaProvider.db.selectFromMuteKeyword().forEach {
             if (it.isRegex) {
-                if (content.body.matches(Regex(it.keyword))) return false
-            } else if (content.body.contains(it.keyword)) return false
+                if (content.body.matches(Regex(it.keyword))) return true
+            } else if (content.body.contains(it.keyword)) return true
         }
         OrmaProvider.db.selectFromMuteInstance().forEach {
-            if (content.nameWeak.matches(Regex("@.+${it.instance}"))) return false
+            var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
+            if (content.nameWeak == instance) {
+                instance = ""
+                Common.getCurrentAccessToken()?.instanceId?.let {
+                    instance = "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(it).last().instance}"
+                }
+            }
+
+            if (it.instance == instance) return true
         }
         OrmaProvider.db.selectFromMuteClient().forEach {
-            if (content.app == it.client) return false
+            if (content.app == it.client) return true
         }
 
-        return true
+        return false
     }
 
     private fun removeItemsWhenOverLimit(limit: Int) {

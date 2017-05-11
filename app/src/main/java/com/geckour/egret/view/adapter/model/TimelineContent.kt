@@ -8,12 +8,14 @@ import java.util.*
 @PaperParcel
 data class TimelineContent(
         var id: Long,
+        var tootUrl: String,
         var accountId: Long,
         var iconUrl: String,
         var nameStrong: String,
         var nameWeak: String,
         var time: Date,
         var body: Spanned,
+        var tags: List<String>,
         var favourited: Boolean,
         var reblogged: Boolean,
         var rebloggedStatusContent: TimelineContent?,

@@ -18,9 +18,11 @@ import com.geckour.egret.api.model.Relationship
 import com.geckour.egret.databinding.FragmentAccountProfileBinding
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
+import com.geckour.egret.view.activity.BaseActivity
 import com.geckour.egret.view.activity.MainActivity
 import com.geckour.egret.view.adapter.TimelineAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
+import com.geckour.egret.view.fragment.TimelineFragment.Companion.STATE_ARGS_KEY_CONTENTS
 import com.squareup.picasso.Picasso
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -32,6 +34,7 @@ class AccountProfileFragment: BaseFragment() {
     companion object {
         val TAG = "accountProfileFragment"
         val ARGS_KEY_ACCOUNT = "account"
+        private val STATE_KEY_THEME_MODE = "theme mode"
 
         fun newInstance(account: Account): AccountProfileFragment {
             val fragment = AccountProfileFragment()
@@ -74,7 +77,6 @@ class AccountProfileFragment: BaseFragment() {
 
         binding.content = content
         binding.timeString = Common.getReadableDateString(content.createdAt, true)
-        Picasso.with(binding.icon.context).load(content.iconUrl).into(binding.icon)
         Picasso.with(binding.header.context).load(content.headerUrl).into(binding.header)
 
         return binding.root
@@ -83,8 +85,9 @@ class AccountProfileFragment: BaseFragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.url.movementMethod = LinkMovementMethod.getInstance()
-        binding.note.movementMethod = LinkMovementMethod.getInstance()
+        val movementMethod = Common.getMovementMethodFromPreference(binding.root.context)
+        binding.url.movementMethod = movementMethod
+        binding.note.movementMethod = movementMethod
 
         val domain = Common.resetAuthInfo()
         if (domain != null) MastodonClient(domain).getAccountRelationships(account.id)
@@ -198,26 +201,37 @@ class AccountProfileFragment: BaseFragment() {
     override fun onPause() {
         super.onPause()
 
-        bundle.putParcelableArrayList(TimelineFragment.STATE_ARGS_KEY_CONTENTS, ArrayList(adapter.getContents()))
+        bundle.putParcelableArrayList(STATE_ARGS_KEY_CONTENTS, ArrayList(adapter.getContents()))
+        bundle.putBoolean(STATE_KEY_THEME_MODE, (activity as BaseActivity).isModeDark())
     }
 
     override fun onResume() {
         super.onResume()
 
+        if (bundle.containsKey(STATE_KEY_THEME_MODE) && (bundle.getBoolean(STATE_KEY_THEME_MODE, false) xor (activity as BaseActivity).isModeDark())) {
+            bundle.clear()
+            activity.recreate()
+        }
+
         restoreTimeline(bundle)
+
+        reflectSettings()
     }
 
     fun showToots(loadNext: Boolean = false) {
         val next = loadNext && nextId != null && (nextId?.compareTo(-1) ?: 0) == 1
-        if (nextId != null) MastodonClient(Common.resetAuthInfo() ?: return).getAccountAllToots(account.id, if (next) nextId else null)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .compose(bindToLifecycle())
-                .subscribe({ result ->
-                    if (next) adapter.addAllContentsInLast(result.response().body().map { status -> Common.getTimelineContent(status) }, -1)
-                    else adapter.addAllContents(result.response().body().map { status -> Common.getTimelineContent(status) }, -1)
-                    nextId = result.response().headers().get("Link")?.replace(Regex(".*<https?://.+\\?max_id=(.+?)>.*"), "$1")?.toLong()
-                }, Throwable::printStackTrace)
+        if (nextId != null)
+            Common.resetAuthInfo()?.let {
+                MastodonClient(it).getAccountAllToots(account.id, if (next) nextId else null)
+                        .subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .compose(bindToLifecycle())
+                        .subscribe({ result ->
+                            if (next) adapter.addAllContentsInLast(result.response().body().map { status -> Common.getTimelineContent(status) }, -1)
+                            else adapter.addAllContents(result.response().body().map { status -> Common.getTimelineContent(status) }, -1)
+                            nextId = result.response().headers().get("Link")?.replace(Regex(".*<https?://.+\\?max_id=(.+?)>.*"), "$1")?.toLong()
+                        }, Throwable::printStackTrace)
+            }
     }
 
     fun setFollowButtonState(state: Boolean) {
@@ -251,5 +265,11 @@ class AccountProfileFragment: BaseFragment() {
             val parcelables: ArrayList<Parcelable> = savedInstanceState.getParcelableArrayList(TimelineFragment.STATE_ARGS_KEY_CONTENTS)
             adapter.addAllContents(parcelables.map { parcelable -> parcelable as TimelineContent })
         }
+    }
+
+    fun reflectSettings() {
+        val movementMethod = Common.getMovementMethodFromPreference(binding.root.context)
+        binding.url.movementMethod = movementMethod
+        binding.note.movementMethod = movementMethod
     }
 }

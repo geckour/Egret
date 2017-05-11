@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetLeft="@dimen/control_inset_material"
+    android:insetTop="@dimen/control_inset_material"
+    android:insetRight="@dimen/control_inset_material"
+    android:insetBottom="@dimen/control_inset_material">
+    <shape android:shape="oval">
+        <solid android:color="@android:color/white" />
+        <padding android:left="@dimen/button_oval_padding_material"
+            android:top="@dimen/button_oval_padding_material"
+            android:right="@dimen/button_oval_padding_material"
+            android:bottom="@dimen/button_oval_padding_material" />
+    </shape>
+</inset>

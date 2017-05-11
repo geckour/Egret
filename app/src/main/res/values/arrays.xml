@@ -3,6 +3,7 @@
     <string-array name="mute_from_toot">
         <item>@string/array_item_mute_account</item>
         <item>@string/array_item_mute_keyword</item>
+        <item>@string/array_item_mute_hash_tag</item>
         <item>@string/array_item_mute_instance</item>
         <item>@string/array_item_mute_client</item>
     </string-array>
