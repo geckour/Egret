@@ -56,7 +56,8 @@
     <string name="pref_manage_stream_default">0</string>
     <string name="pref_manage_restriction">Manage restrictions</string>
     <string name="pref_switch_to_dark_theme">Change theme color darken</string>
-    <string name="pref_switch_to_use_chrome_app">Change scheme to open links</string>
+    <string name="pref_switch_to_use_default_browser">Change scheme to open links</string>
+    <string name="pref_switch_to_show_extreme_toot_bar">Show bar to post new toot on footer of TL</string>
 
     <string name="pref_stream_always">Always</string>
     <string name="pref_stream_wifi">When connect with Wi-Fi</string>
@@ -66,8 +67,12 @@
     <string name="pref_switch_to_dark_theme_text_off">App theme is light.</string>
     <string name="pref_switch_to_dark_theme_summary_on">The theme is in dark</string>
     <string name="pref_switch_to_dark_theme_summary_off">The theme is in light</string>
-    <string name="pref_switch_to_use_chrome_app_text_on">Use Chrome App.</string>
-    <string name="pref_switch_to_use_chrome_app_text_off">Use Chrome Custom Tabs.</string>
-    <string name="pref_switch_to_use_chrome_app_summary_on">Use Chrome App</string>
-    <string name="pref_switch_to_use_chrome_app_summary_off">Use Chrome Custom Tabs</string>
+    <string name="pref_switch_to_use_default_browser_text_on">Use Default Browser.</string>
+    <string name="pref_switch_to_use_default_browser_text_off">Use Chrome Custom Tabs.</string>
+    <string name="pref_switch_to_use_default_browser_summary_on">Use Default Browser</string>
+    <string name="pref_switch_to_use_default_browser_summary_off">Use Chrome Custom Tabs</string>
+    <string name="pref_switch_to_show_extreme_toot_bar_text_on">Show new toot bar.</string>
+    <string name="pref_switch_to_show_extreme_toot_bar_text_off">Don\'t show new toot bar.</string>
+    <string name="pref_switch_to_show_extreme_toot_bar_summary_on">Show new toot bar</string>
+    <string name="pref_switch_to_show_extreme_toot_bar_summary_off">Don\'t show new toot bar</string>
 </resources>
