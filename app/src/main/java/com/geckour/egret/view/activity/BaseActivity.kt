@@ -7,10 +7,10 @@ import android.widget.EditText
 import com.trello.rxlifecycle2.components.support.RxAppCompatActivity
 
 open class BaseActivity: RxAppCompatActivity() {
-    fun showSoftKeyBoardOnFocusEditText(et: EditText) {
+    fun showSoftKeyBoardOnFocusEditText(et: EditText, hideOnUnFocus: Boolean = true) {
         et.setOnFocusChangeListener { view, hasFocus ->
             if (hasFocus) (view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
-            else (view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromInputMethod(view.applicationWindowToken, 0)
+            else if (hideOnUnFocus) (view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(view.windowToken, 0)
         }
         et.requestFocusFromTouch()
         et.requestFocus()
