@@ -46,6 +46,8 @@ class MastodonClient(baseUrl: String) {
 
     fun getPublicTimelineAsStream(): Observable<ResponseBody> = streamService.getPublicTimelineAsStream()
 
+    fun getLocalTimelineAsStream(): Observable<ResponseBody> = streamService.getLocalTimelineAsStream()
+
     fun getUserTimelineAsStream(): Observable<ResponseBody> = streamService.getUserTimelineAsStream()
 
     fun getUserTimeline(maxId: Long? = null): Single<Result<List<Status>>> = service.getUserTimeline(maxId)

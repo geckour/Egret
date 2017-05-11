@@ -68,17 +68,18 @@ interface MastodonService {
     @Streaming
     fun getPublicTimelineAsStream(): Observable<ResponseBody>
 
+    @GET("api/v1/streaming/public/local")
+    @Streaming
+    fun getLocalTimelineAsStream(): Observable<ResponseBody>
+
     @GET("api/v1/streaming/user")
     @Streaming
     fun getUserTimelineAsStream(): Observable<ResponseBody>
 
     @GET("api/v1/timelines/home")
-    fun getUserTimeline(): Single<Result<List<Status>>>
-
-    @GET("api/v1/timelines/home")
     fun getUserTimeline(
             @Query("max_id")
-            maxId: Long?
+            maxId: Long? = null
     ): Single<Result<List<Status>>>
 
     @GET("api/v1/accounts/{id}/statuses")

@@ -44,6 +44,19 @@ class MainActivity : BaseActivity() {
     lateinit var drawer: Drawer
     lateinit private var accountHeader: AccountHeader
 
+    companion object {
+        val NAV_ITEM_LOGIN: Long = 0
+        val NAV_ITEM_TL_PUBLIC: Long = 1
+        val NAV_ITEM_TL_LOCAL: Long = 2
+        val NAV_ITEM_TL_USER: Long = 3
+        val NAV_ITEM_SETTINGS: Long = 4
+
+        fun getIntent(context: Context): Intent {
+            val intent = Intent(context, MainActivity::class.java)
+            return intent
+        }
+    }
+
     val timelineListener = object: TimelineAdapter.IListener {
         override fun showMuteDialog(content: TimelineContent) {
             var itemStrings = resources.getStringArray(R.array.mute_from_toot).toList()
@@ -141,18 +154,6 @@ class MainActivity : BaseActivity() {
 
         override fun onBoostStatus(statusId: Long, view: ImageView) {
             boostStatusById(statusId, view)
-        }
-    }
-
-    companion object {
-        val NAV_ITEM_LOGIN: Long = 0
-        val NAV_ITEM_TL_PUBLIC: Long = 1
-        val NAV_ITEM_TL_USER: Long = 2
-        val NAV_ITEM_SETTINGS: Long = 3
-
-        fun getIntent(context: Context): Intent {
-            val intent = Intent(context, MainActivity::class.java)
-            return intent
         }
     }
 
@@ -266,8 +267,7 @@ class MainActivity : BaseActivity() {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
 
-        when (item.itemId) {
-        }
+        when (item.itemId) {}
 
         return super.onOptionsItemSelected(item)
     }
@@ -299,8 +299,7 @@ class MainActivity : BaseActivity() {
                                     .compose(bindToLifecycle())
                                     .subscribe({ i ->
                                         Timber.d("updated row count: $i")
-                                        val fragment = TimelineFragment.newInstance(TimelineFragment.ARGS_VALUE_PUBLIC)
-                                        supportFragmentManager.beginTransaction().replace(R.id.container, fragment, TimelineFragment.TAG).commit()
+                                        showDefaultTimeline()
                                     }, Throwable::printStackTrace)
                             false
                         } else true
@@ -316,6 +315,7 @@ class MainActivity : BaseActivity() {
                 .withToolbar(toolbar)
                 .addDrawerItems(
                         PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_public).withIdentifier(NAV_ITEM_TL_PUBLIC).withIcon(R.drawable.ic_public_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
+                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_local).withIdentifier(NAV_ITEM_TL_LOCAL).withIcon(R.drawable.ic_place_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
                         PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_user).withIdentifier(NAV_ITEM_TL_USER).withIcon(R.drawable.ic_mood_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
                         DividerDrawerItem(),
                         PrimaryDrawerItem().withName(R.string.navigation_drawer_item_login).withIdentifier(NAV_ITEM_LOGIN).withIcon(R.drawable.ic_person_add_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
@@ -330,30 +330,17 @@ class MainActivity : BaseActivity() {
                         }
 
                         NAV_ITEM_TL_PUBLIC -> {
-                            val fragment = supportFragmentManager.findFragmentByTag(TimelineFragment.TAG)
-                            if (!(fragment != null
-                                    && fragment.isVisible
-                                    && (fragment as TimelineFragment).getCategory() == TimelineFragment.ARGS_VALUE_PUBLIC)) {
-                                val fmt = TimelineFragment.newInstance(TimelineFragment.ARGS_VALUE_PUBLIC)
-                                supportFragmentManager.beginTransaction()
-                                        .replace(R.id.container, fmt, TimelineFragment.TAG)
-                                        .addToBackStack(TimelineFragment.TAG)
-                                        .commit()
-                            }
+                            showTimelineFragment(TimelineFragment.Category.Public)
+                            false
+                        }
+
+                        NAV_ITEM_TL_LOCAL -> {
+                            showTimelineFragment(TimelineFragment.Category.Local)
                             false
                         }
 
                         NAV_ITEM_TL_USER -> {
-                            val fragment = supportFragmentManager.findFragmentByTag(TimelineFragment.TAG)
-                            if (!(fragment != null
-                                    && fragment.isVisible
-                                    && (fragment as TimelineFragment).getCategory() == TimelineFragment.ARGS_VALUE_USER)) {
-                                val fmt = TimelineFragment.newInstance(TimelineFragment.ARGS_VALUE_USER)
-                                supportFragmentManager.beginTransaction()
-                                        .replace(R.id.container, fmt, TimelineFragment.TAG)
-                                        .addToBackStack(TimelineFragment.TAG)
-                                        .commit()
-                            }
+                            showTimelineFragment(TimelineFragment.Category.User)
                             false
                         }
 
@@ -371,16 +358,30 @@ class MainActivity : BaseActivity() {
                 .build()
     }
 
+    fun showTimelineFragment(category: TimelineFragment.Category, setNavSelection: Boolean = false) {
+        val fragment = supportFragmentManager.findFragmentByTag(TimelineFragment.TAG)
+        if (!(fragment != null
+                && fragment.isVisible
+                && (fragment as TimelineFragment).getCategory() == category)) {
+            val fmt = TimelineFragment.newInstance(category)
+            supportFragmentManager.beginTransaction()
+                    .replace(R.id.container, fmt, TimelineFragment.TAG)
+                    .addToBackStack(TimelineFragment.TAG)
+                    .commit()
+            if (setNavSelection) when (category) {
+                TimelineFragment.Category.Public -> drawer.setSelection(NAV_ITEM_TL_PUBLIC)
+                TimelineFragment.Category.Local -> drawer.setSelection(NAV_ITEM_TL_LOCAL)
+                TimelineFragment.Category.User -> drawer.setSelection(NAV_ITEM_TL_USER)
+            }
+        }
+    }
+
     fun resetSelectionNavItem(identifier: Long) {
         if (identifier > -1) drawer.setSelection(identifier)
     }
 
     fun showDefaultTimeline() {
-        val fragment = TimelineFragment.newInstance(TimelineFragment.ARGS_VALUE_PUBLIC)
-        supportFragmentManager.beginTransaction()
-                .replace(R.id.container, fragment, TimelineFragment.TAG)
-                .commit()
-        drawer.setSelection(NAV_ITEM_TL_PUBLIC)
+        showTimelineFragment(TimelineFragment.Category.Public, true)
     }
 
     fun showCreateNewTootFragment() {

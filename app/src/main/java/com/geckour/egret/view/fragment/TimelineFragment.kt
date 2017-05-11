@@ -25,23 +25,30 @@ import io.reactivex.schedulers.Schedulers
 
 class TimelineFragment: BaseFragment() {
 
+    enum class Category(val rawValue: Int) {
+        Public(0),
+        Local(1),
+        User(2),
+        HashTag(3),
+        Unknown(4)
+    }
+
     companion object {
         val TAG = "timelineFragment"
         val ARGS_KEY_CATEGORY = "category"
-        val ARGS_VALUE_PUBLIC = "Public"
-        val ARGS_VALUE_USER = "User"
-        val ARGS_VALUE_HASH_TAG = "Hash tag"
         val STATE_ARGS_KEY_CONTENTS = "contents"
         val STATE_KEY_THEME_MODE = "theme mode"
 
-        fun newInstance(category: String): TimelineFragment {
+        fun newInstance(category: Category): TimelineFragment {
             val fragment = TimelineFragment()
             val args = Bundle()
-            args.putString(ARGS_KEY_CATEGORY, category)
+            args.putString(ARGS_KEY_CATEGORY, category.name)
             fragment.arguments = args
 
             return fragment
         }
+
+        fun getCategoryById(rawValue: Int): Category = Category.values()[rawValue]
     }
 
     lateinit private var binding: FragmentTimelineBinding
@@ -50,8 +57,9 @@ class TimelineFragment: BaseFragment() {
     private var inTouch = false
     private val bundle = Bundle()
 
-    lateinit private var publicStream: Disposable
-    lateinit private var userStream: Disposable
+    private var publicStream: Disposable? = null
+    private var localStream: Disposable? = null
+    private var userStream: Disposable? = null
 
     private var waitingContent = false
     private var waitingNotification = false
@@ -97,9 +105,10 @@ class TimelineFragment: BaseFragment() {
                     val h = recyclerView?.computeVerticalScrollRange() ?: -1
                     if (y == h) {
                         when (getCategory()) {
-                            ARGS_VALUE_PUBLIC -> {}
-                            ARGS_VALUE_USER -> showUserTimeline(loadNext = true)
-                            ARGS_VALUE_HASH_TAG -> {}
+                            Category.Public -> {}
+                            Category.Local -> {}
+                            Category.User -> showUserTimeline(loadNext = true)
+                            Category.HashTag -> {}
                         }
                     }
                 }
@@ -130,13 +139,14 @@ class TimelineFragment: BaseFragment() {
 
         (activity as MainActivity).resetSelectionNavItem(
                 when (getCategory()) {
-                    ARGS_VALUE_PUBLIC -> MainActivity.NAV_ITEM_TL_PUBLIC
-                    ARGS_VALUE_USER -> MainActivity.NAV_ITEM_TL_USER
+                    Category.Public -> MainActivity.NAV_ITEM_TL_PUBLIC
+                    Category.Local -> MainActivity.NAV_ITEM_TL_LOCAL
+                    Category.User -> MainActivity.NAV_ITEM_TL_USER
                     else -> -1
                 })
     }
 
-    fun getCategory(): String = arguments.getString(ARGS_KEY_CATEGORY) ?: "Unknown"
+    fun getCategory(): Category = if (arguments != null && arguments.containsKey(ARGS_KEY_CATEGORY)) Category.valueOf(arguments.getString(ARGS_KEY_CATEGORY, "Unknown")) else Category.Unknown
 
     fun restoreTimeline(bundle: Bundle) {
         if (bundle.containsKey(STATE_ARGS_KEY_CONTENTS)) {
@@ -151,24 +161,27 @@ class TimelineFragment: BaseFragment() {
         bundle.clear()
     }
 
-    fun showTimelineByCategory(category: String, hasContents: Boolean = false) {
+    fun showTimelineByCategory(category: Category, hasContents: Boolean = false) {
         if (hasContents) {
             when (category) {
-                ARGS_VALUE_PUBLIC -> startPublicTimelineStream()
-                ARGS_VALUE_USER -> startUserTimelineStream()
-                ARGS_VALUE_HASH_TAG -> {}
+                Category.Public -> startPublicTimelineStream()
+                Category.Local -> startLocalTimelineStream()
+                Category.User -> startUserTimelineStream()
+                Category.HashTag -> {}
             }
         } else {
             when (category) {
-                ARGS_VALUE_PUBLIC -> startPublicTimelineStream()
-                ARGS_VALUE_USER -> showUserTimeline(true)
-                ARGS_VALUE_HASH_TAG -> {}
+                Category.Public -> startPublicTimelineStream()
+                Category.Local -> startLocalTimelineStream()
+                Category.User -> showUserTimeline(true)
+                Category.HashTag -> {}
             }
         }
     }
 
     fun stopTimelineStreams() {
         stopPublicTimelineStream()
+        stopLocalTimelineStream()
         stopUserTimelineStream()
     }
 
@@ -187,7 +200,7 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun stopPublicTimelineStream() {
-        if (getCategory() == ARGS_VALUE_PUBLIC && !publicStream.isDisposed) publicStream.dispose()
+        if (getCategory() == Category.Public && !(publicStream?.isDisposed ?: true)) publicStream?.dispose()
     }
 
     fun startUserTimelineStream() {
@@ -205,7 +218,7 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun stopUserTimelineStream() {
-        if (getCategory() == ARGS_VALUE_USER && !userStream.isDisposed) userStream.dispose()
+        if (getCategory() == Category.User && !(userStream?.isDisposed ?: true)) userStream?.dispose()
     }
 
     fun showUserTimeline(loadStream: Boolean = false, loadNext: Boolean = false) {
@@ -221,6 +234,23 @@ class TimelineFragment: BaseFragment() {
 
                     if (loadStream) startUserTimelineStream()
                 }, Throwable::printStackTrace)
+    }
+
+    fun startLocalTimelineStream() {
+        Common.resetAuthInfo()?.let {
+            MastodonClient(it).getLocalTimelineAsStream()
+                    .flatMap { responseBody -> MastodonService.events(responseBody.source()) }
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .compose(bindToLifecycle())
+                    .subscribe({
+                        parseTimelineStream(it)
+                    }, Throwable::printStackTrace)
+        }
+    }
+
+    fun stopLocalTimelineStream() {
+        if (getCategory() == Category.Local && !(localStream?.isDisposed ?: true)) localStream?.dispose()
     }
 
     fun onAddItemToAdapter() {
