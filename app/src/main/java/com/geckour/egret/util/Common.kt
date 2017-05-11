@@ -84,6 +84,8 @@ class Common {
                 status.tags.map { it.name },
                 status.favourited,
                 status.reblogged,
+                status.favCount,
+                status.reblogCount,
                 if (status.reblog != null || notification != null)
                     getTimelineContent(notification?.status ?: status.reblog!!) else null,
                 status.application?.name)

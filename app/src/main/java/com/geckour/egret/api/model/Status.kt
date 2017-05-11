@@ -26,7 +26,7 @@ data class Status(
         val createdAt: Date,
 
         @SerializedName("reblogs_count")
-        var reblogsCount: Long,
+        var reblogCount: Long,
 
         @SerializedName("favourites_count")
         var favCount: Long,

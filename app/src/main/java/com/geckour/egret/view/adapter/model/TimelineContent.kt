@@ -18,6 +18,8 @@ data class TimelineContent(
         var tags: List<String>,
         var favourited: Boolean,
         var reblogged: Boolean,
+        var favCount: Long,
+        var reblogCount: Long,
         var rebloggedStatusContent: TimelineContent?,
         var app: String?
 ): PaperParcelable {

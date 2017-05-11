@@ -194,10 +194,12 @@
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/body">
 
-                    <FrameLayout
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_weight="1">
+                        android:layout_weight="1"
+                        android:gravity="bottom"
+                        android:orientation="horizontal">
 
                         <ImageView
                             android:id="@+id/reply"
@@ -206,13 +208,15 @@
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:clickable="true"
                             android:tint="@color/icon_tint_dark"
-                            app:srcCompat="@drawable/ic_reply_black_24px"/>
-                    </FrameLayout>
+                            app:srcCompat="@drawable/ic_reply_black_24px" />
+                    </LinearLayout>
 
-                    <FrameLayout
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_weight="1">
+                        android:layout_weight="1"
+                        android:gravity="bottom"
+                        android:orientation="horizontal">
 
                         <ImageView
                             android:id="@+id/fav"
@@ -221,13 +225,24 @@
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:clickable="true"
                             android:tint="@color/icon_tint_dark"
-                            app:srcCompat="@drawable/ic_star_black_24px"/>
-                    </FrameLayout>
+                            app:srcCompat="@drawable/ic_star_black_24px" />
 
-                    <FrameLayout
+                        <TextView
+                            android:id="@+id/textView3"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="4dp"
+                            android:text="@{content.favCount > 0 ? String.valueOf(content.favCount) : null}"
+                            android:textSize="12sp"
+                            tools:text="1" />
+                    </LinearLayout>
+
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_weight="1">
+                        android:layout_weight="1"
+                        android:gravity="bottom"
+                        android:orientation="horizontal">
 
                         <ImageView
                             android:id="@+id/boost"
@@ -236,15 +251,26 @@
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:clickable="true"
                             android:tint="@color/icon_tint_dark"
-                            app:srcCompat="@drawable/ic_repeat_black_24px"/>
-                    </FrameLayout>
+                            app:srcCompat="@drawable/ic_repeat_black_24px" />
 
-                    <FrameLayout
+                        <TextView
+                            android:id="@+id/textView2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="4dp"
+                            android:text="@{content.reblogCount > 0 ? String.valueOf(content.reblogCount) : null}"
+                            android:textSize="12sp"
+                            tools:text="3" />
+                    </LinearLayout>
+
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_weight="1">
+                        android:layout_weight="1"
+                        android:gravity="bottom"
+                        android:orientation="horizontal">
 
-                    </FrameLayout>
+                    </LinearLayout>
 
                 </LinearLayout>
 
