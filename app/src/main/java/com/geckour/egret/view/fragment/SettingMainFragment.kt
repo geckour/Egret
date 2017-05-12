@@ -34,7 +34,7 @@ class SettingMainFragment: PreferenceFragmentCompat(), PreferenceFragmentCompat.
     }
 
     fun showMuteKeywordList(): Boolean {
-        val fragment = KeywordMuteFragment.newInstance(KeywordMuteFragment.ARGS_VALUE_MODE_MANAGE)
+        val fragment = KeywordMuteFragment.newInstance()
         (activity as SettingActivity).supportFragmentManager.beginTransaction()
                 .replace(R.id.container, fragment, KeywordMuteFragment.TAG)
                 .commit()

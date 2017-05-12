@@ -29,14 +29,10 @@ class KeywordMuteFragment: BaseFragment() {
     companion object {
         val TAG = "KeywordMuteFragment"
         val ARGS_KEY_DEFAULT_KEYWORD = "defaultKeyword"
-        val ARGS_KEY_MODE = "mode"
-        val ARGS_VALUE_MODE_ADD = "modeAdd"
-        val ARGS_VALUE_MODE_MANAGE = "modeManage"
 
-        fun newInstance(mode: String, defaultKeyword: String? = null): KeywordMuteFragment {
+        fun newInstance(defaultKeyword: String? = null): KeywordMuteFragment {
             val fragment = KeywordMuteFragment()
             val args = Bundle()
-            args.putString(ARGS_KEY_MODE, mode)
             defaultKeyword?.let {
                 args.putString(ARGS_KEY_DEFAULT_KEYWORD, it)
             }
@@ -67,18 +63,11 @@ class KeywordMuteFragment: BaseFragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        if (arguments.containsKey(ARGS_KEY_MODE)) {
-            val mode = arguments.getString(ARGS_KEY_MODE, "")
-            if (mode == ARGS_VALUE_MODE_ADD)
-                binding.desc.setText(R.string.desc_fragment_mute_keyword)
-            if (mode == ARGS_VALUE_MODE_MANAGE)
-                binding.desc.setText(R.string.desc_fragment_manage_mute_keyword)
-        }
+        binding.desc.setText(R.string.desc_fragment_mute_keyword)
         binding.editTextAddMuteKeyword.requestFocusFromTouch()
         binding.editTextAddMuteKeyword.requestFocus()
         val keyword = binding.editTextAddMuteKeyword.text.toString()
         binding.editTextAddMuteKeyword.setSelection(keyword.length)
-        binding.buttonRegister.setOnClickListener { registerKeywords() }
         adapter = MuteKeywordAdapter()
         val helper = Common.getSwipeToDismissTouchHelperForMuteKeyword(adapter)
         helper.attachToRecyclerView(binding.recyclerView)
@@ -89,9 +78,7 @@ class KeywordMuteFragment: BaseFragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        if (arguments.containsKey(ARGS_KEY_MODE)) {
-            if (getMode() == ARGS_VALUE_MODE_MANAGE) bindSavedKeywords()
-        }
+        bindSavedKeywords()
     }
 
     override fun onResume() {
@@ -100,7 +87,14 @@ class KeywordMuteFragment: BaseFragment() {
         if (activity is MainActivity) ((activity as MainActivity).findViewById(R.id.fab) as FloatingActionButton?)?.hide()
     }
 
+    override fun onPause() {
+        manageKeywords()
+        super.onPause()
+    }
+
     fun bindSavedKeywords() {
+        adapter.clearItems()
+        preItems.clear()
         val items = OrmaProvider.db.selectFromMuteKeyword().toList()
         adapter.addAllItems(items)
         preItems.addAll(items)
@@ -113,22 +107,25 @@ class KeywordMuteFragment: BaseFragment() {
         binding.editTextAddMuteKeyword.setText("")
     }
 
-    fun registerKeywords() {
-        val mode = getMode()
-        val items: ArrayList<MuteKeyword> = ArrayList()
-        items.addAll(adapter.getItems())
+    fun manageKeywords() {
+        val items = adapter.getItems()
+        removeKeywords(items)
+    }
 
-        if (mode == ARGS_VALUE_MODE_MANAGE) {
-            Observable.fromIterable(preItems.filter { !items.contains(it) })
-                    .map { Pair(it, OrmaProvider.db.deleteFromMuteKeyword().idEq(it.id).execute()) }
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .compose(bindToLifecycle())
-                    .subscribe({
-                        Timber.d("deleted mute keyword id: ${it.first.id}")
-                    }, Throwable::printStackTrace)
-        }
+    fun removeKeywords(items: List<MuteKeyword>) {
+        Observable.fromIterable(preItems.filter { !items.contains(it) })
+                .map { Pair(it, OrmaProvider.db.deleteFromMuteKeyword().idEq(it.id).execute()) }
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe({
+                    Timber.d("deleted mute keyword id: ${it.first.id}")
+                }, Throwable::printStackTrace, {
+                    registerKeywords(items)
+                })
+    }
 
+    fun registerKeywords(items: List<MuteKeyword>) {
         Observable.fromIterable(items)
                 .map { OrmaProvider.db.relationOfMuteKeyword().upsert(it) }
                 .subscribeOn(Schedulers.newThread())
@@ -138,19 +135,8 @@ class KeywordMuteFragment: BaseFragment() {
                         { item -> Timber.d("updated mute keyword: ${item.keyword}") },
                         { throwable ->
                             throwable.printStackTrace()
-                            Snackbar.make(binding.root, "Failed to add keyword.", Snackbar.LENGTH_SHORT)
+                            Snackbar.make(binding.root, "Failed to register mute keywords.", Snackbar.LENGTH_SHORT)
                         },
-                        {
-                            Snackbar.make(binding.root, if (mode == ARGS_VALUE_MODE_MANAGE) "Edited mute keywords." else "Added mute keywords.", Snackbar.LENGTH_SHORT)
-                            if (mode == ARGS_VALUE_MODE_ADD) adapter.clearItems()
-                            if (mode == ARGS_VALUE_MODE_MANAGE) {
-                                val newItems = OrmaProvider.db.selectFromMuteKeyword().toList()
-                                adapter.resetItems(newItems)
-                            }
-                        })
-    }
-
-    fun getMode(): String {
-        return if (arguments.containsKey(ARGS_KEY_MODE)) arguments.getString(ARGS_KEY_MODE, "") else ""
+                        { Snackbar.make(binding.root, "Registered mute keywords.", Snackbar.LENGTH_SHORT) })
     }
 }

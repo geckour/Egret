@@ -14,8 +14,7 @@
     <string name="title_activity_login">Sign in</string>
     <string name="title_activity_setting">Settings</string>
     <string name="title_fragment_mute_keyword">Mute keywords</string>
-    <string name="desc_fragment_mute_keyword">List of keywords going to mute:</string>
-    <string name="desc_fragment_manage_mute_keyword">List of muting keywords:</string>
+    <string name="desc_fragment_mute_keyword">List of keywords to mute:</string>
 
     <!-- Strings related to login -->
     <string name="prompt_instance">Instance domain</string>
