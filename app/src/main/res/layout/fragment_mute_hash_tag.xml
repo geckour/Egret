@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-        <variable name="defaultKeyword" type="String" />
+        <variable name="defaultHashTag" type="String" />
     </data>
 
     <android.support.constraint.ConstraintLayout
@@ -18,7 +18,7 @@
             android:layout_marginLeft="12dp"
             android:layout_marginRight="12dp"
             android:layout_marginTop="10dp"
-            android:text="@string/desc_fragment_mute_keyword"
+            android:text="@string/desc_fragment_mute_hash_tag"
             android:textColor="@color/material_gray_dark"
             android:textSize="20sp"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -38,7 +38,7 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/desc"
             app:layoutManager="android.support.v7.widget.LinearLayoutManager"
-            tools:listitem="@layout/item_recycle_mute_keyword" />
+            tools:listitem="@layout/item_recycle_mute_hash_tag" />
 
         <android.support.constraint.ConstraintLayout
             android:id="@+id/wrap_add_new_keyword"
@@ -50,16 +50,14 @@
             app:layout_constraintLeft_toLeftOf="@+id/recyclerView"
             app:layout_constraintRight_toRightOf="parent">
 
-            <CheckBox
-                android:id="@+id/check_is_regex"
+            <TextView
+                android:id="@+id/hash"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:layout_marginLeft="8dp"
                 android:layout_marginTop="8dp"
-                android:text="@string/check_mute_keyword_is_regex"
-                android:textColor="@color/material_gray_dark"
-                app:buttonTint="@color/icon_tint_dark"
+                android:text="#"
+                android:textSize="16sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -69,20 +67,18 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:layout_marginLeft="12dp"
                 android:layout_marginRight="12dp"
                 android:layout_marginTop="8dp"
                 android:background="@android:color/transparent"
-                android:hint="@string/hint_add_mute_keyword"
+                android:hint="@string/hint_add_mute_hash_tag"
                 android:maxLines="1"
                 android:singleLine="true"
-                android:text="@{defaultKeyword}"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintLeft_toRightOf="@+id/check_is_regex"
+                android:text="@{defaultHashTag}"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="@id/hash"
+                app:layout_constraintLeft_toRightOf="@+id/hash"
                 app:layout_constraintRight_toLeftOf="@+id/button_add"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.481" />
+                app:layout_constraintTop_toTopOf="@id/hash" />
 
             <Button
                 android:id="@+id/button_add"
