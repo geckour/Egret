@@ -92,13 +92,6 @@ class HashTagMuteFragment: BaseFragment() {
         super.onPause()
 
         manageHashTags()
-                .subscribe(
-                        { Timber.d("updated mute hashTag: ${it.hashTag}") },
-                        { throwable ->
-                            throwable.printStackTrace()
-                            Snackbar.make(binding.root, "Failed to register mute hash tags.", Snackbar.LENGTH_SHORT)
-                        },
-                        { Snackbar.make(binding.root, "Registered mute hash tags.", Snackbar.LENGTH_SHORT) })
     }
 
     fun bindSavedKeywords() {
@@ -116,22 +109,26 @@ class HashTagMuteFragment: BaseFragment() {
         binding.editTextAddMuteKeyword.setText("")
     }
 
-    fun manageHashTags(): Observable<MuteHashTag> {
+    fun manageHashTags() {
         val items = adapter.getItems()
-        return removeHashTags(items)
+
+        removeHashTags(items)
                 .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .concatMap { registerHashTags(items) }
                 .compose(bindToLifecycle())
+                .subscribe({}, Throwable::printStackTrace, { registerHashTags(items) })
     }
 
     fun removeHashTags(items: List<MuteHashTag>): Observable<Int> {
-        return Observable.fromIterable(preItems.filter { items.none { item -> it.id == item.id } })
+        val shouldRemoveItems = preItems.filter { items.none { item -> it.id == item.id } }
+        return Observable.fromIterable(shouldRemoveItems)
                 .map { OrmaProvider.db.deleteFromMuteHashTag().idEq(it.id).execute() }
     }
 
-    fun registerHashTags(items: List<MuteHashTag>): Observable<MuteHashTag> {
-        return Observable.fromIterable(items)
+    fun registerHashTags(items: List<MuteHashTag>) {
+        Observable.fromIterable(items)
                 .map { OrmaProvider.db.relationOfMuteHashTag().upsert(it) }
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ Timber.d("updated mute hashTag: ${it.hashTag}") }, Throwable::printStackTrace)
     }
 }

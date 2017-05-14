@@ -91,15 +91,6 @@ class KeywordMuteFragment: BaseFragment() {
         super.onPause()
 
         manageKeywords()
-                .subscribe(
-                        { Timber.d("updated mute hashTag: ${it.keyword}") },
-                        { throwable ->
-                            throwable.printStackTrace()
-                            Snackbar.make(binding.root, "Failed to register mute keywords.", Snackbar.LENGTH_SHORT)
-                        },
-                        {
-                            Snackbar.make(binding.root, "Registered mute keywords.", Snackbar.LENGTH_SHORT)
-                        })
     }
 
     fun bindSavedKeywords() {
@@ -117,23 +108,26 @@ class KeywordMuteFragment: BaseFragment() {
         binding.editTextAddMuteKeyword.setText("")
     }
 
-    fun manageKeywords(): Observable<MuteKeyword> {
+    fun manageKeywords() {
         val items = adapter.getItems()
 
-        return removeKeywords(items)
+        removeKeywords(items)
                 .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .concatMap { registerKeywords(items) }
                 .compose(bindToLifecycle())
+                .subscribe({}, Throwable::printStackTrace, { registerKeywords(items) })
     }
 
     fun removeKeywords(items: List<MuteKeyword>): Observable<Int> {
-        return Observable.fromIterable(preItems.filter { items.none { item -> it.id == item.id } })
+        val shouldRemoveItems = preItems.filter { items.none { item -> it.id == item.id } }
+        return Observable.fromIterable(shouldRemoveItems)
                 .map { OrmaProvider.db.deleteFromMuteKeyword().idEq(it.id).execute() }
     }
 
-    fun registerKeywords(items: List<MuteKeyword>): Observable<MuteKeyword> {
-        return Observable.fromIterable(items)
+    fun registerKeywords(items: List<MuteKeyword>) {
+        Observable.fromIterable(items)
                 .map { OrmaProvider.db.relationOfMuteKeyword().upsert(it) }
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ Timber.d("updated mute keyword: ${it.keyword}") }, Throwable::printStackTrace)
     }
 }
