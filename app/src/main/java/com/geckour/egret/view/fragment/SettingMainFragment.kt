@@ -22,6 +22,7 @@ class SettingMainFragment: PreferenceFragmentCompat(), PreferenceFragmentCompat.
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences_main, rootKey)
         preferenceScreen.findPreference("manage_mute_keywords").setOnPreferenceClickListener { showMuteKeywordList() }
+        preferenceScreen.findPreference("manage_mute_hash_tags").setOnPreferenceClickListener { showMuteHashTagList() }
     }
 
     override fun getCallbackFragment(): Fragment {
@@ -34,9 +35,18 @@ class SettingMainFragment: PreferenceFragmentCompat(), PreferenceFragmentCompat.
     }
 
     fun showMuteKeywordList(): Boolean {
-        val fragment = KeywordMuteFragment.newInstance(KeywordMuteFragment.ARGS_VALUE_MODE_MANAGE)
+        val fragment = KeywordMuteFragment.newInstance()
         (activity as SettingActivity).supportFragmentManager.beginTransaction()
                 .replace(R.id.container, fragment, KeywordMuteFragment.TAG)
+                .commit()
+
+        return true
+    }
+
+    fun showMuteHashTagList(): Boolean {
+        val fragment = HashTagMuteFragment.newInstance()
+        (activity as SettingActivity).supportFragmentManager.beginTransaction()
+                .replace(R.id.container, fragment, HashTagMuteFragment.TAG)
                 .commit()
 
         return true

@@ -125,7 +125,7 @@ class MainActivity : BaseActivity() {
                                 }
 
                                 R.string.array_item_mute_keyword -> {
-                                    val fragment = KeywordMuteFragment.newInstance(KeywordMuteFragment.ARGS_VALUE_MODE_ADD, content.body.toString())
+                                    val fragment = KeywordMuteFragment.newInstance(content.body.toString())
                                     supportFragmentManager.beginTransaction()
                                             .replace(R.id.container, fragment, KeywordMuteFragment.TAG)
                                             .addToBackStack(KeywordMuteFragment.TAG)
@@ -386,21 +386,22 @@ class MainActivity : BaseActivity() {
                 .build()
     }
 
-    fun showTimelineFragment(category: TimelineFragment.Category, setNavSelection: Boolean = false) {
-        val fragment = supportFragmentManager.findFragmentByTag(TimelineFragment.TAG)
-        if (!(fragment != null
-                && fragment.isVisible
-                && (fragment as TimelineFragment).getCategory() == category)) {
-            val fmt = TimelineFragment.newInstance(category)
-            supportFragmentManager.beginTransaction()
-                    .replace(R.id.container, fmt, TimelineFragment.TAG)
-                    .addToBackStack(TimelineFragment.TAG)
-                    .commit()
-            if (setNavSelection) when (category) {
-                TimelineFragment.Category.Public -> drawer.setSelection(NAV_ITEM_TL_PUBLIC)
-                TimelineFragment.Category.Local -> drawer.setSelection(NAV_ITEM_TL_LOCAL)
-                TimelineFragment.Category.User -> drawer.setSelection(NAV_ITEM_TL_USER)
-            }
+    fun showTimelineFragment(category: TimelineFragment.Category, setNavSelection: Boolean = false, force: Boolean = false) {
+        val currentFragment = supportFragmentManager.findFragmentByTag(TimelineFragment.TAG)
+        if (!force
+                && currentFragment != null
+                && currentFragment.isVisible
+                && (currentFragment as TimelineFragment).getCategory() == category) return
+
+        val fragment = TimelineFragment.newInstance(category)
+        supportFragmentManager.beginTransaction()
+                .replace(R.id.container, fragment, TimelineFragment.TAG)
+                .addToBackStack(TimelineFragment.TAG)
+                .commit()
+        if (setNavSelection) when (category) {
+            TimelineFragment.Category.Public -> drawer.setSelection(NAV_ITEM_TL_PUBLIC)
+            TimelineFragment.Category.Local -> drawer.setSelection(NAV_ITEM_TL_LOCAL)
+            TimelineFragment.Category.User -> drawer.setSelection(NAV_ITEM_TL_USER)
         }
     }
 
@@ -408,8 +409,8 @@ class MainActivity : BaseActivity() {
         if (identifier > -1) drawer.setSelection(identifier)
     }
 
-    fun showDefaultTimeline() {
-        showTimelineFragment(TimelineFragment.Category.Public, true)
+    fun showDefaultTimeline(force: Boolean = false) {
+        showTimelineFragment(TimelineFragment.Category.Public, true, force)
     }
 
     fun showCreateNewTootFragment() {

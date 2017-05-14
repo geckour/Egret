@@ -131,7 +131,7 @@ class TimelineFragment: BaseFragment() {
 
         if (bundle.containsKey(STATE_KEY_THEME_MODE) && (bundle.getBoolean(STATE_KEY_THEME_MODE, false) xor (activity as BaseActivity).isModeDark())) {
             bundle.clear()
-            (activity as MainActivity).showDefaultTimeline()
+            (activity as MainActivity).showDefaultTimeline(true)
         }
 
         restoreTimeline(bundle)

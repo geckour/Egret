@@ -22,7 +22,7 @@
             android:text=""
             android:visibility="gone"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayout2"/>
+            app:layout_constraintTop_toBottomOf="@+id/wrap_postUser"/>
 
         <EditText
             android:id="@+id/toot_body"
@@ -44,7 +44,7 @@
             android:id="@+id/constraintLayout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@android:color/white"
+            android:background="?attr/colorBgSolid"
             android:elevation="5dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
@@ -86,7 +86,6 @@
                 android:layout_marginTop="4dp"
                 android:background="@drawable/button_custom_material"
                 android:text="@string/button_create_toot"
-                android:textColor="@color/icon_tint_dark"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="parent"/>
@@ -94,7 +93,7 @@
         </android.support.constraint.ConstraintLayout>
 
         <LinearLayout
-            android:id="@+id/linearLayout2"
+            android:id="@+id/wrap_postUser"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="12dp"

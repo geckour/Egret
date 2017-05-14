@@ -9,34 +9,32 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.geckour.egret.R
-import com.geckour.egret.databinding.FragmentMuteKeywordBinding
-import com.geckour.egret.model.MuteKeyword
+import com.geckour.egret.databinding.FragmentMuteHashTagBinding
+import com.geckour.egret.model.MuteHashTag
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.MainActivity
-import com.geckour.egret.view.adapter.MuteKeywordAdapter
+import com.geckour.egret.view.adapter.MuteHashTagAdapter
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 
-class KeywordMuteFragment: BaseFragment() {
-
-    lateinit private var binding: FragmentMuteKeywordBinding
-    lateinit private var adapter: MuteKeywordAdapter
-    private val preItems: ArrayList<MuteKeyword> = ArrayList()
+class HashTagMuteFragment: BaseFragment() {
+    lateinit private var binding: FragmentMuteHashTagBinding
+    lateinit private var adapter: MuteHashTagAdapter
+    private val preItems: ArrayList<MuteHashTag> = ArrayList()
 
     companion object {
         val TAG = "KeywordMuteFragment"
-        val ARGS_KEY_DEFAULT_KEYWORD = "defaultKeyword"
+        val ARGS_KEY_DEFAULT_HASH_TAG = "defaultHashTag"
 
-        fun newInstance(defaultKeyword: String? = null): KeywordMuteFragment {
-            val fragment = KeywordMuteFragment()
+        fun newInstance(defaultHashTags: List<MuteHashTag> = ArrayList()): HashTagMuteFragment {
+            val fragment = HashTagMuteFragment()
             val args = Bundle()
-            defaultKeyword?.let {
-                args.putString(ARGS_KEY_DEFAULT_KEYWORD, it)
-            }
+            if (defaultHashTags.isNotEmpty()) args.putString(ARGS_KEY_DEFAULT_HASH_TAG, Gson().toJson(defaultHashTags.map { it.hashTag }))
             fragment.arguments = args
 
             return fragment
@@ -48,14 +46,17 @@ class KeywordMuteFragment: BaseFragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_mute_keyword, container, false)
-        binding.defaultKeyword =
-                if (arguments.containsKey(ARGS_KEY_DEFAULT_KEYWORD)) arguments.getString(ARGS_KEY_DEFAULT_KEYWORD, "")
-                else ""
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_mute_hash_tag, container, false)
+        binding.defaultHashTag =
+                if (arguments.containsKey(ARGS_KEY_DEFAULT_HASH_TAG)) {
+                    val tagsJson = arguments.getString(ARGS_KEY_DEFAULT_HASH_TAG, "")
+                    val type = object: TypeToken<List<String>>() {}.type
+                    val tags: List<String> = Gson().fromJson(tagsJson, type)
+                    if (tags.isNotEmpty()) tags.first() else ""
+                } else ""
         binding.buttonAdd.setOnClickListener {
-            val isRegex = binding.checkIsRegex.isChecked
-            val keyword = binding.editTextAddMuteKeyword.text.toString()
-            addKeyword(isRegex, keyword)
+            val hashTag = binding.editTextAddMuteKeyword.text.toString()
+            addHashTag(hashTag)
         }
 
         return binding.root
@@ -68,8 +69,8 @@ class KeywordMuteFragment: BaseFragment() {
         binding.editTextAddMuteKeyword.requestFocus()
         val keyword = binding.editTextAddMuteKeyword.text.toString()
         binding.editTextAddMuteKeyword.setSelection(keyword.length)
-        adapter = MuteKeywordAdapter()
-        val helper = Common.getSwipeToDismissTouchHelperForMuteKeyword(adapter)
+        adapter = MuteHashTagAdapter()
+        val helper = Common.getSwipeToDismissTouchHelperForMuteHashTag(adapter)
         helper.attachToRecyclerView(binding.recyclerView)
         binding.recyclerView.addItemDecoration(helper)
         binding.recyclerView.adapter = adapter
@@ -90,44 +91,44 @@ class KeywordMuteFragment: BaseFragment() {
     override fun onPause() {
         super.onPause()
 
-        manageKeywords()
+        manageHashTags()
     }
 
     fun bindSavedKeywords() {
         adapter.clearItems()
         preItems.clear()
-        val items = OrmaProvider.db.selectFromMuteKeyword().toList()
+        val items = OrmaProvider.db.selectFromMuteHashTag().toList()
         adapter.addAllItems(items)
         preItems.addAll(items)
     }
 
-    fun addKeyword(isRegex: Boolean, keyword: String) {
-        if (TextUtils.isEmpty(keyword)) return
+    fun addHashTag(hashTag: String) {
+        if (TextUtils.isEmpty(hashTag)) return
 
-        adapter.addItem(MuteKeyword(isRegex = isRegex, keyword = keyword))
+        adapter.addItem(MuteHashTag(hashTag = hashTag))
         binding.editTextAddMuteKeyword.setText("")
     }
 
-    fun manageKeywords() {
+    fun manageHashTags() {
         val items = adapter.getItems()
 
-        removeKeywords(items)
+        removeHashTags(items)
                 .subscribeOn(Schedulers.newThread())
                 .compose(bindToLifecycle())
-                .subscribe({}, Throwable::printStackTrace, { registerKeywords(items) })
+                .subscribe({}, Throwable::printStackTrace, { registerHashTags(items) })
     }
 
-    fun removeKeywords(items: List<MuteKeyword>): Observable<Int> {
+    fun removeHashTags(items: List<MuteHashTag>): Observable<Int> {
         val shouldRemoveItems = preItems.filter { items.none { item -> it.id == item.id } }
         return Observable.fromIterable(shouldRemoveItems)
-                .map { OrmaProvider.db.deleteFromMuteKeyword().idEq(it.id).execute() }
+                .map { OrmaProvider.db.deleteFromMuteHashTag().idEq(it.id).execute() }
     }
 
-    fun registerKeywords(items: List<MuteKeyword>) {
+    fun registerHashTags(items: List<MuteHashTag>) {
         Observable.fromIterable(items)
-                .map { OrmaProvider.db.relationOfMuteKeyword().upsert(it) }
+                .map { OrmaProvider.db.relationOfMuteHashTag().upsert(it) }
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ Timber.d("updated mute keyword: ${it.keyword}") }, Throwable::printStackTrace)
+                .subscribe({ Timber.d("updated mute hashTag: ${it.hashTag}") }, Throwable::printStackTrace)
     }
 }

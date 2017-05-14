@@ -187,6 +187,12 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
     }
 
     fun shouldMute(content: TimelineContent): Boolean {
+        OrmaProvider.db.selectFromMuteClient().forEach {
+            if (content.app == it.client) return true
+        }
+        OrmaProvider.db.selectFromMuteHashTag().forEach { tag ->
+            content.tags.forEach { if (tag.hashTag == it) return true }
+        }
         OrmaProvider.db.selectFromMuteKeyword().forEach {
             if (it.isRegex) {
                 if (content.body.matches(Regex(it.keyword))) return true
@@ -202,9 +208,6 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
             }
 
             if (it.instance == instance) return true
-        }
-        OrmaProvider.db.selectFromMuteClient().forEach {
-            if (content.app == it.client) return true
         }
 
         return false
