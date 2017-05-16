@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-        <variable name="item" type="com.geckour.egret.model.MuteHashTag" />
+        <variable name="item" type="com.geckour.egret.model.MuteInstance" />
     </data>
 
     <FrameLayout
@@ -18,39 +18,25 @@
             android:layout_height="wrap_content"
             android:background="?android:attr/windowBackground">
 
-            <TextView
-                android:id="@+id/item_hash"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginTop="8dp"
-                android:text="#"
-                android:textSize="16sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
             <EditText
-                android:id="@+id/item_hash_tag"
+                android:id="@+id/item_instance"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:layout_marginLeft="0dp"
+                android:layout_marginLeft="8dp"
                 android:layout_marginRight="12dp"
                 android:layout_marginTop="8dp"
                 android:background="@android:color/transparent"
                 android:clickable="false"
                 android:maxLines="1"
                 android:singleLine="true"
-                android:text="@{item.hashTag}"
+                android:text="@{item.instance}"
                 android:textColor="@color/material_gray_dark"
                 android:textSize="16sp"
-                app:layout_constraintBottom_toBottomOf="@+id/item_hash"
-                app:layout_constraintLeft_toRightOf="@+id/item_hash"
-                app:layout_constraintRight_toLeftOf="@+id/item_opt"
-                app:layout_constraintTop_toTopOf="@+id/item_hash"
-                tools:text="ミュートされるハッシュタグ" />
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="ミュートされるインスタンス" />
 
             <ImageView
                 android:id="@+id/item_opt"

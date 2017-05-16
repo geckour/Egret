@@ -16,6 +16,7 @@ import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.MainActivity
 import com.geckour.egret.view.adapter.MuteKeywordAdapter
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -113,21 +114,21 @@ class KeywordMuteFragment: BaseFragment() {
 
         removeKeywords(items)
                 .subscribeOn(Schedulers.newThread())
-                .compose(bindToLifecycle())
-                .subscribe({}, Throwable::printStackTrace, { registerKeywords(items) })
+                .subscribe({ registerKeywords(items) }, Throwable::printStackTrace)
     }
 
-    fun removeKeywords(items: List<MuteKeyword>): Observable<Int> {
+    fun removeKeywords(items: List<MuteKeyword>): Single<Int> {
         val shouldRemoveItems = preItems.filter { items.none { item -> it.id == item.id } }
-        return Observable.fromIterable(shouldRemoveItems)
-                .map { OrmaProvider.db.deleteFromMuteKeyword().idEq(it.id).execute() }
+        var where = "(`id` = ?)"
+        for (i in 1..shouldRemoveItems.lastIndex) where += " OR (`id` = ?)"
+
+        return OrmaProvider.db.deleteFromMuteKeyword().where(where, *shouldRemoveItems.map { it.id }.toTypedArray()).executeAsSingle()
     }
 
     fun registerKeywords(items: List<MuteKeyword>) {
         Observable.fromIterable(items)
-                .map { OrmaProvider.db.relationOfMuteKeyword().upsert(it) }
                 .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+                .map { OrmaProvider.db.relationOfMuteKeyword().upsert(it) }
                 .subscribe({ Timber.d("updated mute keyword: ${it.keyword}") }, Throwable::printStackTrace)
     }
 }

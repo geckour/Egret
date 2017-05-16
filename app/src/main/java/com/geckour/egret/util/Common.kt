@@ -21,6 +21,7 @@ import com.geckour.egret.api.model.Notification
 import com.geckour.egret.api.model.Status
 import com.geckour.egret.model.AccessToken
 import com.geckour.egret.view.adapter.MuteHashTagAdapter
+import com.geckour.egret.view.adapter.MuteInstanceAdapter
 import com.geckour.egret.view.adapter.MuteKeywordAdapter
 import com.geckour.egret.view.adapter.model.NewTootIndentifyContent
 import com.geckour.egret.view.adapter.model.ProfileContent
@@ -173,6 +174,20 @@ class Common {
         })
 
         fun getSwipeToDismissTouchHelperForMuteHashTag(adapter: MuteHashTagAdapter): ItemTouchHelper = ItemTouchHelper(object: ItemTouchHelper.Callback() {
+            override fun getMovementFlags(recyclerView: RecyclerView?, viewHolder: RecyclerView.ViewHolder?): Int {
+                return makeFlag(ItemTouchHelper.ACTION_STATE_SWIPE, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT)
+            }
+
+            override fun onMove(recyclerView: RecyclerView?, viewHolder: RecyclerView.ViewHolder?, target: RecyclerView.ViewHolder?): Boolean {
+                return true
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder?, direction: Int) {
+                viewHolder?.adapterPosition?.let { adapter.removeItemsByIndex(it) }
+            }
+        })
+
+        fun getSwipeToDismissTouchHelperForMuteInstance(adapter: MuteInstanceAdapter): ItemTouchHelper = ItemTouchHelper(object: ItemTouchHelper.Callback() {
             override fun getMovementFlags(recyclerView: RecyclerView?, viewHolder: RecyclerView.ViewHolder?): Int {
                 return makeFlag(ItemTouchHelper.ACTION_STATE_SWIPE, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT)
             }

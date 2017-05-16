@@ -18,11 +18,13 @@ import com.geckour.egret.view.adapter.MuteHashTagAdapter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 
 class HashTagMuteFragment: BaseFragment() {
+
     lateinit private var binding: FragmentMuteHashTagBinding
     lateinit private var adapter: MuteHashTagAdapter
     private val preItems: ArrayList<MuteHashTag> = ArrayList()
@@ -55,7 +57,7 @@ class HashTagMuteFragment: BaseFragment() {
                     if (tags.isNotEmpty()) tags.first() else ""
                 } else ""
         binding.buttonAdd.setOnClickListener {
-            val hashTag = binding.editTextAddMuteKeyword.text.toString()
+            val hashTag = binding.editTextAddMuteHashTag.text.toString()
             addHashTag(hashTag)
         }
 
@@ -65,10 +67,10 @@ class HashTagMuteFragment: BaseFragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.editTextAddMuteKeyword.requestFocusFromTouch()
-        binding.editTextAddMuteKeyword.requestFocus()
-        val keyword = binding.editTextAddMuteKeyword.text.toString()
-        binding.editTextAddMuteKeyword.setSelection(keyword.length)
+        binding.editTextAddMuteHashTag.requestFocusFromTouch()
+        binding.editTextAddMuteHashTag.requestFocus()
+        val hashTag = binding.editTextAddMuteHashTag.text.toString()
+        binding.editTextAddMuteHashTag.setSelection(hashTag.length)
         adapter = MuteHashTagAdapter()
         val helper = Common.getSwipeToDismissTouchHelperForMuteHashTag(adapter)
         helper.attachToRecyclerView(binding.recyclerView)
@@ -106,7 +108,7 @@ class HashTagMuteFragment: BaseFragment() {
         if (TextUtils.isEmpty(hashTag)) return
 
         adapter.addItem(MuteHashTag(hashTag = hashTag))
-        binding.editTextAddMuteKeyword.setText("")
+        binding.editTextAddMuteHashTag.setText("")
     }
 
     fun manageHashTags() {
@@ -114,21 +116,21 @@ class HashTagMuteFragment: BaseFragment() {
 
         removeHashTags(items)
                 .subscribeOn(Schedulers.newThread())
-                .compose(bindToLifecycle())
-                .subscribe({}, Throwable::printStackTrace, { registerHashTags(items) })
+                .subscribe({ registerHashTags(items) }, Throwable::printStackTrace)
     }
 
-    fun removeHashTags(items: List<MuteHashTag>): Observable<Int> {
+    fun removeHashTags(items: List<MuteHashTag>): Single<Int> {
         val shouldRemoveItems = preItems.filter { items.none { item -> it.id == item.id } }
-        return Observable.fromIterable(shouldRemoveItems)
-                .map { OrmaProvider.db.deleteFromMuteHashTag().idEq(it.id).execute() }
+        var where = "(`id` = ?)"
+        for (i in 1..shouldRemoveItems.lastIndex) where += " OR (`id` = ?)"
+
+        return OrmaProvider.db.deleteFromMuteHashTag().where(where, *shouldRemoveItems.map { it.id }.toTypedArray()).executeAsSingle()
     }
 
     fun registerHashTags(items: List<MuteHashTag>) {
         Observable.fromIterable(items)
-                .map { OrmaProvider.db.relationOfMuteHashTag().upsert(it) }
                 .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+                .map { OrmaProvider.db.relationOfMuteHashTag().upsert(it) }
                 .subscribe({ Timber.d("updated mute hashTag: ${it.hashTag}") }, Throwable::printStackTrace)
     }
 }

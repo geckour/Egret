@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-        <variable name="defaultHashTag" type="String" />
+        <variable name="defaultInstance" type="String" />
     </data>
 
     <android.support.constraint.ConstraintLayout
@@ -18,7 +18,7 @@
             android:layout_marginLeft="12dp"
             android:layout_marginRight="12dp"
             android:layout_marginTop="10dp"
-            android:text="@string/desc_fragment_mute_hash_tag"
+            android:text="@string/desc_fragment_mute_instance"
             android:textColor="?attr/colorGray"
             android:textSize="20sp"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -38,7 +38,7 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/desc"
             app:layoutManager="android.support.v7.widget.LinearLayoutManager"
-            tools:listitem="@layout/item_recycle_mute_hash_tag" />
+            tools:listitem="@layout/item_recycle_mute_instance" />
 
         <android.support.constraint.ConstraintLayout
             android:id="@+id/wrap_add_new_hash_tag"
@@ -50,35 +50,24 @@
             app:layout_constraintLeft_toLeftOf="@+id/recyclerView"
             app:layout_constraintRight_toRightOf="parent">
 
-            <TextView
-                android:id="@+id/instance"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:layout_marginTop="8dp"
-                android:text="#"
-                android:textSize="16sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
             <EditText
-                android:id="@+id/editText_add_mute_hash_tag"
+                android:id="@+id/editText_add_mute_instance"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:layout_marginRight="12dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
                 android:layout_marginTop="8dp"
                 android:background="@android:color/transparent"
-                android:hint="@string/hint_add_mute_hash_tag"
+                android:hint="@string/hint_add_mute_instance"
                 android:maxLines="1"
                 android:singleLine="true"
-                android:text="@{defaultHashTag}"
+                android:text="@{defaultInstance}"
                 android:textSize="16sp"
-                app:layout_constraintBottom_toBottomOf="@id/instance"
-                app:layout_constraintLeft_toRightOf="@+id/instance"
-                app:layout_constraintRight_toLeftOf="@+id/button_add"
-                app:layout_constraintTop_toTopOf="@id/instance" />
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintRight_toLeftOf="@+id/button_add" />
 
             <Button
                 android:id="@+id/button_add"
