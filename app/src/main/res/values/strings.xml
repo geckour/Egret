@@ -67,7 +67,7 @@
     <string name="pref_manage_accounts">Manage your accounts</string>
     <string name="pref_manage_stream">When the timeline could be streaming</string>
     <string name="pref_manage_stream_default">0</string>
-    <string name="pref_manage_restriction">Manage restrictions</string>
+    <string name="pref_manage_restrictions">Manage restrictions</string>
     <string name="pref_manage_mute_accounts">Manage muting accounts</string>
     <string name="pref_manage_mute_keywords">Manage muting keywords</string>
     <string name="pref_manage_mute_hash_tags">Manage muting hashtags</string>

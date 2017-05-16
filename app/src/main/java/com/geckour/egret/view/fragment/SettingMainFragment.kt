@@ -21,9 +21,7 @@ class SettingMainFragment: PreferenceFragmentCompat(), PreferenceFragmentCompat.
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences_main, rootKey)
-        preferenceScreen.findPreference("manage_mute_keywords").setOnPreferenceClickListener { showMuteKeywordList() }
-        preferenceScreen.findPreference("manage_mute_hash_tags").setOnPreferenceClickListener { showMuteHashTagList() }
-        preferenceScreen.findPreference("manage_mute_instances").setOnPreferenceClickListener { showMuteInstanceList() }
+        preferenceScreen.findPreference("manage_restrictions").setOnPreferenceClickListener { showRestrictFragment() }
     }
 
     override fun getCallbackFragment(): Fragment {
@@ -35,31 +33,11 @@ class SettingMainFragment: PreferenceFragmentCompat(), PreferenceFragmentCompat.
         return true
     }
 
-    fun showMuteKeywordList(): Boolean {
-        val fragment = KeywordMuteFragment.newInstance()
+    fun showRestrictFragment(): Boolean {
+        val fragment = SettingRestrictFragment.newInstance()
         (activity as SettingActivity).supportFragmentManager.beginTransaction()
-                .replace(R.id.container, fragment, KeywordMuteFragment.TAG)
-                .addToBackStack(KeywordMuteFragment.TAG)
-                .commit()
-
-        return true
-    }
-
-    fun showMuteHashTagList(): Boolean {
-        val fragment = HashTagMuteFragment.newInstance()
-        (activity as SettingActivity).supportFragmentManager.beginTransaction()
-                .replace(R.id.container, fragment, HashTagMuteFragment.TAG)
-                .addToBackStack(HashTagMuteFragment.TAG)
-                .commit()
-
-        return true
-    }
-
-    fun showMuteInstanceList(): Boolean {
-        val fragment = InstanceMuteFragment.newInstance()
-        (activity as SettingActivity).supportFragmentManager.beginTransaction()
-                .replace(R.id.container, fragment, InstanceMuteFragment.TAG)
-                .addToBackStack(InstanceMuteFragment.TAG)
+                .replace(R.id.container, fragment, SettingRestrictFragment.TAG)
+                .addToBackStack(SettingRestrictFragment.TAG)
                 .commit()
 
         return true
