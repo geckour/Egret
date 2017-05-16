@@ -15,7 +15,9 @@ import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.MainActivity
 import com.geckour.egret.view.adapter.MuteInstanceAdapter
+import com.github.gfx.android.orma.internal.OrmaConditionBase
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
@@ -27,7 +29,7 @@ class InstanceMuteFragment: BaseFragment() {
     private val preItems: ArrayList<MuteInstance> = ArrayList()
 
     companion object {
-        val TAG = "KeywordMuteFragment"
+        val TAG = "InstanceMuteFragment"
         val ARGS_KEY_DEFAULT_INSTANCE = "defaultInstance"
 
         fun newInstance(defaultInstance: MuteInstance? = null): InstanceMuteFragment {
@@ -110,21 +112,21 @@ class InstanceMuteFragment: BaseFragment() {
 
         removeInstances(items)
                 .subscribeOn(Schedulers.newThread())
-                .compose(bindToLifecycle())
-                .subscribe({}, Throwable::printStackTrace, { registerInstances(items) })
+                .subscribe({ registerInstances(items) }, Throwable::printStackTrace)
     }
 
-    fun removeInstances(items: List<MuteInstance>): Observable<Int> {
+    fun removeInstances(items: List<MuteInstance>): Single<Int> {
         val shouldRemoveItems = preItems.filter { items.none { item -> it.id == item.id } }
-        return Observable.fromIterable(shouldRemoveItems)
-                .map { OrmaProvider.db.deleteFromMuteInstance().idEq(it.id).execute() }
+        var where = "(`id` = ?)"
+        for (i in 1..shouldRemoveItems.lastIndex) where += " OR (`id` = ?)"
+
+        return OrmaProvider.db.deleteFromMuteInstance().where(where, *shouldRemoveItems.map { it.id }.toTypedArray()).executeAsSingle()
     }
 
     fun registerInstances(items: List<MuteInstance>) {
         Observable.fromIterable(items)
-                .map { OrmaProvider.db.relationOfMuteInstance().upsert(it) }
                 .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+                .map { OrmaProvider.db.relationOfMuteInstance().upsert(it) }
                 .subscribe({ Timber.d("updated mute instance: ${it.instance}") }, Throwable::printStackTrace)
     }
 }

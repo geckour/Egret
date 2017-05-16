@@ -18,6 +18,7 @@ import com.geckour.egret.view.adapter.MuteHashTagAdapter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
@@ -115,21 +116,21 @@ class HashTagMuteFragment: BaseFragment() {
 
         removeHashTags(items)
                 .subscribeOn(Schedulers.newThread())
-                .compose(bindToLifecycle())
-                .subscribe({}, Throwable::printStackTrace, { registerHashTags(items) })
+                .subscribe({ registerHashTags(items) }, Throwable::printStackTrace)
     }
 
-    fun removeHashTags(items: List<MuteHashTag>): Observable<Int> {
+    fun removeHashTags(items: List<MuteHashTag>): Single<Int> {
         val shouldRemoveItems = preItems.filter { items.none { item -> it.id == item.id } }
-        return Observable.fromIterable(shouldRemoveItems)
-                .map { OrmaProvider.db.deleteFromMuteHashTag().idEq(it.id).execute() }
+        var where = "(`id` = ?)"
+        for (i in 1..shouldRemoveItems.lastIndex) where += " OR (`id` = ?)"
+
+        return OrmaProvider.db.deleteFromMuteHashTag().where(where, *shouldRemoveItems.map { it.id }.toTypedArray()).executeAsSingle()
     }
 
     fun registerHashTags(items: List<MuteHashTag>) {
         Observable.fromIterable(items)
-                .map { OrmaProvider.db.relationOfMuteHashTag().upsert(it) }
                 .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+                .map { OrmaProvider.db.relationOfMuteHashTag().upsert(it) }
                 .subscribe({ Timber.d("updated mute hashTag: ${it.hashTag}") }, Throwable::printStackTrace)
     }
 }
