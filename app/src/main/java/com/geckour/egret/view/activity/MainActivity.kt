@@ -21,6 +21,7 @@ import android.view.MenuItem
 import android.widget.ImageView
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
+import com.geckour.egret.api.model.Relationship
 import com.geckour.egret.model.MuteClient
 import com.geckour.egret.model.MuteInstance
 import com.geckour.egret.util.Common
@@ -37,6 +38,7 @@ import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem
 import com.squareup.picasso.Picasso
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
@@ -114,8 +116,9 @@ class MainActivity : BaseActivity() {
                         override fun onClick(resId: Int) {
                             when (resId) {
                                 R.string.array_item_mute_account -> {
-                                    Common.resetAuthInfo()?.let {
-                                        MastodonClient(it).muteAccount(content.accountId) // TODO: 自分自身をミュートしないようにする
+                                    Common.resetAuthInfo()?.let { domain ->
+                                        MastodonClient(domain).getSelfAccount()
+                                                .flatMap { if (it.id == content.accountId) Single.never() else MastodonClient(domain).muteAccount(content.accountId) }
                                                 .subscribeOn(Schedulers.newThread())
                                                 .observeOn(AndroidSchedulers.mainThread())
                                                 .subscribe({
@@ -133,7 +136,11 @@ class MainActivity : BaseActivity() {
                                 }
 
                                 R.string.array_item_mute_hash_tag -> {
-                                    // TODO: ハッシュタグミュートのFragmentを作って content.tags を投げる
+                                    val fragment = HashTagMuteFragment.newInstance(content.tags)
+                                    supportFragmentManager.beginTransaction()
+                                            .replace(R.id.container, fragment, HashTagMuteFragment.TAG)
+                                            .addToBackStack(HashTagMuteFragment.TAG)
+                                            .commit()
                                 }
 
                                 R.string.array_item_mute_instance -> {

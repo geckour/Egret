@@ -28,15 +28,16 @@ class HashTagMuteFragment: BaseFragment() {
     lateinit private var binding: FragmentMuteHashTagBinding
     lateinit private var adapter: MuteHashTagAdapter
     private val preItems: ArrayList<MuteHashTag> = ArrayList()
+    private val argItems: ArrayList<String> = ArrayList()
 
     companion object {
         val TAG = "KeywordMuteFragment"
         val ARGS_KEY_DEFAULT_HASH_TAG = "defaultHashTag"
 
-        fun newInstance(defaultHashTags: List<MuteHashTag> = ArrayList()): HashTagMuteFragment {
+        fun newInstance(defaultHashTags: List<String> = ArrayList()): HashTagMuteFragment {
             val fragment = HashTagMuteFragment()
             val args = Bundle()
-            if (defaultHashTags.isNotEmpty()) args.putString(ARGS_KEY_DEFAULT_HASH_TAG, Gson().toJson(defaultHashTags.map { it.hashTag }))
+            if (defaultHashTags.isNotEmpty()) args.putString(ARGS_KEY_DEFAULT_HASH_TAG, Gson().toJson(defaultHashTags))
             fragment.arguments = args
 
             return fragment
@@ -54,7 +55,8 @@ class HashTagMuteFragment: BaseFragment() {
                     val tagsJson = arguments.getString(ARGS_KEY_DEFAULT_HASH_TAG, "")
                     val type = object: TypeToken<List<String>>() {}.type
                     val tags: List<String> = Gson().fromJson(tagsJson, type)
-                    if (tags.isNotEmpty()) tags.first() else ""
+                    argItems.addAll(tags)
+                    if (tags.size == 1) tags.first() else ""
                 } else ""
         binding.buttonAdd.setOnClickListener {
             val hashTag = binding.editTextAddMuteHashTag.text.toString()
@@ -102,6 +104,11 @@ class HashTagMuteFragment: BaseFragment() {
         val items = OrmaProvider.db.selectFromMuteHashTag().toList()
         adapter.addAllItems(items)
         preItems.addAll(items)
+        bindArgItems()
+    }
+
+    fun bindArgItems() {
+        if (argItems.size > 1) adapter.addAllItems(argItems.map { MuteHashTag(hashTag = it) })
     }
 
     fun addHashTag(hashTag: String) {
