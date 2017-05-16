@@ -23,6 +23,7 @@ import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 
 class HashTagMuteFragment: BaseFragment() {
+
     lateinit private var binding: FragmentMuteHashTagBinding
     lateinit private var adapter: MuteHashTagAdapter
     private val preItems: ArrayList<MuteHashTag> = ArrayList()
@@ -55,7 +56,7 @@ class HashTagMuteFragment: BaseFragment() {
                     if (tags.isNotEmpty()) tags.first() else ""
                 } else ""
         binding.buttonAdd.setOnClickListener {
-            val hashTag = binding.editTextAddMuteKeyword.text.toString()
+            val hashTag = binding.editTextAddMuteHashTag.text.toString()
             addHashTag(hashTag)
         }
 
@@ -65,10 +66,10 @@ class HashTagMuteFragment: BaseFragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.editTextAddMuteKeyword.requestFocusFromTouch()
-        binding.editTextAddMuteKeyword.requestFocus()
-        val keyword = binding.editTextAddMuteKeyword.text.toString()
-        binding.editTextAddMuteKeyword.setSelection(keyword.length)
+        binding.editTextAddMuteHashTag.requestFocusFromTouch()
+        binding.editTextAddMuteHashTag.requestFocus()
+        val hashTag = binding.editTextAddMuteHashTag.text.toString()
+        binding.editTextAddMuteHashTag.setSelection(hashTag.length)
         adapter = MuteHashTagAdapter()
         val helper = Common.getSwipeToDismissTouchHelperForMuteHashTag(adapter)
         helper.attachToRecyclerView(binding.recyclerView)
@@ -106,7 +107,7 @@ class HashTagMuteFragment: BaseFragment() {
         if (TextUtils.isEmpty(hashTag)) return
 
         adapter.addItem(MuteHashTag(hashTag = hashTag))
-        binding.editTextAddMuteKeyword.setText("")
+        binding.editTextAddMuteHashTag.setText("")
     }
 
     fun manageHashTags() {

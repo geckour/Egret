@@ -7,20 +7,19 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.geckour.egret.R
-import com.geckour.egret.databinding.ItemRecycleMuteKeywordBinding
-import com.geckour.egret.model.MuteKeyword
+import com.geckour.egret.databinding.ItemRecycleMuteInstanceBinding
+import com.geckour.egret.model.MuteInstance
 
-class MuteKeywordAdapter: RecyclerView.Adapter<MuteKeywordAdapter.ViewHolder>() {
+class MuteInstanceAdapter: RecyclerView.Adapter<MuteInstanceAdapter.ViewHolder>() {
 
-    private val items: ArrayList<MuteKeyword> = ArrayList()
+    private val items: ArrayList<MuteInstance> = ArrayList()
 
-    inner class ViewHolder(val binding: ItemRecycleMuteKeywordBinding): RecyclerView.ViewHolder(binding.root) {
-        fun bindData(item: MuteKeyword) {
+    inner class ViewHolder(val binding: ItemRecycleMuteInstanceBinding): RecyclerView.ViewHolder(binding.root) {
+        fun bindData(item: MuteInstance) {
             binding.item = item
-            binding.checkIsRegex.setOnCheckedChangeListener { v, isChecked -> item.isRegex = isChecked }
-            binding.itemKeyword.addTextChangedListener(object: TextWatcher {
+            binding.itemInstance.addTextChangedListener(object: TextWatcher {
                 override fun afterTextChanged(s: Editable?) {
-                    s?.let { item.keyword = it.toString() }
+                    s?.let { item.instance = it.toString() }
                 }
 
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -31,8 +30,8 @@ class MuteKeywordAdapter: RecyclerView.Adapter<MuteKeywordAdapter.ViewHolder>() 
     }
 
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ViewHolder {
-        val binding: ItemRecycleMuteKeywordBinding =
-                DataBindingUtil.inflate(LayoutInflater.from(parent?.context), R.layout.item_recycle_mute_keyword, parent, false)
+        val binding: ItemRecycleMuteInstanceBinding =
+                DataBindingUtil.inflate(LayoutInflater.from(parent?.context), R.layout.item_recycle_mute_instance, parent, false)
         return ViewHolder(binding)
     }
 
@@ -41,16 +40,16 @@ class MuteKeywordAdapter: RecyclerView.Adapter<MuteKeywordAdapter.ViewHolder>() 
         holder?.bindData(item)
     }
 
-    override fun getItemCount(): Int = items.size
+    override fun getItemCount(): Int = this.items.size
 
-    fun getItems(): List<MuteKeyword> = this.items
+    fun getItems(): List<MuteInstance> = this.items
 
-    fun addItem(item: MuteKeyword) {
+    fun addItem(item: MuteInstance) {
         this.items.add(item)
         notifyItemInserted(this.items.lastIndex)
     }
 
-    fun addAllItems(items: List<MuteKeyword>) {
+    fun addAllItems(items: List<MuteInstance>) {
         if (items.isNotEmpty()) {
             val size = this.items.size
             this.items.addAll(size, items)
@@ -69,7 +68,7 @@ class MuteKeywordAdapter: RecyclerView.Adapter<MuteKeywordAdapter.ViewHolder>() 
         notifyItemRangeRemoved(0, size)
     }
 
-    fun resetItems(items: List<MuteKeyword>) {
+    fun resetItems(items: List<MuteInstance>) {
         clearItems()
         addAllItems(items)
     }

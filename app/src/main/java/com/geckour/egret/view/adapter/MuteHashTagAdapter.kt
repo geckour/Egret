@@ -40,9 +40,7 @@ class MuteHashTagAdapter: RecyclerView.Adapter<MuteHashTagAdapter.ViewHolder>() 
         holder?.bindData(item)
     }
 
-    override fun getItemCount(): Int {
-        return items.size
-    }
+    override fun getItemCount(): Int = items.size
 
     fun getItems(): List<MuteHashTag> = this.items
 
