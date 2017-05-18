@@ -88,4 +88,6 @@ class MastodonClient(baseUrl: String) {
     ): Single<Status> = service.postNewToot(body, inReplyToId, mediaIds, isSensitive, spoilerText, visibility?.name)
 
     fun deleteToot(statusId: Long): Completable = service.deleteToot(statusId)
+
+    fun postNewMedia(file: String): Single<Attachment> = service.postNewMedia(file)
 }

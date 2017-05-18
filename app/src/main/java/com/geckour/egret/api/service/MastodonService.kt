@@ -191,6 +191,13 @@ interface MastodonService {
             statusId: Long
     ): Completable
 
+    @FormUrlEncoded
+    @POST("api/v1/media")
+    fun postNewMedia(
+            @Field("file")
+            file: String
+    ): Single<Attachment>
+
     companion object {
         fun events(source: BufferedSource): Observable<String> {
             return Observable.create { emitter ->
