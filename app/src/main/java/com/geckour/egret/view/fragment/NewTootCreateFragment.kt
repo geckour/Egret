@@ -1,8 +1,12 @@
 package com.geckour.egret.view.fragment
 
-import android.content.Context
+import android.app.Activity
+import android.content.Intent
 import android.databinding.DataBindingUtil
+import android.net.Uri
 import android.os.Bundle
+import android.provider.DocumentsContract
+import android.provider.MediaStore
 import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.Snackbar
 import android.text.Editable
@@ -10,7 +14,7 @@ import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
+import android.widget.ImageView
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.databinding.FragmentCreateNewTootBinding
@@ -18,13 +22,21 @@ import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.MainActivity
 import com.squareup.picasso.Picasso
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
+import okhttp3.MediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import java.io.File
 
 
 class NewTootCreateFragment : BaseFragment() {
 
     lateinit var binding: FragmentCreateNewTootBinding
+    private val postMediaReqs: ArrayList<Disposable> = ArrayList()
+    private val mediaIds: ArrayList<Long> = ArrayList()
 
     companion object {
         val TAG = "createNewTootFragment"
@@ -32,6 +44,7 @@ class NewTootCreateFragment : BaseFragment() {
         private val ARGS_KEY_POST_TOKEN_ID = "postTokenId"
         private val ARGS_KEY_REPLY_TO_STATUS_ID = "replyToStatusId"
         private val ARGS_KEY_REPLY_TO_ACCOUNT_NAME = "replyToAccountName"
+        private val REQUEST_CODE_PICK_MEDIA = 1
 
         fun newInstance(
                 currentTokenId: Long,
@@ -89,6 +102,8 @@ class NewTootCreateFragment : BaseFragment() {
 
         (activity as MainActivity).showSoftKeyBoardOnFocusEditText(binding.tootBody)
 
+        binding.gallery.setOnClickListener { pickMedia() }
+
         binding.buttonToot.setOnClickListener {
             binding.buttonToot.isEnabled = false
 
@@ -106,6 +121,23 @@ class NewTootCreateFragment : BaseFragment() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        postMediaReqs.forEach { it.dispose() }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        when (requestCode) {
+            REQUEST_CODE_PICK_MEDIA -> {
+                if (resultCode == Activity.RESULT_OK) {
+                    data?.let { bindMedia(it) }
+                }
+            }
+        }
+    }
+
     fun postToot(body: String) {
         if (TextUtils.isEmpty(body)) {
             Snackbar.make(binding.root, R.string.error_empty_toot, Snackbar.LENGTH_SHORT)
@@ -115,11 +147,84 @@ class NewTootCreateFragment : BaseFragment() {
                 .postNewToot(
                         body,
                         if (binding.replyTo.visibility == View.VISIBLE) arguments.getLong(ARGS_KEY_REPLY_TO_STATUS_ID)
-                        else null)
+                        else null,
+                        if (mediaIds.size > 0) mediaIds else null)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe( { onPostSuccess() }, Throwable::printStackTrace)
+    }
+
+    fun pickMedia() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.type = "image/* video/*"
+        startActivityForResult(intent, REQUEST_CODE_PICK_MEDIA)
+    }
+
+    fun bindMedia(data: Intent) {
+        if (postMediaReqs.size < 4) {
+            Common.resetAuthInfo()?.let { domain ->
+                getMediaPathFromUriAsSingle(data.data)
+                        .subscribe({
+                            val file = File(it)
+                            val body = MultipartBody.Part.createFormData(
+                                    "file",
+                                    file.name,
+                                    RequestBody.create(MediaType.parse(activity.contentResolver.getType(data.data)), file))
+
+                            postMediaReqs.add(
+                                    MastodonClient(domain).postNewMedia(body)
+                                            .subscribeOn(Schedulers.newThread())
+                                            .observeOn(AndroidSchedulers.mainThread())
+                                            .compose(bindToLifecycle())
+                                            .subscribe({
+                                                mediaIds.add(it.id)
+                                                indicateMedia(data)
+                                            }, { throwable ->
+                                                throwable.printStackTrace()
+                                                Snackbar.make(binding.root, R.string.error_unable_upload_media, Snackbar.LENGTH_SHORT).show()
+                                            })
+                            )
+                        }, Throwable::printStackTrace)
+            }
+        } else {
+            Snackbar.make(binding.root, R.string.error_too_many_media, Snackbar.LENGTH_SHORT).show()
+        }
+    }
+
+    fun indicateMedia(data: Intent) {
+        Single.just(
+                MediaStore.Images.Thumbnails.getThumbnail(
+                        activity.contentResolver,
+                        DocumentsContract.getDocumentId(data.data).split(":").last().toLong(),
+                        MediaStore.Images.Thumbnails.MINI_KIND,
+                        null))
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
-                .subscribe( { onPostSuccess() }, Throwable::printStackTrace)
+                .subscribe({
+                    val mediaViews: ArrayList<ImageView> = ArrayList()
+                    mediaViews.add(binding.media1)
+                    mediaViews.add(binding.media2)
+                    mediaViews.add(binding.media3)
+                    mediaViews.add(binding.media4)
+
+                    mediaViews.filter { it.drawable != null }.lastOrNull()?.setImageBitmap(it)
+                }, Throwable::printStackTrace)
+    }
+
+    fun getMediaPathFromUriAsSingle(uri: Uri): Single<String> {
+        val projection = MediaStore.Images.Media.DATA
+        val docId = DocumentsContract.getDocumentId(uri).split(":").last()
+        return Single.just(activity.contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, arrayOf(projection), "${MediaStore.Images.Media._ID} = ?", arrayOf(docId), null))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .map {
+                    it.moveToFirst()
+                    val path = it.getString(it.getColumnIndexOrThrow(projection))
+                    it.close()
+                    path
+                }
+                .compose(bindToLifecycle())
     }
 
     fun onPostSuccess() {

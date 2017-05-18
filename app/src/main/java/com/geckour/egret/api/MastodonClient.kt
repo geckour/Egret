@@ -7,11 +7,15 @@ import com.google.gson.GsonBuilder
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
+import okhttp3.MediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.Result
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.File
 
 class MastodonClient(baseUrl: String) {
 
@@ -89,5 +93,5 @@ class MastodonClient(baseUrl: String) {
 
     fun deleteToot(statusId: Long): Completable = service.deleteToot(statusId)
 
-    fun postNewMedia(file: String): Single<Attachment> = service.postNewMedia(file)
+    fun postNewMedia(body: MultipartBody.Part): Single<Attachment> = service.postNewMedia(body)
 }

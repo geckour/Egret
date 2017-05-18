@@ -4,11 +4,13 @@ import com.geckour.egret.api.model.*
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
+import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import okio.BufferedSource
 import retrofit2.adapter.rxjava2.Result
 import retrofit2.http.*
 import timber.log.Timber
+import java.io.File
 import java.io.IOException
 import java.net.SocketException
 
@@ -191,11 +193,11 @@ interface MastodonService {
             statusId: Long
     ): Completable
 
-    @FormUrlEncoded
+    @Multipart
     @POST("api/v1/media")
     fun postNewMedia(
-            @Field("file")
-            file: String
+            @Part
+            file: MultipartBody.Part
     ): Single<Attachment>
 
     companion object {
