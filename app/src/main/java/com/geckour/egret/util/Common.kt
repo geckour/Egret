@@ -83,6 +83,8 @@ class Common {
                 "@${status.account.acct}",
                 Date(status.createdAt.time),
                 getSpannedWithoutExtraMarginFromHtml(status.content),
+                status.media.map { it.previewImgUrl },
+                status.media.map { it.url },
                 status.tags.map { it.name },
                 status.favourited,
                 status.reblogged,

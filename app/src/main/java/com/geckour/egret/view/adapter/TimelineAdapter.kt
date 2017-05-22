@@ -15,6 +15,7 @@ import com.geckour.egret.databinding.ItemRecycleTimelineBinding
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.adapter.model.TimelineContent
+import com.squareup.picasso.Picasso
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.util.*
@@ -26,6 +27,30 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
     inner class ViewHolder(val binding: ItemRecycleTimelineBinding): RecyclerView.ViewHolder(binding.root) {
         fun bindData(content: TimelineContent) {
             binding.content = content
+
+            clearMedias()
+
+            content.mediaPreviewUrls.forEachIndexed { i, url ->
+                when (i) {
+                    0 -> {
+                        binding.mediaWrap.visibility = View.VISIBLE
+                        Picasso.with(binding.media1.context).load(url).into(binding.media1)
+                    }
+                    1 -> {
+                        binding.media2Wrap.visibility = View.VISIBLE
+                        Picasso.with(binding.media2.context).load(url).into(binding.media2)
+                    }
+                    2 -> {
+                        binding.mediaLowerWrap.visibility = View.VISIBLE
+                        binding.media3Wrap.visibility = View.VISIBLE
+                        Picasso.with(binding.media3.context).load(url).into(binding.media3)
+                    }
+                    3 -> {
+                        binding.media4Wrap.visibility = View.VISIBLE
+                        Picasso.with(binding.media4.context).load(url).into(binding.media4)
+                    }
+                }
+            }
 
             if (binding.content.rebloggedStatusContent != null) {
                 binding.wrapRebloggedBy.visibility = View.VISIBLE
@@ -47,6 +72,18 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
             binding.fav.setOnClickListener { listener.onFavStatus(binding.content.rebloggedStatusContent?.id ?: binding.content.id, binding.fav) }
             binding.boost.setOnClickListener { listener.onBoostStatus(binding.content.rebloggedStatusContent?.id ?: binding.content.id, binding.boost) }
             binding.body.movementMethod = Common.getMovementMethodFromPreference(binding.body.context)
+        }
+
+        fun clearMedias() {
+            binding.media1.setImageBitmap(null)
+            binding.media2.setImageBitmap(null)
+            binding.media3.setImageBitmap(null)
+            binding.media4.setImageBitmap(null)
+            binding.mediaWrap.visibility = View.GONE
+            binding.media2Wrap.visibility = View.GONE
+            binding.mediaLowerWrap.visibility = View.GONE
+            binding.media3Wrap.visibility = View.GONE
+            binding.media4Wrap.visibility = View.GONE
         }
 
         fun showPopup(view: View) {

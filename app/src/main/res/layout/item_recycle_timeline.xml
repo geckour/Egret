@@ -84,7 +84,8 @@
                 app:layout_constraintLeft_toRightOf="@+id/icon"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/wrap_rebloggedBy"
-                app:layout_constraintVertical_bias="1.0">
+                app:layout_constraintVertical_bias="1.0"
+                android:layout_marginStart="8dp">
 
                 <TextView
                     android:id="@+id/body"
@@ -102,21 +103,99 @@
                     app:layout_constraintTop_toBottomOf="@+id/name_wrap"
                     tools:text="これはトゥート本文です"/>
 
-                <ImageView
-                    android:id="@+id/image"
+                <LinearLayout
+                    android:id="@+id/media_wrap"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:adjustViewBounds="true"
-                    android:maxHeight="140dp"
-                    android:scaleType="centerCrop"
+                    android:layout_height="140dp"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical"
                     android:visibility="gone"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintHorizontal_bias="0.0"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/body"
-                    app:layout_constraintVertical_bias="0.0"
-                    app:srcCompat="@drawable/egret"/>
+                    app:layout_constraintTop_toBottomOf="@+id/body">
+
+                    <LinearLayout
+                        android:id="@+id/media_upper_wrap"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_marginBottom="4dp"
+                        android:layout_weight="1"
+                        android:orientation="horizontal">
+
+                        <FrameLayout
+                            android:id="@+id/media_1_wrap"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginRight="4dp"
+                            android:layout_weight="1">
+
+                            <ImageView
+                                android:id="@+id/media1"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                app:srcCompat="@mipmap/ic_launcher" />
+                        </FrameLayout>
+
+                        <FrameLayout
+                            android:id="@+id/media_2_wrap"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginRight="4dp"
+                            android:layout_weight="1"
+                            android:visibility="gone">
+
+                            <ImageView
+                                android:id="@+id/media2"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                app:srcCompat="@mipmap/ic_launcher" />
+                        </FrameLayout>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/media_lower_wrap"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_marginBottom="4dp"
+                        android:layout_weight="1"
+                        android:orientation="horizontal"
+                        android:visibility="gone">
+
+                        <FrameLayout
+                            android:id="@+id/media_3_wrap"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginRight="4dp"
+                            android:layout_weight="1"
+                            android:visibility="gone">
+
+                            <ImageView
+                                android:id="@+id/media3"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                app:srcCompat="@mipmap/ic_launcher" />
+                        </FrameLayout>
+
+                        <FrameLayout
+                            android:id="@+id/media_4_wrap"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginRight="4dp"
+                            android:layout_weight="1"
+                            android:visibility="gone">
+
+                            <ImageView
+                                android:id="@+id/media4"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                app:srcCompat="@mipmap/ic_launcher" />
+                        </FrameLayout>
+                    </LinearLayout>
+                </LinearLayout>
 
                 <android.support.constraint.ConstraintLayout
                     android:id="@+id/name_wrap"
@@ -192,7 +271,7 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/body">
+                    app:layout_constraintTop_toBottomOf="@+id/media_wrap">
 
                     <LinearLayout
                         android:layout_width="match_parent"
