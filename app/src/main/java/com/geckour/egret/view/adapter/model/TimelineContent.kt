@@ -15,6 +15,8 @@ data class TimelineContent(
         var nameWeak: String,
         var time: Date,
         var body: Spanned,
+        var mediaPreviewUrls: List<String>,
+        var mediaUrls: List<String>,
         var tags: List<String>,
         var favourited: Boolean,
         var reblogged: Boolean,
