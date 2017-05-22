@@ -10,11 +10,17 @@ class Attachment(
         var url: String,
 
         @SerializedName("remote_url")
-        var remoteImgUrl: String,
+        var remoteImgUrl: String?,
 
         @SerializedName("preview_url")
         var previewImgUrl: String,
 
         @SerializedName("text_url")
-        var urlInText: String
-)
+        var urlInText: String?
+) {
+        enum class Type(val rowValue: Int) {
+                image(0),
+                video(1),
+                gifv(2)
+        }
+}

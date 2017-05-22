@@ -24,10 +24,47 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/wrap_postUser"/>
 
+        <LinearLayout
+            android:id="@+id/wrap_postUser"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="12dp"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.mikhaellopez.circularimageview.CircularImageView
+                android:id="@+id/icon"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                app:civ_border_width="0dp"
+                app:civ_shadow_radius="0" />
+
+            <TextView
+                android:id="@+id/username"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="4dp"
+                android:ellipsize="end"
+                android:minLines="1"
+                android:singleLine="true"
+                android:text="@{content.username}"
+                android:textSize="16sp"
+                tools:text="\@username\@domain" />
+        </LinearLayout>
+
         <EditText
             android:id="@+id/toot_body"
             android:layout_width="0dp"
             android:layout_height="0dp"
+            android:layout_marginBottom="8dp"
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
             android:layout_marginTop="8dp"
@@ -35,10 +72,100 @@
             android:gravity="start"
             android:hint="@string/hint_new_toot"
             android:textAlignment="gravity"
-            app:layout_constraintBottom_toTopOf="@+id/constraintLayout"
+            app:layout_constraintBottom_toTopOf="@+id/media_wrap"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/replyTo"/>
+            app:layout_constraintTop_toBottomOf="@+id/replyTo"
+            app:layout_constraintVertical_bias="0.0" />
+
+        <LinearLayout
+            android:id="@+id/media_wrap"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="fill_horizontal"
+            android:orientation="horizontal"
+            android:paddingRight="6dp"
+            app:layout_constraintBottom_toTopOf="@+id/constraintLayout"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent">
+
+            <android.support.constraint.ConstraintLayout
+                android:id="@+id/media_wrap_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="6dp"
+                android:layout_weight="1">
+
+                <ImageView
+                    android:id="@+id/media_1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:maxHeight="80dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </android.support.constraint.ConstraintLayout>
+
+            <android.support.constraint.ConstraintLayout
+                android:id="@+id/media_wrap_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="6dp"
+                android:layout_weight="1">
+
+                <ImageView
+                    android:id="@+id/media_2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:maxHeight="80dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </android.support.constraint.ConstraintLayout>
+
+            <android.support.constraint.ConstraintLayout
+                android:id="@+id/media_wrap_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="6dp"
+                android:layout_weight="1">
+
+                <ImageView
+                    android:id="@+id/media_3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:maxHeight="80dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </android.support.constraint.ConstraintLayout>
+
+            <android.support.constraint.ConstraintLayout
+                android:id="@+id/media_wrap_4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="6dp"
+                android:layout_weight="1">
+
+                <ImageView
+                    android:id="@+id/media_4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:maxHeight="80dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </android.support.constraint.ConstraintLayout>
+        </LinearLayout>
 
         <android.support.constraint.ConstraintLayout
             android:id="@+id/constraintLayout"
@@ -62,7 +189,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_menu_gallery"/>
+                app:srcCompat="@drawable/ic_menu_gallery" />
 
             <ImageView
                 android:id="@+id/camera"
@@ -75,7 +202,7 @@
                 app:layout_constraintBottom_toBottomOf="@+id/gallery"
                 app:layout_constraintLeft_toRightOf="@+id/gallery"
                 app:layout_constraintTop_toTopOf="@+id/gallery"
-                app:srcCompat="@drawable/ic_menu_camera"/>
+                app:srcCompat="@drawable/ic_menu_camera" />
 
             <Button
                 android:id="@+id/button_toot"
@@ -88,44 +215,9 @@
                 android:text="@string/button_create_toot"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
+                app:layout_constraintTop_toTopOf="parent" />
 
         </android.support.constraint.ConstraintLayout>
 
-        <LinearLayout
-            android:id="@+id/wrap_postUser"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="12dp"
-            android:layout_marginRight="12dp"
-            android:layout_marginTop="16dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <com.mikhaellopez.circularimageview.CircularImageView
-                android:id="@+id/icon"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                app:civ_border_width="0dp"
-                app:civ_shadow_radius="0"/>
-
-            <TextView
-                android:id="@+id/username"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="4dp"
-                android:ellipsize="end"
-                android:minLines="1"
-                android:singleLine="true"
-                android:text="@{content.username}"
-                android:textSize="16sp"
-                tools:text="\@username\@domain"/>
-        </LinearLayout>
     </android.support.constraint.ConstraintLayout>
 </layout>

@@ -4,11 +4,13 @@ import com.geckour.egret.api.model.*
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
+import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import okio.BufferedSource
 import retrofit2.adapter.rxjava2.Result
 import retrofit2.http.*
 import timber.log.Timber
+import java.io.File
 import java.io.IOException
 import java.net.SocketException
 
@@ -100,7 +102,7 @@ interface MastodonService {
             @Field("in_reply_to_id")
             inReplyToId: Long?,
 
-            @Field("media_ids")
+            @Field("media_ids[]")
             mediaIds: List<Long>?,
 
             @Field("sensitive")
@@ -190,6 +192,13 @@ interface MastodonService {
             @Path("id")
             statusId: Long
     ): Completable
+
+    @Multipart
+    @POST("api/v1/media")
+    fun postNewMedia(
+            @Part
+            file: MultipartBody.Part
+    ): Single<Attachment>
 
     companion object {
         fun events(source: BufferedSource): Observable<String> {
