@@ -102,7 +102,7 @@ interface MastodonService {
             @Field("in_reply_to_id")
             inReplyToId: Long?,
 
-            @Field("media_ids")
+            @Field("media_ids[]")
             mediaIds: List<Long>?,
 
             @Field("sensitive")

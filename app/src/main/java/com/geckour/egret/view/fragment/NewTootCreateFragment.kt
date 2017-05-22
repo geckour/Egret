@@ -146,8 +146,7 @@ class NewTootCreateFragment : BaseFragment() {
         MastodonClient(Common.resetAuthInfo() ?: return)
                 .postNewToot(
                         body,
-                        if (binding.replyTo.visibility == View.VISIBLE) arguments.getLong(ARGS_KEY_REPLY_TO_STATUS_ID)
-                        else null,
+                        if (binding.replyTo.visibility == View.VISIBLE) arguments.getLong(ARGS_KEY_REPLY_TO_STATUS_ID) else null,
                         if (mediaIds.size > 0) mediaIds else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -164,6 +163,9 @@ class NewTootCreateFragment : BaseFragment() {
         if (postMediaReqs.size < 4) {
             Common.resetAuthInfo()?.let { domain ->
                 getMediaPathFromUriAsSingle(data.data)
+                        .subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .compose(bindToLifecycle())
                         .subscribe({
                             val file = File(it)
                             val body = MultipartBody.Part.createFormData(
@@ -208,7 +210,7 @@ class NewTootCreateFragment : BaseFragment() {
                     mediaViews.add(binding.media3)
                     mediaViews.add(binding.media4)
 
-                    mediaViews.filter { it.drawable != null }.lastOrNull()?.setImageBitmap(it)
+                    mediaViews.filter { it.drawable == null }.firstOrNull()?.setImageBitmap(it)
                 }, Throwable::printStackTrace)
     }
 
@@ -216,15 +218,12 @@ class NewTootCreateFragment : BaseFragment() {
         val projection = MediaStore.Images.Media.DATA
         val docId = DocumentsContract.getDocumentId(uri).split(":").last()
         return Single.just(activity.contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, arrayOf(projection), "${MediaStore.Images.Media._ID} = ?", arrayOf(docId), null))
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
                 .map {
                     it.moveToFirst()
                     val path = it.getString(it.getColumnIndexOrThrow(projection))
                     it.close()
                     path
                 }
-                .compose(bindToLifecycle())
     }
 
     fun onPostSuccess() {
