@@ -21,10 +21,13 @@ class SettingRestrictFragment: PreferenceFragmentCompat(), PreferenceFragmentCom
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences_restrict, rootKey)
+
         preferenceScreen.findPreference("manage_mute_accounts").setOnPreferenceClickListener { showMuteAccountList() }
         preferenceScreen.findPreference("manage_mute_keywords").setOnPreferenceClickListener { showMuteKeywordList() }
         preferenceScreen.findPreference("manage_mute_hash_tags").setOnPreferenceClickListener { showMuteHashTagList() }
         preferenceScreen.findPreference("manage_mute_instances").setOnPreferenceClickListener { showMuteInstanceList() }
+
+        preferenceScreen.findPreference("manage_block_accounts").setOnPreferenceClickListener { showBlockAccountList() }
     }
 
     override fun getCallbackFragment(): Fragment {
@@ -71,6 +74,16 @@ class SettingRestrictFragment: PreferenceFragmentCompat(), PreferenceFragmentCom
         (activity as SettingActivity).supportFragmentManager.beginTransaction()
                 .replace(R.id.container, fragment, InstanceMuteFragment.TAG)
                 .addToBackStack(InstanceMuteFragment.TAG)
+                .commit()
+
+        return true
+    }
+
+    fun showBlockAccountList(): Boolean {
+        val fragment = AccountBlockFragment.newInstance()
+        (activity as SettingActivity).supportFragmentManager.beginTransaction()
+                .replace(R.id.container, fragment, AccountBlockFragment.TAG)
+                .addToBackStack(AccountBlockFragment.TAG)
                 .commit()
 
         return true

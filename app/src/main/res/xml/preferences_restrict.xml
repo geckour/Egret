@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory android:title="@string/pref_manage_restrictions">
+    <PreferenceCategory android:title="@string/pref_manage_mute">
 
         <PreferenceScreen android:key="manage_mute_accounts"
             android:title="@string/pref_manage_mute_accounts" />
@@ -14,5 +14,11 @@
 
         <PreferenceScreen android:key="manage_mute_instances"
             android:title="@string/pref_manage_mute_instances" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/pref_manage_block">
+
+        <PreferenceScreen android:key="manage_block_accounts"
+            android:title="@string/pref_manage_block_accounts" />
     </PreferenceCategory>
 </PreferenceScreen>
