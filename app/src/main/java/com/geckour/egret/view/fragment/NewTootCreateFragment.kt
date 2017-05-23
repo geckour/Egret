@@ -1,6 +1,7 @@
 package com.geckour.egret.view.fragment
 
 import android.app.Activity
+import android.content.ClipData
 import android.content.Intent
 import android.databinding.DataBindingUtil
 import android.net.Uri
@@ -22,6 +23,7 @@ import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.MainActivity
 import com.squareup.picasso.Picasso
+import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -36,6 +38,7 @@ class NewTootCreateFragment : BaseFragment() {
 
     lateinit var binding: FragmentCreateNewTootBinding
     private val postMediaReqs: ArrayList<Disposable> = ArrayList()
+    private var postMediaCount: Int = 0
     private val mediaIds: ArrayList<Long> = ArrayList()
 
     companion object {
@@ -156,48 +159,69 @@ class NewTootCreateFragment : BaseFragment() {
     fun pickMedia() {
         val intent = Intent(Intent.ACTION_GET_CONTENT)
         intent.type = "image/* video/*"
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
         startActivityForResult(intent, REQUEST_CODE_PICK_MEDIA)
     }
 
     fun bindMedia(data: Intent) {
-        if (postMediaReqs.size < 4) {
-            Common.resetAuthInfo()?.let { domain ->
+        Common.resetAuthInfo()?.let { domain ->
+            if (data.clipData != null) {
+                getMediaPathsFromClipDataAsObservable(data.clipData)
+                        .subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .compose(bindToLifecycle())
+                        .subscribe({ (path, uri) ->
+                            if (++postMediaCount < 5) {
+                                postMedia(domain, path, uri)
+                            } else {
+                                Snackbar.make(binding.root, R.string.error_too_many_media, Snackbar.LENGTH_SHORT).show()
+                            }
+                        }, Throwable::printStackTrace)
+            }
+            if (data.data != null && ++postMediaCount < 5) {
                 getMediaPathFromUriAsSingle(data.data)
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
                         .compose(bindToLifecycle())
                         .subscribe({
-                            val file = File(it)
-                            val body = MultipartBody.Part.createFormData(
-                                    "file",
-                                    file.name,
-                                    RequestBody.create(MediaType.parse(activity.contentResolver.getType(data.data)), file))
-
-                            postMediaReqs.add(
-                                    MastodonClient(domain).postNewMedia(body)
-                                            .subscribeOn(Schedulers.newThread())
-                                            .observeOn(AndroidSchedulers.mainThread())
-                                            .compose(bindToLifecycle())
-                                            .subscribe({
-                                                mediaIds.add(it.id)
-                                                indicateMedia(data)
-                                            }, { throwable ->
-                                                throwable.printStackTrace()
-                                                Snackbar.make(binding.root, R.string.error_unable_upload_media, Snackbar.LENGTH_SHORT).show()
-                                            })
-                            )
+                            if (++postMediaCount < 5) {
+                                postMedia(domain, it, data.data)
+                            } else {
+                                Snackbar.make(binding.root, R.string.error_too_many_media, Snackbar.LENGTH_SHORT).show()
+                            }
                         }, Throwable::printStackTrace)
             }
-        } else {
-            Snackbar.make(binding.root, R.string.error_too_many_media, Snackbar.LENGTH_SHORT).show()
         }
     }
 
-    fun indicateMedia(data: Intent) {
+    fun postMedia(domain: String, path: String, uri: Uri) {
+        val file = File(path)
+        val body = MultipartBody.Part.createFormData(
+                "file",
+                file.name,
+                RequestBody.create(MediaType.parse(activity.contentResolver.getType(uri)), file))
+
+        postMediaReqs.add(
+                MastodonClient(domain).postNewMedia(body)
+                        .subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .compose(bindToLifecycle())
+                        .subscribe({
+                            mediaIds.add(it.id)
+                            indicateMedia(uri)
+                        }, { throwable ->
+                            throwable.printStackTrace()
+                            postMediaCount--
+                            Snackbar.make(binding.root, R.string.error_unable_upload_media, Snackbar.LENGTH_SHORT).show()
+                        })
+        )
+    }
+
+    fun indicateMedia(uri: Uri) {
         Single.just(
                 MediaStore.Images.Thumbnails.getThumbnail(
                         activity.contentResolver,
-                        DocumentsContract.getDocumentId(data.data).split(":").last().toLong(),
+                        DocumentsContract.getDocumentId(uri).split(":").last().toLong(),
                         MediaStore.Images.Thumbnails.MINI_KIND,
                         null))
                 .subscribeOn(Schedulers.newThread())
@@ -216,13 +240,44 @@ class NewTootCreateFragment : BaseFragment() {
 
     fun getMediaPathFromUriAsSingle(uri: Uri): Single<String> {
         val projection = MediaStore.Images.Media.DATA
-        val docId = DocumentsContract.getDocumentId(uri).split(":").last()
-        return Single.just(activity.contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, arrayOf(projection), "${MediaStore.Images.Media._ID} = ?", arrayOf(docId), null))
+
+        return Single.just(DocumentsContract.getDocumentId(uri).split(":").last())
                 .map {
-                    it.moveToFirst()
-                    val path = it.getString(it.getColumnIndexOrThrow(projection))
-                    it.close()
+                    val cursor = activity.contentResolver.query(
+                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                            arrayOf(projection),
+                            "${MediaStore.Images.Media._ID} = ?",
+                            arrayOf(it), null)
+                    cursor.moveToFirst()
+
+                    val path = cursor.getString(cursor.getColumnIndexOrThrow(projection))
+                    cursor.close()
+
                     path
+                }
+    }
+
+    fun getMediaPathsFromClipDataAsObservable(clip: ClipData): Observable<Pair<String, Uri>> {
+        val docIds: ArrayList<Pair<String, Uri>> = ArrayList()
+        val projection = MediaStore.Images.Media.DATA
+        (0..clip.itemCount - 1).mapTo(docIds) {
+            val uri = clip.getItemAt(it).uri
+            Pair(DocumentsContract.getDocumentId(uri).split(":").last(), uri)
+        }
+
+        return Observable.fromIterable(docIds)
+                .map {
+                    val cursor = activity.contentResolver.query(
+                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                            arrayOf(projection),
+                            "${MediaStore.Images.Media._ID} = ?",
+                            arrayOf(it.first), null)
+                    cursor.moveToFirst()
+
+                    val path = cursor.getString(cursor.getColumnIndexOrThrow(projection))
+                    cursor.close()
+
+                    Pair(path, it.second)
                 }
     }
 
