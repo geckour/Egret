@@ -18,6 +18,7 @@ import com.geckour.egret.view.adapter.model.TimelineContent
 import com.squareup.picasso.Picasso
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import timber.log.Timber
 import java.util.*
 
 class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAdapter.ViewHolder>() {
@@ -232,8 +233,8 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
         }
         OrmaProvider.db.selectFromMuteKeyword().forEach {
             if (it.isRegex) {
-                if (content.body.matches(Regex(it.keyword))) return true
-            } else if (content.body.contains(it.keyword)) return true
+                if (content.body.toString().matches(Regex(it.keyword, RegexOption.MULTILINE))) return true
+            } else if (content.body.toString().contains(it.keyword)) return true
         }
         OrmaProvider.db.selectFromMuteInstance().forEach {
             var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")

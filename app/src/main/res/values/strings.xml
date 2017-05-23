@@ -14,9 +14,14 @@
     <string name="title_activity_login">Sign in</string>
     <string name="title_activity_setting">Settings</string>
     <string name="title_fragment_mute_keyword">Mute keywords</string>
+    <string name="title_fragment_mute_account">Mute Accounts</string>
+    <string name="title_fragment_mute_hash_tag">Mute Hash Tags</string>
+    <string name="title_fragment_mute_instance">Mute Instances</string>
     <string name="desc_fragment_mute_keyword">List of keywords to mute:</string>
+    <string name="desc_fragment_mute_account">List of accounts to mute:</string>
     <string name="desc_fragment_mute_hash_tag">List of hash tags to mute:</string>
     <string name="desc_fragment_mute_instance">List of instances to mute:</string>
+    <string name="desc_fragment_block_account">List of accounts to block:</string>
 
     <!-- Strings related to login -->
     <string name="prompt_instance">Instance domain</string>
@@ -70,10 +75,13 @@
     <string name="pref_manage_stream">When the timeline could be streaming</string>
     <string name="pref_manage_stream_default">0</string>
     <string name="pref_manage_restrictions">Manage restrictions</string>
+    <string name="pref_manage_mute">Manage mutes</string>
+    <string name="pref_manage_block">Manage blocks</string>
     <string name="pref_manage_mute_accounts">Manage muting accounts</string>
     <string name="pref_manage_mute_keywords">Manage muting keywords</string>
     <string name="pref_manage_mute_hash_tags">Manage muting hashtags</string>
     <string name="pref_manage_mute_instances">Manage muting instances</string>
+    <string name="pref_manage_block_accounts">Manage blocking accounts</string>
     <string name="pref_switch_to_dark_theme">Change theme color darken</string>
     <string name="pref_switch_to_use_default_browser">Change scheme to open links</string>
     <string name="pref_switch_to_show_extreme_toot_bar">Show bar to post new toot on footer of TL</string>

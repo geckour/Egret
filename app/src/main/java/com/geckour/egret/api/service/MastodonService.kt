@@ -200,6 +200,30 @@ interface MastodonService {
             file: MultipartBody.Part
     ): Single<Attachment>
 
+    @GET("api/v1/mutes")
+    fun getMutedUsers(
+            @Query("max_id")
+            idTo: Long?,
+
+            @Query("since_id")
+            idFrom: Long?,
+
+            @Query("limit")
+            limit: Long
+    ): Single<List<Account>>
+
+    @GET("api/v1/blocks")
+    fun getBlockedUsers(
+            @Query("max_id")
+            idTo: Long?,
+
+            @Query("since_id")
+            idFrom: Long?,
+
+            @Query("limit")
+            limit: Long
+    ): Single<List<Account>>
+
     companion object {
         fun events(source: BufferedSource): Observable<String> {
             return Observable.create { emitter ->

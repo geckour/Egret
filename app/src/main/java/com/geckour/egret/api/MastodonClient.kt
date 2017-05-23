@@ -94,4 +94,16 @@ class MastodonClient(baseUrl: String) {
     fun deleteToot(statusId: Long): Completable = service.deleteToot(statusId)
 
     fun postNewMedia(body: MultipartBody.Part): Single<Attachment> = service.postNewMedia(body)
+
+    fun getMutedUsers(
+            idTo: Long? = null,
+            idFrom: Long? = null,
+            limit: Long = 80
+    ): Single<List<Account>> = service.getMutedUsers(idTo, idFrom, limit)
+
+    fun getBlockedUsers(
+            idTo: Long? = null,
+            idFrom: Long? = null,
+            limit: Long = 80
+    ): Single<List<Account>> = service.getBlockedUsers(idTo, idFrom, limit)
 }
