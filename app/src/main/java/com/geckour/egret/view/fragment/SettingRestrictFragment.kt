@@ -21,6 +21,7 @@ class SettingRestrictFragment: PreferenceFragmentCompat(), PreferenceFragmentCom
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences_restrict, rootKey)
+        preferenceScreen.findPreference("manage_mute_accounts").setOnPreferenceClickListener { showMuteAccountList() }
         preferenceScreen.findPreference("manage_mute_keywords").setOnPreferenceClickListener { showMuteKeywordList() }
         preferenceScreen.findPreference("manage_mute_hash_tags").setOnPreferenceClickListener { showMuteHashTagList() }
         preferenceScreen.findPreference("manage_mute_instances").setOnPreferenceClickListener { showMuteInstanceList() }
@@ -32,6 +33,16 @@ class SettingRestrictFragment: PreferenceFragmentCompat(), PreferenceFragmentCom
 
     override fun onPreferenceStartScreen(caller: PreferenceFragmentCompat?, pref: PreferenceScreen?): Boolean {
         caller?.preferenceScreen = pref
+        return true
+    }
+
+    fun showMuteAccountList(): Boolean {
+        val fragment = AccountMuteFragment.newInstance()
+        (activity as SettingActivity).supportFragmentManager.beginTransaction()
+                .replace(R.id.container, fragment, AccountMuteFragment.TAG)
+                .addToBackStack(AccountMuteFragment.TAG)
+                .commit()
+
         return true
     }
 
