@@ -5,15 +5,15 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.geckour.egret.R
-import com.geckour.egret.api.model.Account
 import com.geckour.egret.databinding.ItemRecycleManageAccountBinding
+import com.geckour.egret.view.adapter.model.AccountContent
 
 class ManageAccountAdapter: RecyclerView.Adapter<ManageAccountAdapter.ViewHolder>() {
 
-    private val items: ArrayList<Account> = ArrayList()
+    private val items: ArrayList<AccountContent> = ArrayList()
 
     inner class ViewHolder(val binding: ItemRecycleManageAccountBinding): RecyclerView.ViewHolder(binding.root) {
-        fun bindData(item: Account) {
+        fun bindData(item: AccountContent) {
             binding.item = item
         }
     }
@@ -31,14 +31,14 @@ class ManageAccountAdapter: RecyclerView.Adapter<ManageAccountAdapter.ViewHolder
 
     override fun getItemCount(): Int = this.items.size
 
-    fun getItems(): List<Account> = this.items
+    fun getItems(): List<AccountContent> = this.items
 
-    fun addItem(item: Account) {
+    fun addItem(item: AccountContent) {
         this.items.add(item)
         notifyItemInserted(this.items.lastIndex)
     }
 
-    fun addAllItems(items: List<Account>) {
+    fun addAllItems(items: List<AccountContent>) {
         if (items.isNotEmpty()) {
             val size = this.items.size
             this.items.addAll(size, items)
@@ -57,7 +57,7 @@ class ManageAccountAdapter: RecyclerView.Adapter<ManageAccountAdapter.ViewHolder
         notifyItemRangeRemoved(0, size)
     }
 
-    fun resetItems(items: List<Account>) {
+    fun resetItems(items: List<AccountContent>) {
         clearItems()
         addAllItems(items)
     }
