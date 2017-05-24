@@ -134,16 +134,21 @@ class Common {
         }
 
         fun getSpannedWithoutExtraMarginFromHtml(html: String): Spanned {
+            val cleanedHtml = removeWhiteSpacesAtLastFromHtmlString(html)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                return Html.fromHtml(html, Html.FROM_HTML_MODE_COMPACT)
+                return Html.fromHtml(cleanedHtml, Html.FROM_HTML_MODE_COMPACT)
             } else {
                 val handler = Html.TagHandler { opening, tag, output, xmlReader ->
                     if (opening && tag == "p") {
                         output.clearSpans()
                     }
                 }
-                return Html.fromHtml(html, null, handler)
+                return Html.fromHtml(cleanedHtml, null, handler)
             }
+        }
+
+        fun removeWhiteSpacesAtLastFromHtmlString(html: String): String {
+            return html.replace(Regex("<p>(.+)</p>", RegexOption.MULTILINE), "$1\n")
         }
 
         fun getMutableLinkMovementMethodForCustomTab(context: Context) = MutableLinkMovementMethod(getOnUrlClickListenerForCustomTab(context))
