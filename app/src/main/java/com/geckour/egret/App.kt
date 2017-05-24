@@ -12,6 +12,11 @@ import timber.log.Timber
 @ProcessorConfig(adapters = arrayOf(Adapter(SpannedTypeAdapter::class)))
 class App: Application() {
 
+    companion object {
+        val DEFAULT_SHARED_PREFERENCES = "defaultSharedPreferences"
+        val STATE_KEY_CATEGORY = "timelineCategory"
+    }
+
     override fun onCreate() {
         super.onCreate()
 

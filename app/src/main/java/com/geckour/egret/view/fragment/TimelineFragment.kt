@@ -1,11 +1,15 @@
 package com.geckour.egret.view.fragment
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.os.Parcelable
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.*
+import com.geckour.egret.App.Companion.DEFAULT_SHARED_PREFERENCES
+import com.geckour.egret.App.Companion.STATE_KEY_CATEGORY
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Notification
@@ -37,7 +41,7 @@ class TimelineFragment: BaseFragment() {
         val TAG = "timelineFragment"
         val ARGS_KEY_CATEGORY = "category"
         val STATE_ARGS_KEY_CONTENTS = "contents"
-        private val STATE_KEY_THEME_MODE = "theme mode"
+        private val STATE_KEY_THEME_MODE = "themeMode"
 
         fun newInstance(category: Category): TimelineFragment {
             val fragment = TimelineFragment()
@@ -53,6 +57,7 @@ class TimelineFragment: BaseFragment() {
 
     lateinit private var binding: FragmentTimelineBinding
     lateinit private var adapter: TimelineAdapter
+    lateinit private var sharedPref: SharedPreferences
     private var onTop = true
     private var inTouch = false
     private val bundle = Bundle()
@@ -75,10 +80,14 @@ class TimelineFragment: BaseFragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        sharedPref = activity.getSharedPreferences(DEFAULT_SHARED_PREFERENCES, Context.MODE_PRIVATE)
         val instanceId = Common.getCurrentAccessToken()?.instanceId
         (activity as MainActivity).supportActionBar?.show()
         val domain = if (instanceId == null) "not logged in" else OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance
         val category = getCategory()
+        val editor = sharedPref.edit()
+        editor.putInt(STATE_KEY_CATEGORY, category.rawValue)
+        editor.apply()
         (activity as MainActivity).supportActionBar?.title = "$category TL - $domain"
 
         binding.recyclerView.setOnTouchListener { view, event ->
