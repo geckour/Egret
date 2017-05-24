@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-        <variable name="item" type="com.geckour.egret.api.model.Account" />
+        <variable name="item" type="com.geckour.egret.view.adapter.model.AccountContent" />
     </data>
 
     <FrameLayout
@@ -25,7 +25,7 @@
                 android:layout_marginBottom="8dp"
                 android:layout_marginLeft="8dp"
                 android:layout_marginTop="8dp"
-                app:imageUrl="@{item.avatarUrl}"
+                app:imageUrl="@{item.iconUrl}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -41,7 +41,7 @@
                 android:clickable="false"
                 android:maxLines="1"
                 android:singleLine="true"
-                android:text="@{'@' + item.acct}"
+                android:text="@{item.acct}"
                 android:textColor="@color/material_gray_dark"
                 android:textSize="16sp"
                 app:layout_constraintBottom_toBottomOf="parent"

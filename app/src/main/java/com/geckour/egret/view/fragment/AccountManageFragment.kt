@@ -11,12 +11,15 @@ import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Account
 import com.geckour.egret.databinding.FragmentManageAccountBinding
+import com.geckour.egret.model.AccessToken
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.LoginActivity
 import com.geckour.egret.view.activity.MainActivity
 import com.geckour.egret.view.adapter.ManageAccountAdapter
+import com.geckour.egret.view.adapter.model.AccountContent
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
@@ -25,7 +28,7 @@ class AccountManageFragment: BaseFragment() {
 
     lateinit private var binding: FragmentManageAccountBinding
     lateinit private var adapter: ManageAccountAdapter
-    private val preItems: ArrayList<Account> = ArrayList()
+    private val preItems: ArrayList<AccountContent> = ArrayList()
 
     companion object {
         val TAG = "accountManageFragment"
@@ -84,7 +87,7 @@ class AccountManageFragment: BaseFragment() {
                     MastodonClient(Common.setAuthInfo(token) ?: throw IllegalArgumentException()).getAccount(token.accountId)
                             .map {
                                 val domain =  OrmaProvider.db.selectFromInstanceAuthInfo().idEq(token.instanceId).last().instance
-                                it.apply { it.acct = "${it.acct}@$domain" }
+                                AccountContent(token, "@${it.acct}@$domain", it.avatarUrl)
                             }
                 }
                 .subscribeOn(Schedulers.newThread())
@@ -96,14 +99,15 @@ class AccountManageFragment: BaseFragment() {
                 }, Throwable::printStackTrace)
     }
 
-    fun removeAccounts(items: List<Account>, activity: Activity) {
-        val shouldRemoveItems = preItems.filter { items.none { item -> it.id == item.id } }
+    fun removeAccounts(items: List<AccountContent>, activity: Activity) {
+        val shouldRemoveItems = preItems.filter { items.none { item -> it.token.id == item.token.id } }
 
         Observable.fromIterable(shouldRemoveItems)
-                .map { OrmaProvider.db.selectFromAccessToken().accountIdEq(it.id).last() }
-                .flatMap { accessToken ->
-                    OrmaProvider.db.deleteFromInstanceAuthInfo().idEq(accessToken.instanceId).executeAsSingle()
-                            .flatMap { OrmaProvider.db.deleteFromAccessToken().idEq(accessToken.id).executeAsSingle() }
+                .flatMap {
+                    Single.merge<Int>(
+                            OrmaProvider.db.deleteFromInstanceAuthInfo().idEq(it.token.instanceId).executeAsSingle(),
+                            OrmaProvider.db.deleteFromAccessToken().idEq(it.token.id).executeAsSingle()
+                    )
                             .toObservable()
                 }
                 .subscribeOn(Schedulers.newThread())
