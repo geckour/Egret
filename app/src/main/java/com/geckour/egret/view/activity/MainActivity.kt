@@ -19,6 +19,8 @@ import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ImageView
+import com.geckour.egret.App
+import com.geckour.egret.App.Companion.STATE_KEY_CATEGORY
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Relationship
@@ -436,7 +438,10 @@ class MainActivity : BaseActivity() {
     }
 
     fun showDefaultTimeline(force: Boolean = false) {
-        showTimelineFragment(TimelineFragment.Category.Public, true, force)
+        val sharedPref = getSharedPreferences(App.DEFAULT_SHARED_PREFERENCES, Context.MODE_PRIVATE)
+        val currentCategory = TimelineFragment.Category.values()[sharedPref.getInt(STATE_KEY_CATEGORY, TimelineFragment.Category.Public.rawValue)]
+
+        showTimelineFragment(currentCategory, true, force)
     }
 
     fun showCreateNewTootFragment() {
