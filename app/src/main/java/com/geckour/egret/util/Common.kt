@@ -37,19 +37,27 @@ class Common {
             fun onCheckCertify(hasCertified: Boolean, accountId: Long)
         }
 
-        fun hasCertified(listener: IListener) {
-            val domain = resetAuthInfo()
-            if (domain != null) {
-                MastodonClient(domain).getSelfAccount()
-                        .subscribeOn(Schedulers.newThread())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe({ account ->
-                            listener.onCheckCertify(true, account.id)
-                        }, { throwable ->
-                            Timber.e(throwable)
-                            listener.onCheckCertify(false, -1)
-                        })
-            } else listener.onCheckCertify(false, -1)
+        fun hasCertified(listener: IListener, accessToken: AccessToken? = null) {
+            if (accessToken != null) {
+                setAuthInfo(accessToken)?.let { requestWeatherCertified(listener, it) }
+            } else {
+                val domain = resetAuthInfo()
+                
+                if (domain == null) listener.onCheckCertify(false, -1)
+                else requestWeatherCertified(listener, domain)
+            }
+        }
+
+        private fun requestWeatherCertified(listener: IListener, domain: String) {
+            MastodonClient(domain).getSelfAccount()
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe({ account ->
+                        listener.onCheckCertify(true, account.id)
+                    }, { throwable ->
+                        Timber.e(throwable)
+                        listener.onCheckCertify(false, -1)
+                    })
         }
 
         fun getCurrentAccessToken(): AccessToken? {
@@ -216,6 +224,20 @@ class Common {
         })
 
         fun getSwipeToDismissTouchHelperForBlockAccount(adapter: BlockAccountAdapter): ItemTouchHelper = ItemTouchHelper(object: ItemTouchHelper.Callback() {
+            override fun getMovementFlags(recyclerView: RecyclerView?, viewHolder: RecyclerView.ViewHolder?): Int {
+                return makeFlag(ItemTouchHelper.ACTION_STATE_SWIPE, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT)
+            }
+
+            override fun onMove(recyclerView: RecyclerView?, viewHolder: RecyclerView.ViewHolder?, target: RecyclerView.ViewHolder?): Boolean {
+                return true
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder?, direction: Int) {
+                viewHolder?.adapterPosition?.let { adapter.removeItemsByIndex(it) }
+            }
+        })
+
+        fun getSwipeToDismissTouchHelperForManageAccount(adapter: ManageAccountAdapter): ItemTouchHelper = ItemTouchHelper(object: ItemTouchHelper.Callback() {
             override fun getMovementFlags(recyclerView: RecyclerView?, viewHolder: RecyclerView.ViewHolder?): Int {
                 return makeFlag(ItemTouchHelper.ACTION_STATE_SWIPE, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT)
             }
