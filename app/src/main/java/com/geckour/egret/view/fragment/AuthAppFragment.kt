@@ -135,8 +135,8 @@ class AuthAppFragment: RxFragment() {
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
-                .subscribe({ value ->
-                    Timber.d("token: ${value.token}")
+                .subscribe({
+                    Timber.d("token: ${it.token}")
 
                     Common.hasCertified(object : Common.Companion.IListener {
                         override fun onCheckCertify(hasCertified: Boolean, accountId: Long) {
@@ -150,7 +150,7 @@ class AuthAppFragment: RxFragment() {
                                                 Throwable::printStackTrace)
                             }
                         }
-                    })
+                    }, it)
                 }, Throwable::printStackTrace)
     }
 

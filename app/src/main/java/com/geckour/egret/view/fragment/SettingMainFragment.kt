@@ -21,6 +21,7 @@ class SettingMainFragment: PreferenceFragmentCompat(), PreferenceFragmentCompat.
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences_main, rootKey)
+        preferenceScreen.findPreference("manage_accounts").setOnPreferenceClickListener { showAccountManageFragment() }
         preferenceScreen.findPreference("manage_restrictions").setOnPreferenceClickListener { showRestrictFragment() }
     }
 
@@ -30,6 +31,16 @@ class SettingMainFragment: PreferenceFragmentCompat(), PreferenceFragmentCompat.
 
     override fun onPreferenceStartScreen(caller: PreferenceFragmentCompat?, pref: PreferenceScreen?): Boolean {
         caller?.preferenceScreen = pref
+        return true
+    }
+
+    fun showAccountManageFragment(): Boolean {
+        val fragment = AccountManageFragment.newInstance()
+        (activity as SettingActivity).supportFragmentManager.beginTransaction()
+                .replace(R.id.container, fragment, AccountManageFragment.TAG)
+                .addToBackStack(AccountManageFragment.TAG)
+                .commit()
+
         return true
     }
 

@@ -18,13 +18,24 @@
             android:layout_height="wrap_content"
             android:background="?android:attr/windowBackground">
 
+            <ImageView
+                android:id="@+id/icon"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginBottom="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="8dp"
+                app:imageUrl="@{item.avatarUrl}"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
             <EditText
-                android:id="@+id/item_instance"
+                android:id="@+id/item_account"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:layout_marginLeft="8dp"
-                android:layout_marginRight="12dp"
                 android:layout_marginTop="8dp"
                 android:background="@android:color/transparent"
                 android:clickable="false"
@@ -34,7 +45,7 @@
                 android:textColor="@color/material_gray_dark"
                 android:textSize="16sp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintLeft_toRightOf="@+id/icon"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="ブロックされるアカウント" />
 

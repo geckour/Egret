@@ -47,7 +47,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toRightOf="@+id/icon"
                 app:layout_constraintTop_toTopOf="parent"
-                tools:text="ミュートされるアカウント" />
+                tools:text="ログインしているアカウント" />
 
             <ImageView
                 android:id="@+id/item_opt"

@@ -218,39 +218,6 @@ class MainActivity : BaseActivity() {
 
         setNavDrawer()
 
-        // アカウント情報をNavDrawerに追加
-        Observable.fromIterable(OrmaProvider.db.selectFromAccessToken())
-                .map { token ->
-                    val domain = OrmaProvider.db.selectFromInstanceAuthInfo().idEq(token.instanceId).last().instance
-                    Pair(domain, token)
-                }
-                .flatMap { pair ->
-                    MastodonClient(Common.setAuthInfo(pair.second) ?: throw IllegalArgumentException()).getAccount(pair.second.accountId)
-                            .map { account -> Pair(pair, account) }
-                }
-                .flatMap { pair ->
-                    if (pair.second.avatarUrl.startsWith("http")) {
-                        Observable.just(Picasso.with(this).load(pair.second.avatarUrl).get())
-                                .map { bitmap -> Pair(pair, bitmap) }
-                    } else Observable.just(Pair(pair, null))
-                }
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .compose(bindToLifecycle())
-                .subscribe({ (first, second) ->
-                    val item = ProfileDrawerItem()
-                            .withName(first.second.displayName)
-                            .withEmail("@${first.second.username}@${first.first.first}")
-                            .withIdentifier(first.first.second.id)
-                    if (second != null) item.withIcon(second)
-                    accountHeader.addProfiles(item)
-                }, Throwable::printStackTrace, {
-                    Common.getCurrentAccessToken()?.id?.let { accountHeader.setActiveProfile(it) }
-                    supportActionBar?.setDisplayShowHomeEnabled(true)
-
-                    if (savedInstanceState == null) showDefaultTimeline()
-                })
-
         (findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showCreateNewTootFragment() }
     }
 
@@ -264,7 +231,7 @@ class MainActivity : BaseActivity() {
             setTheme(R.style.AppTheme_NoActionBar)
             findViewById(R.id.drawer_layout).rootView.setBackgroundResource(R.color.material_gray_light)
         }
-        setNavDrawer()
+        commitAccountsIntoAccountHeader()
     }
 
     override fun onBackPressed() {
@@ -307,6 +274,58 @@ class MainActivity : BaseActivity() {
         return super.onOptionsItemSelected(item)
     }
 
+    fun commitAccountsIntoAccountHeader() {
+        accountHeader.clear()
+
+        Observable.fromIterable(OrmaProvider.db.selectFromAccessToken())
+                .flatMap {
+                    MastodonClient(Common.setAuthInfo(it) ?: throw IllegalArgumentException()).getSelfAccount()
+                            .map { account -> Pair(it, account) }
+                            .toObservable()
+                }
+                .flatMap { (token, account) ->
+                    if (account.avatarUrl.startsWith("http")) {
+                        Observable.just(Picasso.with(this).load(account.avatarUrl).get())
+                                .map { bitmap -> Pair(Pair(token, account), bitmap) }
+                    } else Observable.just(Pair(Pair(token, account), null))
+                }
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe({ (pair, bitmap) ->
+                    val domain = OrmaProvider.db.selectFromInstanceAuthInfo().idEq(pair.first.instanceId).last().instance
+                    val item = ProfileDrawerItem()
+                            .withName(pair.second.displayName)
+                            .withEmail("@${pair.second.username}@$domain")
+                            .withIdentifier(pair.second.id)
+                    if (bitmap != null) item.withIcon(bitmap)
+                    accountHeader.addProfiles(item)
+                }, Throwable::printStackTrace, {
+                    val currentAccessToken = Common.getCurrentAccessToken()
+                    if (currentAccessToken == null) {
+                        Single.just(OrmaProvider.db.selectFromAccessToken().last())
+                                .flatMap { token ->
+                                    OrmaProvider.db.updateAccessToken()
+                                            .idEq(token.id)
+                                            .isCurrent(true)
+                                            .executeAsSingle()
+                                            .map { token }
+                                }
+                                .subscribeOn(Schedulers.newThread())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe({
+                                    Timber.d("updated access token: ${it.token}")
+                                    accountHeader.setActiveProfile(it.accountId)
+                                }, Throwable::printStackTrace)
+                    } else {
+                        accountHeader.setActiveProfile(currentAccessToken.accountId)
+                    }
+                    supportActionBar?.setDisplayShowHomeEnabled(true)
+
+                    showDefaultTimeline(true)
+                })
+    }
+
     fun getAccountHeader(): AccountHeader =
             AccountHeaderBuilder().withActivity(this)
                     .withHeaderBackground(R.drawable.side_nav_bar)
@@ -328,13 +347,13 @@ class MainActivity : BaseActivity() {
                             false
                         } else if (!current) {
                             OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).executeAsSingle()
-                                    .flatMap { OrmaProvider.db.updateAccessToken().idEq(profile.identifier).isCurrent(true).executeAsSingle() }
+                                    .flatMap { OrmaProvider.db.updateAccessToken().accountIdEq(profile.identifier).isCurrent(true).executeAsSingle() }
                                     .subscribeOn(Schedulers.newThread())
                                     .observeOn(AndroidSchedulers.mainThread())
                                     .compose(bindToLifecycle())
                                     .subscribe({ i ->
                                         Timber.d("updated row count: $i")
-                                        showDefaultTimeline()
+                                        showDefaultTimeline(true)
                                     }, Throwable::printStackTrace)
                             false
                         } else true
