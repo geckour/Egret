@@ -21,7 +21,7 @@ import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 import java.util.*
 
-class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAdapter.ViewHolder>() {
+class TimelineAdapter(val listener: IListener, val doFilter: Boolean = true) : RecyclerView.Adapter<TimelineAdapter.ViewHolder>() {
 
     private val contents: ArrayList<TimelineContent> = ArrayList()
 
@@ -194,7 +194,7 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
         }
     }
 
-    fun addAllContentsInLast(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
+    fun addAllContentsAtLast(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
         val size = this.contents.size
         this.contents.addAll(contents)
         notifyItemRangeInserted(size, contents.size)
@@ -225,6 +225,7 @@ class TimelineAdapter(val listener: IListener) : RecyclerView.Adapter<TimelineAd
     }
 
     fun shouldMute(content: TimelineContent): Boolean {
+        if (!doFilter) return false
         OrmaProvider.db.selectFromMuteClient().forEach {
             if (content.app == it.client) return true
         }
