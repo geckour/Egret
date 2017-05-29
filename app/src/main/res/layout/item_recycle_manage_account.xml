@@ -30,22 +30,24 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <EditText
+            <TextView
                 android:id="@+id/item_account"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
                 android:layout_marginTop="8dp"
-                android:background="@android:color/transparent"
-                android:clickable="false"
+                android:ellipsize="end"
                 android:maxLines="1"
                 android:singleLine="true"
-                android:text="@{item.acct}"
+                android:text="@{'@' + item.acct}"
+                android:textAlignment="viewStart"
                 android:textColor="@color/material_gray_dark"
                 android:textSize="16sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toRightOf="@+id/icon"
+                app:layout_constraintRight_toLeftOf="@+id/item_opt"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="ログインしているアカウント" />
 
