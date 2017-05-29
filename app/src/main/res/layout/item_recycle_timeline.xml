@@ -21,18 +21,18 @@
             android:layout_height="wrap_content"
             android:background="?android:attr/colorBackground"
             android:clickable="true"
-            android:orientation="horizontal"
-            android:padding="8dp">
+            android:orientation="horizontal">
 
             <ImageView
                 android:id="@+id/icon"
                 android:layout_width="42dp"
                 android:layout_height="42dp"
+                android:layout_marginLeft="8dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 app:imageUrl="@{(content.rebloggedStatusContent == null) ? content.iconUrl : content.rebloggedStatusContent.iconUrl}"
                 app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/wrap"/>
+                app:layout_constraintTop_toTopOf="@+id/wrap" />
 
             <LinearLayout
                 android:id="@+id/wrap_rebloggedBy"
@@ -51,7 +51,7 @@
                     android:layout_height="16dp"
                     android:layout_marginRight="4dp"
                     android:tint="@color/secondary_text_material_light"
-                    app:srcCompat="@drawable/ic_repeat_black_24px"/>
+                    app:srcCompat="@drawable/ic_repeat_black_24px" />
 
                 <TextView
                     android:id="@+id/rebloggedBy"
@@ -59,7 +59,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginRight="4dp"
                     android:text="@string/reblogged_by"
-                    android:textSize="10sp"/>
+                    android:textSize="10sp" />
 
                 <TextView
                     android:id="@+id/reblogged_name"
@@ -70,22 +70,21 @@
                     android:singleLine="true"
                     android:text="@{content.nameStrong}"
                     android:textSize="10sp"
-                    tools:text="ゆーざーねーむ"/>
+                    tools:text="ゆーざーねーむ" />
             </LinearLayout>
 
             <android.support.constraint.ConstraintLayout
                 android:id="@+id/wrap"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
                 android:layout_marginLeft="8dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginTop="16dp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintLeft_toRightOf="@+id/icon"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/wrap_rebloggedBy"
-                app:layout_constraintVertical_bias="1.0"
-                android:layout_marginStart="8dp">
+                app:layout_constraintTop_toBottomOf="@+id/wrap_rebloggedBy">
 
                 <TextView
                     android:id="@+id/body"
@@ -101,7 +100,7 @@
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/name_wrap"
-                    tools:text="これはトゥート本文です"/>
+                    tools:text="これはトゥート本文です" />
 
                 <LinearLayout
                     android:id="@+id/media_wrap"
@@ -219,7 +218,7 @@
                         android:textSize="12sp"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        tools:text="つよいなまえ"/>
+                        tools:text="つよいなまえ" />
 
                     <TextView
                         android:id="@+id/name_weak"
@@ -233,7 +232,7 @@
                         android:textSize="10sp"
                         app:layout_constraintLeft_toLeftOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/name_strong"
-                        tools:text="よわいなまえ"/>
+                        tools:text="よわいなまえ" />
                 </android.support.constraint.ConstraintLayout>
 
                 <TextView
@@ -249,7 +248,7 @@
                     app:layout_constraintBottom_toBottomOf="@+id/name_wrap"
                     app:layout_constraintRight_toLeftOf="@+id/opt"
                     app:layout_constraintTop_toTopOf="@+id/name_wrap"
-                    tools:text="HH:MM"/>
+                    tools:text="HH:MM" />
 
                 <ImageView
                     android:id="@+id/opt"
@@ -261,7 +260,7 @@
                     app:layout_constraintBottom_toBottomOf="@+id/time"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintTop_toTopOf="@+id/time"
-                    app:srcCompat="@drawable/ic_more_vert_black_24px"/>
+                    app:srcCompat="@drawable/ic_more_vert_black_24px" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -277,7 +276,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:gravity="bottom"
+                        android:gravity="center_vertical"
                         android:orientation="horizontal">
 
                         <ImageView
@@ -294,7 +293,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:gravity="bottom"
+                        android:gravity="center_vertical"
                         android:orientation="horizontal">
 
                         <ImageView
@@ -320,7 +319,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:gravity="bottom"
+                        android:gravity="center_vertical"
                         android:orientation="horizontal">
 
                         <ImageView
@@ -346,7 +345,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:gravity="bottom"
+                        android:gravity="center_vertical"
                         android:orientation="horizontal">
 
                     </LinearLayout>
