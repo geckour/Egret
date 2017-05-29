@@ -143,7 +143,7 @@ class TimelineFragment: BaseFragment() {
             (activity as MainActivity).showDefaultTimeline(true)
         }
 
-        (activity as MainActivity).setSimplicityPostBarVisibility(true)
+        if (Common.isModeShowTootBar(activity)) (activity as MainActivity).setSimplicityPostBarVisibility(true)
 
         restoreTimeline(bundle)
 

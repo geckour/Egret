@@ -168,6 +168,8 @@ class Common {
 
         fun isModeDefaultBrowser(context: Context): Boolean = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("switch_to_use_default_browser", false)
 
+        fun isModeShowTootBar(context: Context): Boolean = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("switch_to_show_extreme_toot_bar", false)
+
         fun getMovementMethodFromPreference(context: Context): MovementMethod {
             return if (isModeDefaultBrowser(context)) LinkMovementMethod.getInstance() else Common.getMutableLinkMovementMethodForCustomTab(context)
         }
