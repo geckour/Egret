@@ -91,6 +91,7 @@ class Common {
                 getSpannedWithoutExtraMarginFromHtml(status.content),
                 status.media.map { it.previewImgUrl },
                 status.media.map { it.url },
+                status.sensitive,
                 status.tags.map { it.name },
                 status.favourited,
                 status.reblogged,
