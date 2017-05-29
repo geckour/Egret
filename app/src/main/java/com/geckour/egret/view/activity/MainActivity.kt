@@ -18,6 +18,9 @@ import android.text.Html
 import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageView
 import com.geckour.egret.App
 import com.geckour.egret.App.Companion.STATE_KEY_CATEGORY
@@ -221,6 +224,7 @@ class MainActivity : BaseActivity() {
         setNavDrawer()
 
         (findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showCreateNewTootFragment() }
+        (findViewById(R.id.button_simplicity_toot) as Button).setOnClickListener { postToot() }
     }
 
     override fun onResume() {
@@ -414,6 +418,14 @@ class MainActivity : BaseActivity() {
                 .build()
     }
 
+    fun setSimplicityPostBarVisibility(isVisible: Boolean) {
+        if (isVisible) {
+            findViewById(R.id.simplicity_post_wrap).visibility = View.VISIBLE
+        } else {
+            findViewById(R.id.simplicity_post_wrap).visibility = View.GONE
+        }
+    }
+
     fun showTimelineFragment(category: TimelineFragment.Category, setNavSelection: Boolean = false, force: Boolean = false) {
         val currentFragment = supportFragmentManager.findFragmentByTag(TimelineFragment.TAG)
         if (!force
@@ -451,6 +463,30 @@ class MainActivity : BaseActivity() {
                 .replace(R.id.container, fragment, NewTootCreateFragment.TAG)
                 .addToBackStack(NewTootCreateFragment.TAG)
                 .commit()
+    }
+
+    fun postToot() {
+        (findViewById(R.id.button_simplicity_toot) as Button).isEnabled = false
+        val body = (findViewById(R.id.simplicity_toot_body) as EditText).text.toString()
+        if (TextUtils.isEmpty(body)) {
+            Snackbar.make(findViewById(R.id.drawer_layout), R.string.error_empty_toot, Snackbar.LENGTH_SHORT).show()
+            return
+        }
+
+        MastodonClient(Common.resetAuthInfo() ?: return)
+                .postNewToot(body)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    Snackbar.make(
+                            findViewById(R.id.drawer_layout),
+                            R.string.succeed_post_toot,
+                            Snackbar.LENGTH_SHORT).show()
+                    val editText = (findViewById(R.id.simplicity_toot_body) as EditText)
+                    editText.setText("")
+                    (findViewById(R.id.button_simplicity_toot) as Button).isEnabled = true
+                    hideSoftKeyBoard(editText)
+                }, Throwable::printStackTrace)
     }
 
     fun replyStatusById(content: TimelineContent) {
