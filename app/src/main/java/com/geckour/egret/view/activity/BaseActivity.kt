@@ -16,5 +16,7 @@ open class BaseActivity: RxAppCompatActivity() {
         et.requestFocus()
     }
 
+    fun hideSoftKeyBoard(et: EditText) = (et.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(et.windowToken, 0)
+
     fun isModeDark(): Boolean = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("switch_to_dark_theme", false)
 }

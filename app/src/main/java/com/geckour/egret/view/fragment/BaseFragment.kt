@@ -13,6 +13,7 @@ open class BaseFragment: RxFragment() {
 
         if (activity is MainActivity) {
             (activity as MainActivity).supportActionBar?.show()
+            (activity as MainActivity).setSimplicityPostBarVisibility(false)
             ((activity as MainActivity).findViewById(R.id.fab) as FloatingActionButton?)?.show()
         }
     }
@@ -22,6 +23,7 @@ open class BaseFragment: RxFragment() {
 
         if (activity is MainActivity) {
             (activity as MainActivity).supportActionBar?.show()
+            (activity as MainActivity).setSimplicityPostBarVisibility(false)
             ((activity as MainActivity).findViewById(R.id.fab) as FloatingActionButton?)?.show()
         }
     }

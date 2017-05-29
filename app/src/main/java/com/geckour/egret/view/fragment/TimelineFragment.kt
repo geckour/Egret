@@ -143,6 +143,8 @@ class TimelineFragment: BaseFragment() {
             (activity as MainActivity).showDefaultTimeline(true)
         }
 
+        (activity as MainActivity).setSimplicityPostBarVisibility(true)
+
         restoreTimeline(bundle)
 
         (activity as MainActivity).resetSelectionNavItem(

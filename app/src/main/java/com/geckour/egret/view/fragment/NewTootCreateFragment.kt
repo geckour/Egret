@@ -116,7 +116,7 @@ class NewTootCreateFragment : BaseFragment() {
         if (arguments.containsKey(ARGS_KEY_REPLY_TO_STATUS_ID)
                 && arguments.containsKey(ARGS_KEY_REPLY_TO_ACCOUNT_NAME)
                 && arguments.getString(ARGS_KEY_REPLY_TO_ACCOUNT_NAME) != null) {
-            binding.replyTo.text = "reply: ${arguments.getString(ARGS_KEY_REPLY_TO_ACCOUNT_NAME)}"
+            binding.replyTo.text = "reply to: ${arguments.getString(ARGS_KEY_REPLY_TO_ACCOUNT_NAME)}"
             binding.replyTo.visibility = View.VISIBLE
             val accountName = "${arguments.getString(ARGS_KEY_REPLY_TO_ACCOUNT_NAME)} "
             binding.tootBody.text = Editable.Factory.getInstance().newEditable(accountName)
