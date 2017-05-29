@@ -13,8 +13,9 @@ Android app for client of Mastodon.
 - Mute account / keyword / instance / app
 - Show an account's profile
 - (Un) Follow / Block the account
-- Post the toot (characters only)
-- Post reply to the toot (characters only)
+- Post the toot (characters and images)
+- Show / Hide simple toot bar on footer of timeline
+- Post reply to the toot (characters and images)
 - (Un) Favourite / Boost the toot
 - and more in future...
 
