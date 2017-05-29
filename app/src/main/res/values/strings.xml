@@ -71,6 +71,8 @@
     <string name="array_item_mute_instance">Mute INSTANCE: %1$s</string>
     <string name="array_item_mute_client">Mute APP: %1$s</string>
 
+    <string name="spoiler_media">Click to show this media</string>
+
     <string name="pref_category_general">General</string>
     <string name="pref_category_others">Others</string>
     <string name="pref_manage_accounts">Manage your accounts</string>

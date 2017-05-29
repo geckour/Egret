@@ -17,6 +17,7 @@ data class TimelineContent(
         var body: Spanned,
         var mediaPreviewUrls: List<String>,
         var mediaUrls: List<String>,
+        var isSensitive: Boolean,
         var tags: List<String>,
         var favourited: Boolean,
         var reblogged: Boolean,

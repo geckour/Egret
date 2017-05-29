@@ -34,19 +34,23 @@ class TimelineAdapter(val listener: IListener, val doFilter: Boolean = true) : R
             content.mediaPreviewUrls.forEachIndexed { i, url ->
                 when (i) {
                     0 -> {
+                        if (content.isSensitive) showMediaSpoiler(binding.mediaSpoilerWrap1)
                         binding.mediaWrap.visibility = View.VISIBLE
                         Picasso.with(binding.media1.context).load(url).into(binding.media1)
                     }
                     1 -> {
+                        if (content.isSensitive) showMediaSpoiler(binding.mediaSpoilerWrap2)
                         binding.media2Wrap.visibility = View.VISIBLE
                         Picasso.with(binding.media2.context).load(url).into(binding.media2)
                     }
                     2 -> {
+                        if (content.isSensitive) showMediaSpoiler(binding.mediaSpoilerWrap3)
                         binding.mediaLowerWrap.visibility = View.VISIBLE
                         binding.media3Wrap.visibility = View.VISIBLE
                         Picasso.with(binding.media3.context).load(url).into(binding.media3)
                     }
                     3 -> {
+                        if (content.isSensitive) showMediaSpoiler(binding.mediaSpoilerWrap4)
                         binding.media4Wrap.visibility = View.VISIBLE
                         Picasso.with(binding.media4.context).load(url).into(binding.media4)
                     }
@@ -139,6 +143,11 @@ class TimelineAdapter(val listener: IListener, val doFilter: Boolean = true) : R
             }
             popup.inflate(if (contentAccountId == currentAccountId) R.menu.toot_own else R.menu.toot_general)
             popup.show()
+        }
+
+        fun showMediaSpoiler(view: View) {
+            view.setOnClickListener { it.visibility = View.GONE }
+            view.visibility = View.VISIBLE
         }
     }
 

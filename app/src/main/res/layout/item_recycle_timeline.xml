@@ -134,6 +134,23 @@
                                 android:layout_height="match_parent"
                                 android:scaleType="centerCrop"
                                 app:srcCompat="@mipmap/ic_launcher" />
+
+                            <FrameLayout
+                                android:id="@+id/media_spoiler_wrap_1"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@color/black_overlay_spoiler"
+                                android:clickable="true"
+                                android:visibility="gone">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:text="@string/spoiler_media"
+                                    android:textColor="@color/material_gray_light"
+                                    android:textSize="12sp" />
+                            </FrameLayout>
                         </FrameLayout>
 
                         <FrameLayout
@@ -150,6 +167,24 @@
                                 android:layout_height="match_parent"
                                 android:scaleType="centerCrop"
                                 app:srcCompat="@mipmap/ic_launcher" />
+
+                            <FrameLayout
+                                android:id="@+id/media_spoiler_wrap_2"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@color/black_overlay_spoiler"
+                                android:clickable="true"
+                                android:visibility="gone">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:text="@string/spoiler_media"
+                                    android:textColor="@color/material_gray_light"
+                                    android:textSize="12sp" />
+                            </FrameLayout>
+
                         </FrameLayout>
                     </LinearLayout>
 
@@ -176,6 +211,24 @@
                                 android:layout_height="match_parent"
                                 android:scaleType="centerCrop"
                                 app:srcCompat="@mipmap/ic_launcher" />
+
+                            <FrameLayout
+                                android:id="@+id/media_spoiler_wrap_3"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@color/black_overlay_spoiler"
+                                android:clickable="true"
+                                android:visibility="gone">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:text="@string/spoiler_media"
+                                    android:textColor="@color/material_gray_light"
+                                    android:textSize="12sp" />
+                            </FrameLayout>
+
                         </FrameLayout>
 
                         <FrameLayout
@@ -192,6 +245,24 @@
                                 android:layout_height="match_parent"
                                 android:scaleType="centerCrop"
                                 app:srcCompat="@mipmap/ic_launcher" />
+
+                            <FrameLayout
+                                android:id="@+id/media_spoiler_wrap_4"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@color/black_overlay_spoiler"
+                                android:clickable="true"
+                                android:visibility="gone">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:text="@string/spoiler_media"
+                                    android:textColor="@color/material_gray_light"
+                                    android:textSize="12sp" />
+                            </FrameLayout>
+
                         </FrameLayout>
                     </LinearLayout>
                 </LinearLayout>
