@@ -4,20 +4,16 @@ import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.os.Parcelable
 import android.support.v4.content.ContextCompat
-import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.RecyclerView
-import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Account
 import com.geckour.egret.api.model.Relationship
 import com.geckour.egret.databinding.FragmentAccountProfileBinding
 import com.geckour.egret.util.Common
-import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.BaseActivity
 import com.geckour.egret.view.activity.MainActivity
 import com.geckour.egret.view.adapter.TimelineAdapter
@@ -25,7 +21,6 @@ import com.geckour.egret.view.adapter.model.TimelineContent
 import com.geckour.egret.view.fragment.TimelineFragment.Companion.STATE_ARGS_KEY_CONTENTS
 import com.squareup.picasso.Picasso
 import io.reactivex.Observable
-import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 
@@ -174,8 +169,7 @@ class AccountProfileFragment: BaseFragment() {
                     }
                 }, Throwable::printStackTrace)
 
-        binding.recyclerView.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
-        adapter = TimelineAdapter((activity as MainActivity).timelineListener)
+        adapter = TimelineAdapter((activity as MainActivity).timelineListener, false)
         binding.recyclerView.adapter = adapter
 
         binding.recyclerView.addOnScrollListener(object: RecyclerView.OnScrollListener() {
@@ -227,7 +221,7 @@ class AccountProfileFragment: BaseFragment() {
                         .observeOn(AndroidSchedulers.mainThread())
                         .compose(bindToLifecycle())
                         .subscribe({ result ->
-                            if (next) adapter.addAllContentsInLast(result.response().body().map { status -> Common.getTimelineContent(status) }, -1)
+                            if (next) adapter.addAllContentsAtLast(result.response().body().map { status -> Common.getTimelineContent(status) }, -1)
                             else adapter.addAllContents(result.response().body().map { status -> Common.getTimelineContent(status) }, -1)
                             nextId = result.response().headers().get("Link")?.replace(Regex(".*<https?://.+\\?max_id=(.+?)>.*"), "$1")?.toLong()
                         }, Throwable::printStackTrace)
