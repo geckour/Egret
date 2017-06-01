@@ -48,7 +48,7 @@
                 android:singleLine="true"
                 android:text="@{item.keyword}"
                 android:textAlignment="viewStart"
-                android:textColor="@color/material_gray_dark"
+                android:textColor="?attr/colorGray"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toRightOf="@+id/check_is_regex"
                 app:layout_constraintRight_toLeftOf="@+id/item_opt"
