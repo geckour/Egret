@@ -35,7 +35,7 @@
         android:id="@+id/simplicity_post_wrap"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/white"
+        android:background="?attr/colorBgSolid"
         android:elevation="8dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
