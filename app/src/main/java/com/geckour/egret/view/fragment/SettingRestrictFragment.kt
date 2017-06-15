@@ -10,7 +10,7 @@ import com.geckour.egret.view.activity.SettingActivity
 class SettingRestrictFragment: PreferenceFragmentCompat(), PreferenceFragmentCompat.OnPreferenceStartScreenCallback {
 
     companion object {
-        val TAG = "settingRestrictFragment"
+        val TAG: String = this::class.java.simpleName
 
         fun newInstance(): SettingRestrictFragment {
             val fragment = SettingRestrictFragment()

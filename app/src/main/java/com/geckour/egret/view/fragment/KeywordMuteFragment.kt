@@ -26,7 +26,7 @@ class KeywordMuteFragment: BaseFragment() {
     private val preItems: ArrayList<MuteKeyword> = ArrayList()
 
     companion object {
-        val TAG = "KeywordMuteFragment"
+        val TAG: String = this::class.java.simpleName
         val ARGS_KEY_DEFAULT_KEYWORD = "defaultKeyword"
 
         fun newInstance(defaultKeyword: String? = null): KeywordMuteFragment {

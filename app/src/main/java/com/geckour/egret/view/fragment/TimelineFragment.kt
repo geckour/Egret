@@ -38,7 +38,7 @@ class TimelineFragment: BaseFragment() {
     }
 
     companion object {
-        val TAG = "timelineFragment"
+        val TAG: String = this::class.java.simpleName
         val ARGS_KEY_CATEGORY = "category"
         val STATE_ARGS_KEY_CONTENTS = "contents"
         private val STATE_KEY_THEME_MODE = "themeMode"

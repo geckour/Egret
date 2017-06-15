@@ -42,7 +42,7 @@ class NewTootCreateFragment : BaseFragment() {
     private val mediaIds: ArrayList<Long> = ArrayList()
 
     companion object {
-        val TAG = "createNewTootFragment"
+        val TAG: String = this::class.java.simpleName
         private val ARGS_KEY_CURRENT_TOKEN_ID = "currentTokenId"
         private val ARGS_KEY_POST_TOKEN_ID = "postTokenId"
         private val ARGS_KEY_REPLY_TO_STATUS_ID = "replyToStatusId"

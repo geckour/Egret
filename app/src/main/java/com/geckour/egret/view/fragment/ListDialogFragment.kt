@@ -14,7 +14,7 @@ class ListDialogFragment(val listener: OnItemClickListener? = null): RxDialogFra
     lateinit var binding: FragmentListDialogBinding
 
     companion object {
-        val TAG = "listDialogFragment"
+        val TAG: String = this::class.java.simpleName
         val ARGS_KEY_TITLE = "title"
         val ARGS_KEY_RES_IDS = "itemResIds"
         val ARGS_KEY_STRINGS = "itemStrings"

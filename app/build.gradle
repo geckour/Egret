@@ -44,6 +44,8 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
+
+    // Android support libraries
     compile "com.android.support:appcompat-v7:$android_support_version"
     compile "com.android.support:preference-v7:$android_support_version"
     compile "com.android.support:preference-v14:$android_support_version"
@@ -54,32 +56,42 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 
+    // Data binding
     kapt 'com.android.databinding:compiler:2.3.1'
 
+    // Inspect
     compile 'com.facebook.stetho:stetho:1.5.0'
     compile 'com.facebook.stetho:stetho-okhttp3:1.5.0'
 
+
+    // ReactiveX
     compile 'io.reactivex.rxjava2:rxkotlin:2.0.0'
     compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
     compile 'io.reactivex.rxjava2:rxjava:2.0.8'
 
+    // Android lifecycle support for ReactiveX
     compile "com.trello.rxlifecycle2:rxlifecycle:$rxLifecycle_version"
     compile "com.trello.rxlifecycle2:rxlifecycle-components:$rxLifecycle_version"
     compile "com.trello.rxlifecycle2:rxlifecycle-kotlin:$rxLifecycle_version"
 
+    // Orma: ORM wrapper
     kapt 'com.github.gfx.android.orma:orma-processor:4.2.3'
     compile 'com.github.gfx.android.orma:orma:4.2.3'
 
+    // retrofit: Networking
     compile 'com.squareup.retrofit2:retrofit:2.2.0'
     compile 'com.squareup.retrofit2:adapter-rxjava2:2.2.0'
     compile 'com.squareup.retrofit2:converter-gson:2.2.0'
     compile 'com.squareup.okhttp3:okhttp:3.6.0'
     compile 'com.squareup.okhttp3:logging-interceptor:3.6.0'
 
+    // Picasso: Image processing
     compile 'com.squareup.picasso:picasso:2.5.2'
 
+    // Timber: Logging
     compile 'com.jakewharton.timber:timber:4.5.1'
 
+    // Misc
     compile 'nz.bradcampbell:paperparcel:2.0.1'
     compile 'nz.bradcampbell:paperparcel-kotlin:2.0.1'
     kapt 'nz.bradcampbell:paperparcel-compiler:2.0.1'

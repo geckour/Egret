@@ -27,7 +27,7 @@ import io.reactivex.schedulers.Schedulers
 class AccountProfileFragment: BaseFragment() {
 
     companion object {
-        val TAG = "accountProfileFragment"
+        val TAG: String = this::class.java.simpleName
         val ARGS_KEY_ACCOUNT = "account"
         private val STATE_KEY_THEME_MODE = "theme mode"
 
