@@ -209,6 +209,14 @@ class MainActivity : BaseActivity() {
         override fun onBoostStatus(statusId: Long, view: ImageView) {
             boostStatusById(statusId, view)
         }
+
+        override fun onClickMedia(urls: List<String>, position: Int) {
+            val fragment = ShowImagesDialogFragment.newInstance(urls, position)
+            supportFragmentManager.beginTransaction()
+                    .add(fragment, ShowImagesDialogFragment.TAG)
+                    .addToBackStack(ShowImagesDialogFragment.TAG)
+                    .commit()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -26,7 +26,7 @@ class InstanceMuteFragment: BaseFragment() {
     private val preItems: ArrayList<MuteInstance> = ArrayList()
 
     companion object {
-        val TAG = "InstanceMuteFragment"
+        val TAG: String = this::class.java.simpleName
         val ARGS_KEY_DEFAULT_INSTANCE = "defaultInstance"
 
         fun newInstance(defaultInstance: MuteInstance? = null): InstanceMuteFragment {

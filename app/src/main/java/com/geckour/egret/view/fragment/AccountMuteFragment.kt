@@ -25,7 +25,7 @@ class AccountMuteFragment: BaseFragment() {
     private val preItems: ArrayList<Account> = ArrayList()
 
     companion object {
-        val TAG = "accountMuteFragment"
+        val TAG: String = this::class.java.simpleName
 
         fun newInstance(): AccountMuteFragment {
             val fragment = AccountMuteFragment()

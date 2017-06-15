@@ -21,7 +21,7 @@ import timber.log.Timber
 class AccessInstanceFragment: BaseFragment() {
 
     companion object {
-        val TAG = "accessInstanceFragment"
+        val TAG: String = this::class.java.simpleName
 
         fun newInstance(): AccessInstanceFragment {
             val fragment = AccessInstanceFragment()

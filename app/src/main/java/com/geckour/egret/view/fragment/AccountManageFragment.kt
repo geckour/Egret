@@ -31,7 +31,7 @@ class AccountManageFragment: BaseFragment() {
     private val preItems: ArrayList<AccountContent> = ArrayList()
 
     companion object {
-        val TAG = "accountManageFragment"
+        val TAG: String = this::class.java.simpleName
 
         fun newInstance(): AccountManageFragment {
             val fragment = AccountManageFragment()

@@ -3,9 +3,7 @@ package com.geckour.egret.view.adapter
 import android.databinding.DataBindingUtil
 import android.support.design.widget.Snackbar
 import android.support.v4.content.ContextCompat
-import android.support.v7.preference.PreferenceManager
 import android.support.v7.widget.RecyclerView
-import android.text.method.LinkMovementMethod
 import android.view.*
 import android.widget.ImageView
 import android.widget.PopupMenu
@@ -15,10 +13,10 @@ import com.geckour.egret.databinding.ItemRecycleTimelineBinding
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.adapter.model.TimelineContent
+import com.geckour.egret.view.fragment.ShowImagesDialogFragment
 import com.squareup.picasso.Picasso
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
-import timber.log.Timber
 import java.util.*
 
 class TimelineAdapter(val listener: IListener, val doFilter: Boolean = true) : RecyclerView.Adapter<TimelineAdapter.ViewHolder>() {
@@ -31,28 +29,28 @@ class TimelineAdapter(val listener: IListener, val doFilter: Boolean = true) : R
 
             clearMedias()
 
-            content.mediaPreviewUrls.forEachIndexed { i, url ->
-                when (i) {
+            content.mediaUrls.indices.forEach {
+                when (it) {
                     0 -> {
-                        if (content.isSensitive) showMediaSpoiler(binding.mediaSpoilerWrap1)
+                        if (content.isSensitive) toggleMediaSpoiler(binding.mediaSpoilerWrap1, true)
                         binding.mediaWrap.visibility = View.VISIBLE
-                        Picasso.with(binding.media1.context).load(url).into(binding.media1)
+                        setupMedia(binding.media1, content.mediaPreviewUrls, content.mediaUrls, it)
                     }
                     1 -> {
-                        if (content.isSensitive) showMediaSpoiler(binding.mediaSpoilerWrap2)
+                        if (content.isSensitive) toggleMediaSpoiler(binding.mediaSpoilerWrap2, true)
                         binding.media2Wrap.visibility = View.VISIBLE
-                        Picasso.with(binding.media2.context).load(url).into(binding.media2)
+                        setupMedia(binding.media2, content.mediaPreviewUrls, content.mediaUrls, it)
                     }
                     2 -> {
-                        if (content.isSensitive) showMediaSpoiler(binding.mediaSpoilerWrap3)
+                        if (content.isSensitive) toggleMediaSpoiler(binding.mediaSpoilerWrap3, true)
                         binding.mediaLowerWrap.visibility = View.VISIBLE
                         binding.media3Wrap.visibility = View.VISIBLE
-                        Picasso.with(binding.media3.context).load(url).into(binding.media3)
+                        setupMedia(binding.media3, content.mediaPreviewUrls, content.mediaUrls, it)
                     }
                     3 -> {
-                        if (content.isSensitive) showMediaSpoiler(binding.mediaSpoilerWrap4)
+                        if (content.isSensitive) toggleMediaSpoiler(binding.mediaSpoilerWrap4, true)
                         binding.media4Wrap.visibility = View.VISIBLE
-                        Picasso.with(binding.media4.context).load(url).into(binding.media4)
+                        setupMedia(binding.media4, content.mediaPreviewUrls, content.mediaUrls, it)
                     }
                 }
             }
@@ -84,6 +82,10 @@ class TimelineAdapter(val listener: IListener, val doFilter: Boolean = true) : R
             binding.media2.setImageBitmap(null)
             binding.media3.setImageBitmap(null)
             binding.media4.setImageBitmap(null)
+            toggleMediaSpoiler(binding.mediaSpoilerWrap1, false)
+            toggleMediaSpoiler(binding.mediaSpoilerWrap2, false)
+            toggleMediaSpoiler(binding.mediaSpoilerWrap3, false)
+            toggleMediaSpoiler(binding.mediaSpoilerWrap4, false)
             binding.mediaWrap.visibility = View.GONE
             binding.media2Wrap.visibility = View.GONE
             binding.mediaLowerWrap.visibility = View.GONE
@@ -145,9 +147,14 @@ class TimelineAdapter(val listener: IListener, val doFilter: Boolean = true) : R
             popup.show()
         }
 
-        fun showMediaSpoiler(view: View) {
+        fun toggleMediaSpoiler(view: View, show: Boolean) {
             view.setOnClickListener { it.visibility = View.GONE }
-            view.visibility = View.VISIBLE
+            view.visibility = if (show) View.VISIBLE else View.GONE
+        }
+
+        fun setupMedia(view: ImageView, previewUrls: List<String>, urls: List<String>, position: Int) {
+            Picasso.with(binding.media1.context).load(previewUrls[position]).into(view)
+            view.setOnClickListener { listener.onClickMedia(urls, position) }
         }
     }
 
@@ -165,6 +172,8 @@ class TimelineAdapter(val listener: IListener, val doFilter: Boolean = true) : R
         fun onFavStatus(statusId: Long, view: ImageView)
 
         fun onBoostStatus(statusId: Long, view: ImageView)
+
+        fun onClickMedia(urls: List<String>, position: Int)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ViewHolder {

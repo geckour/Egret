@@ -29,7 +29,7 @@ class HashTagMuteFragment: BaseFragment() {
     private val argItems: ArrayList<String> = ArrayList()
 
     companion object {
-        val TAG = "KeywordMuteFragment"
+        val TAG: String = this::class.java.simpleName
         val ARGS_KEY_DEFAULT_HASH_TAG = "defaultHashTag"
 
         fun newInstance(defaultHashTags: List<String> = ArrayList()): HashTagMuteFragment {

@@ -10,7 +10,7 @@ import com.geckour.egret.view.activity.SettingActivity
 class SettingMainFragment: PreferenceFragmentCompat(), PreferenceFragmentCompat.OnPreferenceStartScreenCallback {
 
     companion object {
-        val TAG = "settingMainFragment"
+        val TAG: String = this::class.java.simpleName
 
         fun newInstance(): SettingMainFragment {
             val fragment = SettingMainFragment()
