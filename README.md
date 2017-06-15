@@ -17,6 +17,7 @@ Android app for client of Mastodon.
 - Show / Hide simple toot bar on footer of timeline
 - Post reply to the toot (characters and images)
 - (Un) Favourite / Boost the toot
+- Show images in the toot as inline / pop up viewer
 - and more in future...
 
 ## Contributor
