@@ -4,7 +4,6 @@ import android.databinding.DataBindingUtil
 import android.graphics.PointF
 import android.os.Bundle
 import android.support.v4.view.PagerAdapter
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -63,9 +62,11 @@ class ShowImagesDialogFragment: RxAppCompatDialogFragment() {
         private val lastPoints = Pair(PointF(-1F, -1F), PointF(-1F, -1F))
 
         override fun instantiateItem(container: ViewGroup?, position: Int): Any {
-            binding.add(DataBindingUtil.inflate(LayoutInflater.from(activity), R.layout.page_fullscreen_image, container, false))
+            if (binding.isEmpty()) {
+                imagePaths.forEach { binding.add(DataBindingUtil.inflate(LayoutInflater.from(activity), R.layout.page_fullscreen_image, container, false)) }
+            }
             Picasso.with(activity).load(imagePaths[position]).into(binding[position].image)
-            binding[position].cover.setOnTouchListener { view, event -> onTouchImage(event, position) } // 直接ImageViewにonTouchListenerを仕込むと挙動がおかしくなる
+            binding[position].cover.setOnTouchListener { view, event -> onTouchImage(event, position) } // 直接ImageViewにonTouchListenerを仕込むと挙動がおかしくなるので別Viewに仕込んでいる
             container?.addView(binding[position].root)
 
             return binding[position].root
