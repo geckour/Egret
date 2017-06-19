@@ -428,9 +428,9 @@ class MainActivity : BaseActivity() {
 
     fun setSimplicityPostBarVisibility(isVisible: Boolean) {
         if (isVisible) {
-            findViewById(R.id.simplicity_post_wrap).visibility = View.VISIBLE
+            findViewById(R.id.simplicity_post_wrap)?.visibility = View.VISIBLE
         } else {
-            findViewById(R.id.simplicity_post_wrap).visibility = View.GONE
+            findViewById(R.id.simplicity_post_wrap)?.visibility = View.GONE
         }
     }
 

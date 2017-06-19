@@ -2,14 +2,15 @@ package com.geckour.egret.view.fragment
 
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
+import android.view.View
 import com.geckour.egret.R
 import com.geckour.egret.view.activity.MainActivity
 import com.trello.rxlifecycle2.components.support.RxFragment
 
 open class BaseFragment: RxFragment() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         if (activity is MainActivity) {
             (activity as MainActivity).supportActionBar?.show()
