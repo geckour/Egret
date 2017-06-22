@@ -43,13 +43,15 @@ class TimelineFragment: BaseFragment() {
     companion object {
         val TAG: String = this::class.java.simpleName
         val ARGS_KEY_CATEGORY = "category"
+        val ARGS_KEY_RESUME = "resume"
         val STATE_ARGS_KEY_CONTENTS = "contents"
         private val STATE_KEY_THEME_MODE = "themeMode"
 
-        fun newInstance(category: Category): TimelineFragment {
+        fun newInstance(category: Category, resume: Boolean): TimelineFragment {
             val fragment = TimelineFragment()
             val args = Bundle()
             args.putString(ARGS_KEY_CATEGORY, category.name)
+            args.putBoolean(ARGS_KEY_RESUME, resume)
             fragment.arguments = args
 
             return fragment
@@ -149,7 +151,8 @@ class TimelineFragment: BaseFragment() {
 
         if (Common.isModeShowTootBar(activity)) (activity as MainActivity).setSimplicityPostBarVisibility(true)
 
-        restoreTimeline()
+        if (arguments.containsKey(ARGS_KEY_RESUME) && arguments.getBoolean(ARGS_KEY_RESUME, false)) restoreTimeline()
+        else showTimelineByCategory(getCategory())
 
         (activity as MainActivity).resetSelectionNavItem(
                 when (getCategory()) {

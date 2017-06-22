@@ -452,7 +452,7 @@ class MainActivity : BaseActivity() {
                 && currentFragment.isVisible
                 && (currentFragment as TimelineFragment).getCategory() == category) return
 
-        val fragment = TimelineFragment.newInstance(category)
+        val fragment = TimelineFragment.newInstance(category, (currentFragment as TimelineFragment?)?.getCategory() ?: category == category)
         supportFragmentManager.beginTransaction()
                 .replace(R.id.container, fragment, TimelineFragment.TAG)
                 .addToBackStack(TimelineFragment.TAG)
