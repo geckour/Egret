@@ -1,14 +1,12 @@
 package com.geckour.egret.view.activity
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
+import android.content.*
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.Snackbar
 import android.support.v4.content.ContextCompat
@@ -26,7 +24,6 @@ import com.geckour.egret.App
 import com.geckour.egret.App.Companion.STATE_KEY_CATEGORY
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
-import com.geckour.egret.api.model.Relationship
 import com.geckour.egret.model.MuteClient
 import com.geckour.egret.model.MuteInstance
 import com.geckour.egret.util.Common
@@ -52,8 +49,10 @@ class MainActivity : BaseActivity() {
 
     lateinit var drawer: Drawer
     lateinit private var accountHeader: AccountHeader
+    lateinit private var sharedPref: SharedPreferences
 
     companion object {
+        val STATE_KEY_THEME_MODE = "stateKeyThemeMode"
         val NAV_ITEM_LOGIN: Long = 0
         val NAV_ITEM_TL_PUBLIC: Long = 1
         val NAV_ITEM_TL_LOCAL: Long = 2
@@ -221,8 +220,10 @@ class MainActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setTheme(if (isModeDark()) R.style.AppThemeDark_NoActionBar else R.style.AppTheme_NoActionBar)
         setContentView(R.layout.activity_main)
+        sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
         val toolbar = findViewById(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
 
@@ -230,6 +231,7 @@ class MainActivity : BaseActivity() {
         accountHeader = getAccountHeader()
 
         setNavDrawer()
+        commitAccountsIntoAccountHeader()
 
         (findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showCreateNewTootFragment() }
         (findViewById(R.id.button_simplicity_toot) as Button).setOnClickListener { postToot() }
@@ -238,14 +240,23 @@ class MainActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
 
-        if (isModeDark()) {
-            setTheme(R.style.AppThemeDark_NoActionBar)
-            findViewById(R.id.drawer_layout).rootView.setBackgroundResource(R.color.material_gray_dark)
-        } else {
-            setTheme(R.style.AppTheme_NoActionBar)
-            findViewById(R.id.drawer_layout).rootView.setBackgroundResource(R.color.material_gray_light)
+        if (sharedPref.contains(STATE_KEY_THEME_MODE)) {
+            if (sharedPref.getBoolean(STATE_KEY_THEME_MODE, false) != isModeDark()) {
+                recreate().apply {
+                    sharedPref.edit().remove(STATE_KEY_THEME_MODE).apply()
+                }
+            }
+
+            sharedPref.edit().remove(STATE_KEY_THEME_MODE).apply()
         }
-        commitAccountsIntoAccountHeader()
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        sharedPref.edit()
+                .putBoolean(STATE_KEY_THEME_MODE, isModeDark())
+                .apply()
     }
 
     override fun onBackPressed() {
@@ -336,7 +347,7 @@ class MainActivity : BaseActivity() {
                     }
                     supportActionBar?.setDisplayShowHomeEnabled(true)
 
-                    showDefaultTimeline(true)
+                    showDefaultTimeline()
                 })
     }
 
@@ -434,7 +445,7 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    fun showTimelineFragment(category: TimelineFragment.Category, setNavSelection: Boolean = false, force: Boolean = false) {
+    fun showTimelineFragment(category: TimelineFragment.Category, force: Boolean = false) {
         val currentFragment = supportFragmentManager.findFragmentByTag(TimelineFragment.TAG)
         if (!force
                 && currentFragment != null
@@ -446,22 +457,17 @@ class MainActivity : BaseActivity() {
                 .replace(R.id.container, fragment, TimelineFragment.TAG)
                 .addToBackStack(TimelineFragment.TAG)
                 .commit()
-        if (setNavSelection) when (category) {
-            TimelineFragment.Category.Public -> drawer.setSelection(NAV_ITEM_TL_PUBLIC)
-            TimelineFragment.Category.Local -> drawer.setSelection(NAV_ITEM_TL_LOCAL)
-            TimelineFragment.Category.User -> drawer.setSelection(NAV_ITEM_TL_USER)
-        }
     }
 
     fun resetSelectionNavItem(identifier: Long) {
-        if (identifier > -1) drawer.setSelection(identifier)
+        if (identifier > -1 && drawer.currentSelection != identifier) drawer.setSelection(identifier)
     }
 
     fun showDefaultTimeline(force: Boolean = false) {
         val sharedPref = getSharedPreferences(App.DEFAULT_SHARED_PREFERENCES, Context.MODE_PRIVATE)
         val currentCategory = TimelineFragment.Category.values()[sharedPref.getInt(STATE_KEY_CATEGORY, TimelineFragment.Category.Public.rawValue)]
 
-        showTimelineFragment(currentCategory, true, force)
+        showTimelineFragment(currentCategory, force)
     }
 
     fun showCreateNewTootFragment() {

@@ -1,5 +1,6 @@
 package com.geckour.egret.api
 
+import com.geckour.egret.App.Companion.gson
 import com.geckour.egret.api.model.*
 import com.geckour.egret.api.service.MastodonService
 import com.geckour.egret.util.OkHttpProvider
@@ -23,7 +24,7 @@ class MastodonClient(baseUrl: String) {
             .client(OkHttpProvider.client)
             .baseUrl("https://$baseUrl/")
             .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
             .create(MastodonService::class.java)
 
@@ -31,7 +32,7 @@ class MastodonClient(baseUrl: String) {
             .client(OkHttpProvider.streamClient)
             .baseUrl("https://$baseUrl/")
             .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
             .create(MastodonService::class.java)
 

@@ -1,13 +1,18 @@
 package com.geckour.egret.view.fragment
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.os.Parcelable
+import android.preference.PreferenceManager
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.geckour.egret.App
+import com.geckour.egret.App.Companion.gson
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Account
@@ -19,6 +24,8 @@ import com.geckour.egret.view.activity.MainActivity
 import com.geckour.egret.view.adapter.TimelineAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
 import com.geckour.egret.view.fragment.TimelineFragment.Companion.STATE_ARGS_KEY_CONTENTS
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.squareup.picasso.Picasso
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -55,12 +62,13 @@ class AccountProfileFragment: BaseFragment() {
     lateinit private var relationship: Relationship
     lateinit private var binding: FragmentAccountProfileBinding
     lateinit private var adapter: TimelineAdapter
-    private val bundle = Bundle()
+    lateinit private var sharedPref: SharedPreferences
     private var nextId: Long? = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        sharedPref = PreferenceManager.getDefaultSharedPreferences(activity)
         account = arguments[ARGS_KEY_ACCOUNT] as Account
         (activity as MainActivity).supportActionBar?.hide()
     }
@@ -195,19 +203,16 @@ class AccountProfileFragment: BaseFragment() {
     override fun onPause() {
         super.onPause()
 
-        bundle.putParcelableArrayList(STATE_ARGS_KEY_CONTENTS, ArrayList(adapter.getContents()))
-        bundle.putBoolean(STATE_KEY_THEME_MODE, (activity as BaseActivity).isModeDark())
+        val editor = sharedPref.edit()
+        val json = gson.toJson(adapter.getContents())
+        editor.putString(STATE_ARGS_KEY_CONTENTS, json)
+        editor.apply()
     }
 
     override fun onResume() {
         super.onResume()
 
-        if (bundle.containsKey(STATE_KEY_THEME_MODE) && (bundle.getBoolean(STATE_KEY_THEME_MODE, false) xor (activity as BaseActivity).isModeDark())) {
-            bundle.clear()
-            activity.recreate()
-        }
-
-        restoreTimeline(bundle)
+        restoreTimeline()
 
         reflectSettings()
     }
@@ -254,10 +259,11 @@ class AccountProfileFragment: BaseFragment() {
         }
     }
 
-    fun restoreTimeline(savedInstanceState: Bundle?) {
-        if (savedInstanceState != null && savedInstanceState.containsKey(TimelineFragment.STATE_ARGS_KEY_CONTENTS)) {
-            val parcelables: ArrayList<Parcelable> = savedInstanceState.getParcelableArrayList(TimelineFragment.STATE_ARGS_KEY_CONTENTS)
-            adapter.addAllContents(parcelables.map { parcelable -> parcelable as TimelineContent })
+    fun restoreTimeline() {
+        if (sharedPref.contains(STATE_ARGS_KEY_CONTENTS)) {
+            val type = object: TypeToken<List<TimelineContent>>() {}
+            val contents: List<TimelineContent> = gson.fromJson(sharedPref.getString(STATE_ARGS_KEY_CONTENTS, ""), type.type)
+            adapter.addAllContents(contents)
         }
     }
 

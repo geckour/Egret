@@ -6,7 +6,7 @@
     <color name="colorAccent">#d40a4f</color>
 
     <color name="black_overlay">#66000000</color>
-    <color name="black_overlay_spoiler">#d8000000</color>
+    <color name="black_overlay_spoiler">#e0000000</color>
 
     <color name="splash_content">#d0ffffff</color>
     <color name="splash_bg">#00A8EC</color>
