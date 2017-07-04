@@ -13,7 +13,6 @@ import com.geckour.egret.databinding.ItemRecycleTimelineBinding
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.adapter.model.TimelineContent
-import com.geckour.egret.view.fragment.ShowImagesDialogFragment
 import com.squareup.picasso.Picasso
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -25,39 +24,35 @@ class TimelineAdapter(val listener: IListener, val doFilter: Boolean = true) : R
 
     inner class ViewHolder(val binding: ItemRecycleTimelineBinding): RecyclerView.ViewHolder(binding.root) {
         fun bindData(content: TimelineContent) {
+            initVisibility()
+
             binding.content = content
 
-            clearMedias()
+            binding.body.visibility = View.VISIBLE
 
             content.mediaUrls.indices.forEach {
                 when (it) {
                     0 -> {
                         if (content.isSensitive) toggleMediaSpoiler(binding.mediaSpoilerWrap1, true)
-                        binding.mediaWrap.visibility = View.VISIBLE
                         setupMedia(binding.media1, content.mediaPreviewUrls, content.mediaUrls, it)
                     }
                     1 -> {
                         if (content.isSensitive) toggleMediaSpoiler(binding.mediaSpoilerWrap2, true)
-                        binding.media2Wrap.visibility = View.VISIBLE
                         setupMedia(binding.media2, content.mediaPreviewUrls, content.mediaUrls, it)
                     }
                     2 -> {
                         if (content.isSensitive) toggleMediaSpoiler(binding.mediaSpoilerWrap3, true)
-                        binding.mediaLowerWrap.visibility = View.VISIBLE
-                        binding.media3Wrap.visibility = View.VISIBLE
                         setupMedia(binding.media3, content.mediaPreviewUrls, content.mediaUrls, it)
                     }
                     3 -> {
                         if (content.isSensitive) toggleMediaSpoiler(binding.mediaSpoilerWrap4, true)
-                        binding.media4Wrap.visibility = View.VISIBLE
                         setupMedia(binding.media4, content.mediaPreviewUrls, content.mediaUrls, it)
                     }
                 }
             }
 
             if (binding.content.rebloggedStatusContent != null) {
-                binding.wrapRebloggedBy.visibility = View.VISIBLE
-                binding.wrapRebloggedBy.setOnClickListener { listener.showProfile(binding.content.accountId) }
+                showRebloggedBy()
             }
 
             binding.fav.setColorFilter(
@@ -77,20 +72,32 @@ class TimelineAdapter(val listener: IListener, val doFilter: Boolean = true) : R
             binding.body.movementMethod = Common.getMovementMethodFromPreference(binding.body.context)
         }
 
-        fun clearMedias() {
-            binding.media1.setImageBitmap(null)
-            binding.media2.setImageBitmap(null)
-            binding.media3.setImageBitmap(null)
-            binding.media4.setImageBitmap(null)
-            toggleMediaSpoiler(binding.mediaSpoilerWrap1, false)
-            toggleMediaSpoiler(binding.mediaSpoilerWrap2, false)
-            toggleMediaSpoiler(binding.mediaSpoilerWrap3, false)
-            toggleMediaSpoiler(binding.mediaSpoilerWrap4, false)
-            binding.mediaWrap.visibility = View.GONE
-            binding.media2Wrap.visibility = View.GONE
-            binding.mediaLowerWrap.visibility = View.GONE
-            binding.media3Wrap.visibility = View.GONE
-            binding.media4Wrap.visibility = View.GONE
+        fun initVisibility() {
+            binding.body.apply {
+                text = null
+                visibility = View.GONE
+            }
+            listOf(binding.indicateReblog, binding.rebloggedBy, binding.rebloggedName)
+                    .forEach { it.visibility = View.GONE }
+            listOf(binding.media1, binding.media2, binding.media3, binding.media4)
+                    .forEach {
+                        it.apply {
+                            setImageBitmap(null)
+                            visibility = View.GONE
+                        }
+                    }
+            listOf(binding.mediaSpoilerWrap1, binding.mediaSpoilerWrap2, binding.mediaSpoilerWrap3, binding.mediaSpoilerWrap4)
+                    .forEach { toggleMediaSpoiler(it, false) }
+        }
+
+        fun showRebloggedBy() {
+            listOf(binding.indicateReblog, binding.rebloggedBy, binding.rebloggedName)
+                    .forEach {
+                        it.apply {
+                            visibility = View.VISIBLE
+                            setOnClickListener { listener.showProfile(binding.content.accountId) }
+                        }
+                    }
         }
 
         fun showPopup(view: View) {
@@ -148,13 +155,18 @@ class TimelineAdapter(val listener: IListener, val doFilter: Boolean = true) : R
         }
 
         fun toggleMediaSpoiler(view: View, show: Boolean) {
-            view.setOnClickListener { it.visibility = View.GONE }
-            view.visibility = if (show) View.VISIBLE else View.GONE
+            view.apply {
+                setOnClickListener { it.visibility = View.GONE }
+                visibility = if (show) View.VISIBLE else View.GONE
+            }
         }
 
         fun setupMedia(view: ImageView, previewUrls: List<String>, urls: List<String>, position: Int) {
+            view.apply {
+                visibility = View.VISIBLE
+                setOnClickListener { listener.onClickMedia(urls, position) }
+            }
             Picasso.with(binding.media1.context).load(previewUrls[position]).into(view)
-            view.setOnClickListener { listener.onClickMedia(urls, position) }
         }
     }
 

@@ -200,19 +200,8 @@ class AccountProfileFragment: BaseFragment() {
         showToots()
     }
 
-    override fun onPause() {
-        super.onPause()
-
-        val editor = sharedPref.edit()
-        val json = gson.toJson(adapter.getContents())
-        editor.putString(STATE_ARGS_KEY_CONTENTS, json)
-        editor.apply()
-    }
-
     override fun onResume() {
         super.onResume()
-
-        restoreTimeline()
 
         reflectSettings()
     }
@@ -256,14 +245,6 @@ class AccountProfileFragment: BaseFragment() {
             binding.mute.setColorFilter(ContextCompat.getColor(activity, R.color.accent))
         } else {
             binding.mute.setColorFilter(ContextCompat.getColor(activity, R.color.icon_tint_dark))
-        }
-    }
-
-    fun restoreTimeline() {
-        if (sharedPref.contains(STATE_ARGS_KEY_CONTENTS)) {
-            val type = object: TypeToken<List<TimelineContent>>() {}
-            val contents: List<TimelineContent> = gson.fromJson(sharedPref.getString(STATE_ARGS_KEY_CONTENTS, ""), type.type)
-            adapter.addAllContents(contents)
         }
     }
 

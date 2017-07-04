@@ -27,10 +27,13 @@ import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.model.MuteClient
 import com.geckour.egret.model.MuteInstance
 import com.geckour.egret.util.Common
+import com.geckour.egret.util.Common.Companion.getStoreContentsKey
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.adapter.TimelineAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
 import com.geckour.egret.view.fragment.*
+import com.geckour.egret.view.fragment.TimelineFragment.Companion.STATE_ARGS_KEY_CONTENTS
+import com.geckour.egret.view.fragment.TimelineFragment.Companion.STATE_ARGS_KEY_RESUME
 import com.mikepenz.materialdrawer.AccountHeader
 import com.mikepenz.materialdrawer.AccountHeaderBuilder
 import com.mikepenz.materialdrawer.Drawer
@@ -50,6 +53,7 @@ class MainActivity : BaseActivity() {
     lateinit var drawer: Drawer
     lateinit private var accountHeader: AccountHeader
     lateinit private var sharedPref: SharedPreferences
+    lateinit private var currentCategory: TimelineFragment.Category
 
     companion object {
         val STATE_KEY_THEME_MODE = "stateKeyThemeMode"
@@ -249,6 +253,10 @@ class MainActivity : BaseActivity() {
 
             sharedPref.edit().remove(STATE_KEY_THEME_MODE).apply()
         }
+
+        if (sharedPref.contains(STATE_KEY_CATEGORY)) {
+            currentCategory = TimelineFragment.Category.values()[sharedPref.getInt(STATE_KEY_CATEGORY, TimelineFragment.Category.Public.rawValue)]
+        }
     }
 
     override fun onPause() {
@@ -309,10 +317,11 @@ class MainActivity : BaseActivity() {
                             .toObservable()
                 }
                 .flatMap { (token, account) ->
-                    if (account.avatarUrl.startsWith("http")) {
-                        Observable.just(Picasso.with(this).load(account.avatarUrl).get())
-                                .map { bitmap -> Pair(Pair(token, account), bitmap) }
-                    } else Observable.just(Pair(Pair(token, account), null))
+                    (if (account.avatarUrl.startsWith("http")) Picasso.with(this).load(account.avatarUrl).get() else null)
+                            .let {
+                                Observable.just(it)
+                                        .map { bitmap -> Pair(Pair(token, account), bitmap) }
+                            }
                 }
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -323,7 +332,7 @@ class MainActivity : BaseActivity() {
                             .withName(pair.second.displayName)
                             .withEmail("@${pair.second.username}@$domain")
                             .withIdentifier(pair.second.id)
-                    if (bitmap != null) item.withIcon(bitmap)
+                    bitmap?.let { item.withIcon(it) }
                     accountHeader.addProfiles(item)
                 }, Throwable::printStackTrace, {
                     val currentAccessToken = Common.getCurrentAccessToken()
@@ -347,7 +356,7 @@ class MainActivity : BaseActivity() {
                     }
                     supportActionBar?.setDisplayShowHomeEnabled(true)
 
-                    showDefaultTimeline()
+                    showTimelineFragment()
                 })
     }
 
@@ -369,7 +378,7 @@ class MainActivity : BaseActivity() {
                                                     .commit()
                                         }, Throwable::printStackTrace)
                             }
-                            false
+                            return@withOnAccountHeaderListener false
                         } else if (!current) {
                             OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).executeAsSingle()
                                     .flatMap { OrmaProvider.db.updateAccessToken().accountIdEq(profile.identifier).isCurrent(true).executeAsSingle() }
@@ -378,10 +387,28 @@ class MainActivity : BaseActivity() {
                                     .compose(bindToLifecycle())
                                     .subscribe({ i ->
                                         Timber.d("updated row count: $i")
-                                        showDefaultTimeline(true)
+
+                                        supportFragmentManager.beginTransaction()
+                                                .apply {
+                                                    val editor = sharedPref.edit()
+                                                    editor.putBoolean(STATE_ARGS_KEY_RESUME, false)
+                                                    listOf(TimelineFragment.Category.Public, TimelineFragment.Category.Local, TimelineFragment.Category.User)
+                                                            .forEach {
+                                                                supportFragmentManager.findFragmentByTag(it.name)?.let { fragment ->
+                                                                    detach(fragment)
+                                                                    remove(fragment)
+                                                                }
+                                                            }
+                                                    editor.apply()
+                                                }
+                                                .commit()
+
+                                        showTimelineFragment(force = true)
                                     }, Throwable::printStackTrace)
-                            false
-                        } else true
+                            return@withOnAccountHeaderListener false
+                        }
+
+                        return@withOnAccountHeaderListener true
                     }
                     .build()
 
@@ -445,29 +472,33 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    fun showTimelineFragment(category: TimelineFragment.Category, force: Boolean = false) {
-        val currentFragment = supportFragmentManager.findFragmentByTag(TimelineFragment.TAG)
+    fun showTimelineFragment(category: TimelineFragment.Category = currentCategory, force: Boolean = false) {
+        val reqFragment = supportFragmentManager.findFragmentByTag(category.name)
+        val currentFragment = supportFragmentManager.findFragmentByTag(currentCategory.name)
+
         if (!force
                 && currentFragment != null
                 && currentFragment.isVisible
-                && (currentFragment as TimelineFragment).getCategory() == category) return
+                && currentFragment.tag == category.name) return // 要求されたカテゴリを現在表示している場合は早期return
 
-        val fragment = TimelineFragment.newInstance(category, (currentFragment as TimelineFragment?)?.getCategory() ?: category == category)
         supportFragmentManager.beginTransaction()
-                .replace(R.id.container, fragment, TimelineFragment.TAG)
-                .addToBackStack(TimelineFragment.TAG)
+                .apply {
+                    if (currentFragment != null && currentFragment.tag != category.name) detach(currentFragment)
+                    if (reqFragment == null) {
+                        val fragment = TimelineFragment.newInstance(category)
+                        replace(R.id.container, fragment, category.name)
+                    } else {
+                        attach(reqFragment)
+                    }
+                }
+                .addToBackStack(category.name)
                 .commit()
+
+        currentCategory = category
     }
 
     fun resetSelectionNavItem(identifier: Long) {
         if (identifier > -1 && drawer.currentSelection != identifier) drawer.setSelection(identifier)
-    }
-
-    fun showDefaultTimeline(force: Boolean = false) {
-        val sharedPref = getSharedPreferences(App.DEFAULT_SHARED_PREFERENCES, Context.MODE_PRIVATE)
-        val currentCategory = TimelineFragment.Category.values()[sharedPref.getInt(STATE_KEY_CATEGORY, TimelineFragment.Category.Public.rawValue)]
-
-        showTimelineFragment(currentCategory, force)
     }
 
     fun showCreateNewTootFragment() {

@@ -1,15 +1,12 @@
 package com.geckour.egret.view.fragment
 
-import android.content.Context
 import android.content.SharedPreferences
 import android.databinding.DataBindingUtil
 import android.os.Bundle
-import android.os.Parcelable
 import android.preference.PreferenceManager
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.*
-import com.geckour.egret.App.Companion.DEFAULT_SHARED_PREFERENCES
 import com.geckour.egret.App.Companion.STATE_KEY_CATEGORY
 import com.geckour.egret.App.Companion.gson
 import com.geckour.egret.R
@@ -19,12 +16,11 @@ import com.geckour.egret.api.model.Status
 import com.geckour.egret.api.service.MastodonService
 import com.geckour.egret.databinding.FragmentTimelineBinding
 import com.geckour.egret.util.Common
+import com.geckour.egret.util.Common.Companion.getStoreContentsKey
 import com.geckour.egret.util.OrmaProvider
-import com.geckour.egret.view.activity.BaseActivity
 import com.geckour.egret.view.activity.MainActivity
 import com.geckour.egret.view.adapter.TimelineAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
-import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -37,21 +33,20 @@ class TimelineFragment: BaseFragment() {
         Local(1),
         User(2),
         HashTag(3),
-        Unknown(4)
+        Notification(4),
+        Unknown(5)
     }
 
     companion object {
         val TAG: String = this::class.java.simpleName
         val ARGS_KEY_CATEGORY = "category"
-        val ARGS_KEY_RESUME = "resume"
         val STATE_ARGS_KEY_CONTENTS = "contents"
-        private val STATE_KEY_THEME_MODE = "themeMode"
+        val STATE_ARGS_KEY_RESUME = "resume"
 
-        fun newInstance(category: Category, resume: Boolean): TimelineFragment {
+        fun newInstance(category: Category): TimelineFragment {
             val fragment = TimelineFragment()
             val args = Bundle()
             args.putString(ARGS_KEY_CATEGORY, category.name)
-            args.putBoolean(ARGS_KEY_RESUME, resume)
             fragment.arguments = args
 
             return fragment
@@ -65,6 +60,7 @@ class TimelineFragment: BaseFragment() {
     lateinit private var sharedPref: SharedPreferences
     private var onTop = true
     private var inTouch = false
+    private var isFirst = true
 
     private var publicStream: Disposable? = null
     private var localStream: Disposable? = null
@@ -90,14 +86,10 @@ class TimelineFragment: BaseFragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val instanceId = Common.getCurrentAccessToken()?.instanceId
-        (activity as MainActivity).supportActionBar?.show()
-        val domain = if (instanceId == null) "not logged in" else OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance
         val category = getCategory()
-        val editor = sharedPref.edit()
-        editor.putInt(STATE_KEY_CATEGORY, category.rawValue)
-        editor.apply()
-        (activity as MainActivity).supportActionBar?.title = "$category TL - $domain"
+        sharedPref.edit()
+                .putInt(STATE_KEY_CATEGORY, category.rawValue)
+                .apply()
 
         binding.recyclerView.setOnTouchListener { view, event ->
             when (event.action) {
@@ -140,19 +132,25 @@ class TimelineFragment: BaseFragment() {
         super.onPause()
 
         stopTimelineStreams()
-        val editor = sharedPref.edit()
         val json = gson.toJson(adapter.getContents())
-        editor.putString(STATE_ARGS_KEY_CONTENTS, json)
-        editor.apply()
+        sharedPref.edit()
+                .putString(getStoreContentsKey(getCategory()), json)
+                .apply()
     }
 
     override fun onResume() {
         super.onResume()
 
+        (activity as MainActivity).supportActionBar?.show()
+        refreshBarTitle()
+
         if (Common.isModeShowTootBar(activity)) (activity as MainActivity).setSimplicityPostBarVisibility(true)
 
-        if (arguments.containsKey(ARGS_KEY_RESUME) && arguments.getBoolean(ARGS_KEY_RESUME, false)) restoreTimeline()
-        else showTimelineByCategory(getCategory())
+        if (shouldResume()) restoreTimeline()
+        else {
+            sharedPref.edit().putBoolean(STATE_ARGS_KEY_RESUME, true).apply()
+            showTimelineByCategory(getCategory())
+        }
 
         (activity as MainActivity).resetSelectionNavItem(
                 when (getCategory()) {
@@ -161,15 +159,27 @@ class TimelineFragment: BaseFragment() {
                     Category.User -> MainActivity.NAV_ITEM_TL_USER
                     else -> -1
                 })
+
+        isFirst = false
     }
 
     fun getCategory(): Category = if (arguments != null && arguments.containsKey(ARGS_KEY_CATEGORY)) Category.valueOf(arguments.getString(ARGS_KEY_CATEGORY, "Unknown")) else Category.Unknown
 
+    fun shouldResume(): Boolean = sharedPref.contains(STATE_ARGS_KEY_RESUME) && sharedPref.getBoolean(STATE_ARGS_KEY_RESUME, true) && !isFirst
+
+    fun refreshBarTitle() {
+        val instanceId = Common.getCurrentAccessToken()?.instanceId
+        val domain = if (instanceId == null) "not logged in" else OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance
+        val category = getCategory()
+        (activity as MainActivity).supportActionBar?.title = "$category TL - $domain"
+    }
+
     fun restoreTimeline() {
-        if (sharedPref.contains(STATE_ARGS_KEY_CONTENTS)) {
+        val key = getStoreContentsKey(getCategory())
+        if (sharedPref.contains(key)) {
             adapter.clearContents()
             val type = object: TypeToken<List<TimelineContent>>() {}
-            val contents: List<TimelineContent> = gson.fromJson(sharedPref.getString(STATE_ARGS_KEY_CONTENTS, ""), type.type)
+            val contents: List<TimelineContent> = gson.fromJson(sharedPref.getString(key, ""), type.type)
             adapter.addAllContents(contents)
 
             showTimelineByCategory(getCategory(), true)
