@@ -1,14 +1,12 @@
 package com.geckour.egret.view.activity
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
+import android.content.*
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.Snackbar
 import android.support.v4.content.ContextCompat
@@ -26,14 +24,16 @@ import com.geckour.egret.App
 import com.geckour.egret.App.Companion.STATE_KEY_CATEGORY
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
-import com.geckour.egret.api.model.Relationship
 import com.geckour.egret.model.MuteClient
 import com.geckour.egret.model.MuteInstance
 import com.geckour.egret.util.Common
+import com.geckour.egret.util.Common.Companion.getStoreContentsKey
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.adapter.TimelineAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
 import com.geckour.egret.view.fragment.*
+import com.geckour.egret.view.fragment.TimelineFragment.Companion.STATE_ARGS_KEY_CONTENTS
+import com.geckour.egret.view.fragment.TimelineFragment.Companion.STATE_ARGS_KEY_RESUME
 import com.mikepenz.materialdrawer.AccountHeader
 import com.mikepenz.materialdrawer.AccountHeaderBuilder
 import com.mikepenz.materialdrawer.Drawer
@@ -52,8 +52,11 @@ class MainActivity : BaseActivity() {
 
     lateinit var drawer: Drawer
     lateinit private var accountHeader: AccountHeader
+    lateinit private var sharedPref: SharedPreferences
+    lateinit private var currentCategory: TimelineFragment.Category
 
     companion object {
+        val STATE_KEY_THEME_MODE = "stateKeyThemeMode"
         val NAV_ITEM_LOGIN: Long = 0
         val NAV_ITEM_TL_PUBLIC: Long = 1
         val NAV_ITEM_TL_LOCAL: Long = 2
@@ -221,8 +224,10 @@ class MainActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setTheme(if (isModeDark()) R.style.AppThemeDark_NoActionBar else R.style.AppTheme_NoActionBar)
         setContentView(R.layout.activity_main)
+        sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
         val toolbar = findViewById(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
 
@@ -230,6 +235,7 @@ class MainActivity : BaseActivity() {
         accountHeader = getAccountHeader()
 
         setNavDrawer()
+        commitAccountsIntoAccountHeader()
 
         (findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showCreateNewTootFragment() }
         (findViewById(R.id.button_simplicity_toot) as Button).setOnClickListener { postToot() }
@@ -238,14 +244,27 @@ class MainActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
 
-        if (isModeDark()) {
-            setTheme(R.style.AppThemeDark_NoActionBar)
-            findViewById(R.id.drawer_layout).rootView.setBackgroundResource(R.color.material_gray_dark)
-        } else {
-            setTheme(R.style.AppTheme_NoActionBar)
-            findViewById(R.id.drawer_layout).rootView.setBackgroundResource(R.color.material_gray_light)
+        if (sharedPref.contains(STATE_KEY_THEME_MODE)) {
+            if (sharedPref.getBoolean(STATE_KEY_THEME_MODE, false) != isModeDark()) {
+                recreate().apply {
+                    sharedPref.edit().remove(STATE_KEY_THEME_MODE).apply()
+                }
+            }
+
+            sharedPref.edit().remove(STATE_KEY_THEME_MODE).apply()
         }
-        commitAccountsIntoAccountHeader()
+
+        if (sharedPref.contains(STATE_KEY_CATEGORY)) {
+            currentCategory = TimelineFragment.Category.values()[sharedPref.getInt(STATE_KEY_CATEGORY, TimelineFragment.Category.Public.rawValue)]
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        sharedPref.edit()
+                .putBoolean(STATE_KEY_THEME_MODE, isModeDark())
+                .apply()
     }
 
     override fun onBackPressed() {
@@ -298,10 +317,11 @@ class MainActivity : BaseActivity() {
                             .toObservable()
                 }
                 .flatMap { (token, account) ->
-                    if (account.avatarUrl.startsWith("http")) {
-                        Observable.just(Picasso.with(this).load(account.avatarUrl).get())
-                                .map { bitmap -> Pair(Pair(token, account), bitmap) }
-                    } else Observable.just(Pair(Pair(token, account), null))
+                    (if (account.avatarUrl.startsWith("http")) Picasso.with(this).load(account.avatarUrl).get() else null)
+                            .let {
+                                Observable.just(it)
+                                        .map { bitmap -> Pair(Pair(token, account), bitmap) }
+                            }
                 }
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -312,7 +332,7 @@ class MainActivity : BaseActivity() {
                             .withName(pair.second.displayName)
                             .withEmail("@${pair.second.username}@$domain")
                             .withIdentifier(pair.second.id)
-                    if (bitmap != null) item.withIcon(bitmap)
+                    bitmap?.let { item.withIcon(it) }
                     accountHeader.addProfiles(item)
                 }, Throwable::printStackTrace, {
                     val currentAccessToken = Common.getCurrentAccessToken()
@@ -336,7 +356,7 @@ class MainActivity : BaseActivity() {
                     }
                     supportActionBar?.setDisplayShowHomeEnabled(true)
 
-                    showDefaultTimeline(true)
+                    showTimelineFragment()
                 })
     }
 
@@ -358,7 +378,7 @@ class MainActivity : BaseActivity() {
                                                     .commit()
                                         }, Throwable::printStackTrace)
                             }
-                            false
+                            return@withOnAccountHeaderListener false
                         } else if (!current) {
                             OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).executeAsSingle()
                                     .flatMap { OrmaProvider.db.updateAccessToken().accountIdEq(profile.identifier).isCurrent(true).executeAsSingle() }
@@ -367,10 +387,28 @@ class MainActivity : BaseActivity() {
                                     .compose(bindToLifecycle())
                                     .subscribe({ i ->
                                         Timber.d("updated row count: $i")
-                                        showDefaultTimeline(true)
+
+                                        supportFragmentManager.beginTransaction()
+                                                .apply {
+                                                    val editor = sharedPref.edit()
+                                                    editor.putBoolean(STATE_ARGS_KEY_RESUME, false)
+                                                    listOf(TimelineFragment.Category.Public, TimelineFragment.Category.Local, TimelineFragment.Category.User)
+                                                            .forEach {
+                                                                supportFragmentManager.findFragmentByTag(it.name)?.let { fragment ->
+                                                                    detach(fragment)
+                                                                    remove(fragment)
+                                                                }
+                                                            }
+                                                    editor.apply()
+                                                }
+                                                .commit()
+
+                                        showTimelineFragment(force = true)
                                     }, Throwable::printStackTrace)
-                            false
-                        } else true
+                            return@withOnAccountHeaderListener false
+                        }
+
+                        return@withOnAccountHeaderListener true
                     }
                     .build()
 
@@ -434,34 +472,33 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    fun showTimelineFragment(category: TimelineFragment.Category, setNavSelection: Boolean = false, force: Boolean = false) {
-        val currentFragment = supportFragmentManager.findFragmentByTag(TimelineFragment.TAG)
+    fun showTimelineFragment(category: TimelineFragment.Category = currentCategory, force: Boolean = false) {
+        val reqFragment = supportFragmentManager.findFragmentByTag(category.name)
+        val currentFragment = supportFragmentManager.findFragmentByTag(currentCategory.name)
+
         if (!force
                 && currentFragment != null
                 && currentFragment.isVisible
-                && (currentFragment as TimelineFragment).getCategory() == category) return
+                && currentFragment.tag == category.name) return // 要求されたカテゴリを現在表示している場合は早期return
 
-        val fragment = TimelineFragment.newInstance(category)
         supportFragmentManager.beginTransaction()
-                .replace(R.id.container, fragment, TimelineFragment.TAG)
-                .addToBackStack(TimelineFragment.TAG)
+                .apply {
+                    if (currentFragment != null && currentFragment.tag != category.name) detach(currentFragment)
+                    if (reqFragment == null) {
+                        val fragment = TimelineFragment.newInstance(category)
+                        replace(R.id.container, fragment, category.name)
+                    } else {
+                        attach(reqFragment)
+                    }
+                }
+                .addToBackStack(category.name)
                 .commit()
-        if (setNavSelection) when (category) {
-            TimelineFragment.Category.Public -> drawer.setSelection(NAV_ITEM_TL_PUBLIC)
-            TimelineFragment.Category.Local -> drawer.setSelection(NAV_ITEM_TL_LOCAL)
-            TimelineFragment.Category.User -> drawer.setSelection(NAV_ITEM_TL_USER)
-        }
+
+        currentCategory = category
     }
 
     fun resetSelectionNavItem(identifier: Long) {
-        if (identifier > -1) drawer.setSelection(identifier)
-    }
-
-    fun showDefaultTimeline(force: Boolean = false) {
-        val sharedPref = getSharedPreferences(App.DEFAULT_SHARED_PREFERENCES, Context.MODE_PRIVATE)
-        val currentCategory = TimelineFragment.Category.values()[sharedPref.getInt(STATE_KEY_CATEGORY, TimelineFragment.Category.Public.rawValue)]
-
-        showTimelineFragment(currentCategory, true, force)
+        if (identifier > -1 && drawer.currentSelection != identifier) drawer.setSelection(identifier)
     }
 
     fun showCreateNewTootFragment() {

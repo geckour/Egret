@@ -7,6 +7,7 @@ import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.geckour.egret.App.Companion.gson
 import com.geckour.egret.R
 import com.geckour.egret.databinding.FragmentMuteHashTagBinding
 import com.geckour.egret.model.MuteHashTag
@@ -35,7 +36,7 @@ class HashTagMuteFragment: BaseFragment() {
         fun newInstance(defaultHashTags: List<String> = ArrayList()): HashTagMuteFragment {
             val fragment = HashTagMuteFragment()
             val args = Bundle()
-            if (defaultHashTags.isNotEmpty()) args.putString(ARGS_KEY_DEFAULT_HASH_TAG, Gson().toJson(defaultHashTags))
+            if (defaultHashTags.isNotEmpty()) args.putString(ARGS_KEY_DEFAULT_HASH_TAG, gson.toJson(defaultHashTags))
             fragment.arguments = args
 
             return fragment
@@ -52,7 +53,7 @@ class HashTagMuteFragment: BaseFragment() {
                 if (arguments.containsKey(ARGS_KEY_DEFAULT_HASH_TAG)) {
                     val tagsJson = arguments.getString(ARGS_KEY_DEFAULT_HASH_TAG, "")
                     val type = object: TypeToken<List<String>>() {}.type
-                    val tags: List<String> = Gson().fromJson(tagsJson, type)
+                    val tags: List<String> = gson.fromJson(tagsJson, type)
                     argItems.addAll(tags)
                     if (tags.size == 1) tags.first() else ""
                 } else ""

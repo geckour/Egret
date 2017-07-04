@@ -24,6 +24,7 @@ import com.geckour.egret.view.adapter.*
 import com.geckour.egret.view.adapter.model.NewTootIndentifyContent
 import com.geckour.egret.view.adapter.model.ProfileContent
 import com.geckour.egret.view.adapter.model.TimelineContent
+import com.geckour.egret.view.fragment.TimelineFragment
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
@@ -258,5 +259,7 @@ class Common {
                 viewHolder?.adapterPosition?.let { adapter.removeItemsByIndex(it) }
             }
         })
+
+        fun getStoreContentsKey(category: TimelineFragment.Category) = "${TimelineFragment.STATE_ARGS_KEY_CONTENTS}:${category.name}"
     }
 }
