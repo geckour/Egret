@@ -1,7 +1,11 @@
 package com.geckour.egret.view.fragment
 
+import android.content.Context
 import android.content.SharedPreferences
 import android.databinding.DataBindingUtil
+import android.net.NetworkInfo
+import android.net.wifi.WifiInfo
+import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.v7.widget.RecyclerView
@@ -190,19 +194,47 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun showTimelineByCategory(category: Category, hasContents: Boolean = false) {
-        if (hasContents) {
-            when (category) {
-                Category.Public -> startPublicTimelineStream()
-                Category.Local -> startLocalTimelineStream()
-                Category.User -> startUserTimelineStream()
-                Category.HashTag -> {}
+        val prefStream = sharedPref.getString("manage_stream", "")
+        val wifi = activity.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        if (prefStream == getString(R.string.pref_stream_always) ||
+                prefStream != getString(R.string.pref_stream_never) ||
+                (prefStream == getString(R.string.pref_stream_wifi) &&
+                        wifi.isWifiEnabled &&
+                        wifi.connectionInfo?.let { WifiInfo.getDetailedStateOf(it.supplicantState) == NetworkInfo.DetailedState.CONNECTED } ?: false)) {
+            if (hasContents) {
+                when (category) {
+                    Category.Public -> startPublicTimelineStream()
+                    Category.Local -> startLocalTimelineStream()
+                    Category.User -> startUserTimelineStream()
+                    Category.HashTag -> {
+                    }
+                }
+            } else {
+                when (category) {
+                    Category.Public -> startPublicTimelineStream()
+                    Category.Local -> startLocalTimelineStream()
+                    Category.User -> showUserTimeline(true)
+                    Category.HashTag -> {
+                    }
+                }
             }
         } else {
-            when (category) {
-                Category.Public -> startPublicTimelineStream()
-                Category.Local -> startLocalTimelineStream()
-                Category.User -> showUserTimeline(true)
-                Category.HashTag -> {}
+            if (hasContents) {
+                when (category) {
+                    Category.Public -> showPublicTimeline()
+                    Category.Local -> showLocalTimeline()
+                    Category.User -> showUserTimeline()
+                    Category.HashTag -> {
+                    }
+                }
+            } else {
+                when (category) {
+                    Category.Public -> showPublicTimeline()
+                    Category.Local -> showLocalTimeline()
+                    Category.User -> showUserTimeline()
+                    Category.HashTag -> {
+                    }
+                }
             }
         }
     }
@@ -229,6 +261,12 @@ class TimelineFragment: BaseFragment() {
 
     fun stopPublicTimelineStream() {
         if (getCategory() == Category.Public && !(publicStream?.isDisposed ?: true)) publicStream?.dispose()
+    }
+
+    fun showPublicTimeline() {
+        Common.resetAuthInfo()?.let {
+            MastodonClient(it) // TODO: 実装する
+        }
     }
 
     fun startUserTimelineStream() {
@@ -279,6 +317,12 @@ class TimelineFragment: BaseFragment() {
 
     fun stopLocalTimelineStream() {
         if (getCategory() == Category.Local && !(localStream?.isDisposed ?: true)) localStream?.dispose()
+    }
+
+    fun showLocalTimeline() {
+        Common.resetAuthInfo()?.let {
+            MastodonClient(it) // TODO: 実装する
+        }
     }
 
     fun onAddItemToAdapter() {
