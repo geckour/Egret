@@ -4,19 +4,15 @@ import com.geckour.egret.App.Companion.gson
 import com.geckour.egret.api.model.*
 import com.geckour.egret.api.service.MastodonService
 import com.geckour.egret.util.OkHttpProvider
-import com.google.gson.GsonBuilder
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
-import okhttp3.MediaType
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.Result
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
-import java.io.File
 
 class MastodonClient(baseUrl: String) {
 
@@ -55,7 +51,11 @@ class MastodonClient(baseUrl: String) {
 
     fun getUserTimelineAsStream(): Observable<ResponseBody> = streamService.getUserTimelineAsStream()
 
-    fun getUserTimeline(maxId: Long? = null): Single<Result<List<Status>>> = service.getUserTimeline(maxId)
+    fun getPublicTimeline(isLocal: Boolean = false, maxId: Long? = null, sinceId: Long? = null): Single<Result<List<Status>>> = service.getPublicTimeline(isLocal, maxId, sinceId)
+
+    fun getTagTimeline(hashTag: String, isLocal: Boolean = false, maxId: Long? = null, sinceId: Long? = null): Single<Result<List<Status>>> = service.getTagTimeline(hashTag, isLocal, maxId, sinceId)
+
+    fun getUserTimeline(maxId: Long? = null, sinceId: Long? = null): Single<Result<List<Status>>> = service.getUserTimeline(maxId, sinceId)
 
     fun getAccountAllToots(accountId: Long, maxId: Long? = null): Single<Result<List<Status>>> = service.getAccountAllToots(accountId, maxId)
 

@@ -78,10 +78,40 @@ interface MastodonService {
     @Streaming
     fun getUserTimelineAsStream(): Observable<ResponseBody>
 
+    @GET("api/v1/timelines/public")
+    fun getPublicTimeline(
+            @Query("local")
+            isLocal: Boolean = false,
+
+            @Query("max_id")
+            maxId: Long? = null,
+
+            @Query("since_id")
+            sinceId: Long? = null
+    ): Single<Result<List<Status>>>
+
+    @GET("api/v1/timelines/tag/{hashtag}")
+    fun getTagTimeline(
+            @Path("hashtag")
+            hashTag: String,
+
+            @Query("local")
+            isLocal: Boolean = false,
+
+            @Query("max_id")
+            maxId: Long? = null,
+
+            @Query("since_id")
+            sinceId: Long? = null
+    ): Single<Result<List<Status>>>
+
     @GET("api/v1/timelines/home")
     fun getUserTimeline(
             @Query("max_id")
-            maxId: Long? = null
+            maxId: Long? = null,
+
+            @Query("since_id")
+            sinceId: Long? = null
     ): Single<Result<List<Status>>>
 
     @GET("api/v1/accounts/{id}/statuses")

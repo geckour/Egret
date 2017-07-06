@@ -1,9 +1,16 @@
 package com.geckour.egret.view.fragment
 
+import android.Manifest
+import android.content.Context
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.databinding.DataBindingUtil
+import android.net.ConnectivityManager
 import android.os.Bundle
 import android.preference.PreferenceManager
+import android.support.design.widget.Snackbar
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.*
@@ -25,6 +32,7 @@ import com.google.gson.reflect.TypeToken
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
+import retrofit2.adapter.rxjava2.Result
 
 class TimelineFragment: BaseFragment() {
 
@@ -42,6 +50,7 @@ class TimelineFragment: BaseFragment() {
         val ARGS_KEY_CATEGORY = "category"
         val STATE_ARGS_KEY_CONTENTS = "contents"
         val STATE_ARGS_KEY_RESUME = "resume"
+        val REQUEST_CODE_GRANT_ACCESS_WIFI = 100
 
         fun newInstance(category: Category): TimelineFragment {
             val fragment = TimelineFragment()
@@ -70,7 +79,8 @@ class TimelineFragment: BaseFragment() {
     private var waitingNotification = false
     private var waitingDeletedId = false
 
-    private var nextId: Long? = -1
+    private var maxId: Long = -1
+    private var sinceId: Long = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -115,8 +125,8 @@ class TimelineFragment: BaseFragment() {
                     val h = recyclerView?.computeVerticalScrollRange() ?: -1
                     if (y == h) {
                         when (getCategory()) {
-                            Category.Public -> {}
-                            Category.Local -> {}
+                            Category.Public ->showPublicTimeline(true)
+                            Category.Local -> showLocalTimeline(true)
                             Category.User -> showUserTimeline(loadNext = true)
                             Category.HashTag -> {}
                         }
@@ -126,6 +136,14 @@ class TimelineFragment: BaseFragment() {
         })
         adapter = TimelineAdapter((activity as MainActivity).timelineListener)
         binding.recyclerView.adapter = adapter
+
+        binding.swipeRefreshLayout.apply {
+            isEnabled = false
+            setColorSchemeResources(R.color.colorAccent)
+            setOnRefreshListener {
+                if (existsAnyRunningStream()) showTimelineByCategory(getCategory())
+            }
+        }
     }
 
     override fun onPause() {
@@ -167,6 +185,10 @@ class TimelineFragment: BaseFragment() {
 
     fun shouldResume(): Boolean = sharedPref.contains(STATE_ARGS_KEY_RESUME) && sharedPref.getBoolean(STATE_ARGS_KEY_RESUME, true) && !isFirst
 
+    fun existsAnyRunningStream() = listOf(publicStream, localStream, userStream).filter { !(it?.isDisposed ?: true) }.isEmpty()
+
+    fun hideRefreshIndicator() { binding.swipeRefreshLayout.isRefreshing = false }
+
     fun refreshBarTitle() {
         val instanceId = Common.getCurrentAccessToken()?.instanceId
         val domain = if (instanceId == null) "not logged in" else OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance
@@ -190,19 +212,61 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun showTimelineByCategory(category: Category, hasContents: Boolean = false) {
-        if (hasContents) {
-            when (category) {
-                Category.Public -> startPublicTimelineStream()
-                Category.Local -> startLocalTimelineStream()
-                Category.User -> startUserTimelineStream()
-                Category.HashTag -> {}
+        val prefStream = sharedPref.getString("manage_stream", "")
+
+        if (prefStream == "1") {
+            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_NETWORK_STATE)
+                    != PackageManager.PERMISSION_GRANTED ||
+                    ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_WIFI_STATE)
+                            != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.ACCESS_WIFI_STATE), REQUEST_CODE_GRANT_ACCESS_WIFI)
+            }
+        }
+        val activeNetworkInfo = (
+                if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_WIFI_STATE)
+                        == PackageManager.PERMISSION_GRANTED) (activity.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager)
+                else null)?.activeNetworkInfo
+        if (prefStream == "0" ||
+                (prefStream == "1" &&
+                        activeNetworkInfo != null &&
+                        activeNetworkInfo.type == ConnectivityManager.TYPE_WIFI)) {
+            binding.swipeRefreshLayout.isEnabled = false
+            if (hasContents) {
+                when (category) {
+                    Category.Public -> startPublicTimelineStream()
+                    Category.Local -> startLocalTimelineStream()
+                    Category.User -> startUserTimelineStream()
+                    Category.HashTag -> {}
+                }
+            } else {
+                when (category) {
+                    Category.Public -> startPublicTimelineStream()
+                    Category.Local -> startLocalTimelineStream()
+                    Category.User -> showUserTimeline(true)
+                    Category.HashTag -> {}
+                }
             }
         } else {
+            binding.swipeRefreshLayout.isEnabled = true
             when (category) {
-                Category.Public -> startPublicTimelineStream()
-                Category.Local -> startLocalTimelineStream()
-                Category.User -> showUserTimeline(true)
+                Category.Public -> showPublicTimeline()
+                Category.Local -> showLocalTimeline()
+                Category.User -> showUserTimeline()
                 Category.HashTag -> {}
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            REQUEST_CODE_GRANT_ACCESS_WIFI -> {
+                if (grantResults.isNotEmpty() &&
+                        grantResults.filter { it != PackageManager.PERMISSION_GRANTED }.isEmpty()) {
+                    showTimelineByCategory(getCategory())
+                } else {
+                    Snackbar.make(binding.root, R.string.message_necessity_wifi_grant, Snackbar.LENGTH_SHORT)
+                }
             }
         }
     }
@@ -231,6 +295,15 @@ class TimelineFragment: BaseFragment() {
         if (getCategory() == Category.Public && !(publicStream?.isDisposed ?: true)) publicStream?.dispose()
     }
 
+    fun showPublicTimeline(loadNext: Boolean = false) {
+        val next = loadNext && maxId != -1L
+        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(maxId = if (next) maxId else null, sinceId = if (sinceId != -1L) sinceId else null)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe({reflectStatuses(it, next)}, Throwable::printStackTrace)
+    }
+
     fun startUserTimelineStream() {
         Common.resetAuthInfo()?.let {
             userStream =
@@ -250,16 +323,13 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun showUserTimeline(loadStream: Boolean = false, loadNext: Boolean = false) {
-        val next = loadNext && nextId != null && (nextId?.compareTo(-1) ?: 0) == 1
-        if (nextId != null) MastodonClient(Common.resetAuthInfo() ?: return).getUserTimeline(if (next) nextId else null)
+        val next = loadNext && maxId != -1L
+        MastodonClient(Common.resetAuthInfo() ?: return).getUserTimeline(maxId = if (next) maxId else null, sinceId = if (sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
-                .subscribe({ result ->
-                    if (next) adapter.addAllContentsAtLast(result.response().body().map { Common.getTimelineContent(it) })
-                    else adapter.addAllContents(result.response().body().map { Common.getTimelineContent(it) })
-                    nextId = result.response().headers().get("Link")?.replace(Regex("^.*<https?://.+\\?max_id=(.+?)>.*"), "$1")?.toLong()
-
+                .subscribe({
+                    reflectStatuses(it, next)
                     if (loadStream) startUserTimelineStream()
                 }, Throwable::printStackTrace)
     }
@@ -279,6 +349,28 @@ class TimelineFragment: BaseFragment() {
 
     fun stopLocalTimelineStream() {
         if (getCategory() == Category.Local && !(localStream?.isDisposed ?: true)) localStream?.dispose()
+    }
+
+    fun showLocalTimeline(loadNext: Boolean = false) {
+        val next = loadNext && maxId != -1L
+        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(true, maxId = if (next) maxId else null, sinceId = if (sinceId != -1L) sinceId else null)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe({reflectStatuses(it, next)}, Throwable::printStackTrace)
+    }
+
+    fun getRegexExtractSinceId() = Regex(".*since_id=(\\d+?)>.*")
+    fun getRegexExtractMaxId() = Regex(".*max_id=(\\d+?)>.*")
+
+    fun reflectStatuses(result: Result<List<Status>>, next: Boolean) {
+        if (next) adapter.addAllContentsAtLast(result.response().body().map { Common.getTimelineContent(it) })
+        else adapter.addAllContents(result.response().body().map { Common.getTimelineContent(it) })
+
+        maxId = result.response().headers().get("Link")?.replace(getRegexExtractMaxId(), "$1")?.toLong() ?: -1L
+        sinceId = result.response().headers().get("Link")?.replace(getRegexExtractSinceId(), "$1")?.toLong() ?: -1L
+
+        hideRefreshIndicator()
     }
 
     fun onAddItemToAdapter() {
