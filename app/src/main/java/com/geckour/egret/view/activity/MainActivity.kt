@@ -254,9 +254,9 @@ class MainActivity : BaseActivity() {
             sharedPref.edit().remove(STATE_KEY_THEME_MODE).apply()
         }
 
-        if (sharedPref.contains(STATE_KEY_CATEGORY)) {
-            currentCategory = TimelineFragment.Category.values()[sharedPref.getInt(STATE_KEY_CATEGORY, TimelineFragment.Category.Public.rawValue)]
-        }
+        currentCategory =
+                if (sharedPref.contains(STATE_KEY_CATEGORY)) TimelineFragment.Category.values()[sharedPref.getInt(STATE_KEY_CATEGORY, TimelineFragment.Category.Public.rawValue)]
+                else TimelineFragment.Category.Public
     }
 
     override fun onPause() {
