@@ -1,31 +1,22 @@
 package com.geckour.egret.view.fragment
 
-import android.content.Context
 import android.content.SharedPreferences
 import android.databinding.DataBindingUtil
 import android.os.Bundle
-import android.os.Parcelable
 import android.preference.PreferenceManager
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.geckour.egret.App
-import com.geckour.egret.App.Companion.gson
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Account
 import com.geckour.egret.api.model.Relationship
 import com.geckour.egret.databinding.FragmentAccountProfileBinding
 import com.geckour.egret.util.Common
-import com.geckour.egret.view.activity.BaseActivity
 import com.geckour.egret.view.activity.MainActivity
 import com.geckour.egret.view.adapter.TimelineAdapter
-import com.geckour.egret.view.adapter.model.TimelineContent
-import com.geckour.egret.view.fragment.TimelineFragment.Companion.STATE_ARGS_KEY_CONTENTS
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.squareup.picasso.Picasso
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -63,7 +54,8 @@ class AccountProfileFragment: BaseFragment() {
     lateinit private var binding: FragmentAccountProfileBinding
     lateinit private var adapter: TimelineAdapter
     lateinit private var sharedPref: SharedPreferences
-    private var nextId: Long? = -1
+    private var maxId: Long? = -1
+    private var sinceId: Long? = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -178,9 +170,9 @@ class AccountProfileFragment: BaseFragment() {
                 }, Throwable::printStackTrace)
 
         adapter = TimelineAdapter((activity as MainActivity).timelineListener, false)
-        binding.recyclerView.adapter = adapter
+        binding.timeline.recyclerView.adapter = adapter
 
-        binding.recyclerView.addOnScrollListener(object: RecyclerView.OnScrollListener() {
+        binding.timeline.recyclerView.addOnScrollListener(object: RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView?, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
@@ -192,6 +184,14 @@ class AccountProfileFragment: BaseFragment() {
                 }
             }
         })
+
+        binding.timeline.swipeRefreshLayout.apply {
+            isEnabled = false
+            setColorSchemeResources(R.color.colorAccent)
+            setOnRefreshListener {
+                showToots()
+            }
+        }
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -207,20 +207,24 @@ class AccountProfileFragment: BaseFragment() {
     }
 
     fun showToots(loadNext: Boolean = false) {
-        val next = loadNext && nextId != null && (nextId?.compareTo(-1) ?: 0) == 1
-        if (nextId != null)
+        val next = loadNext && sinceId != null && (sinceId?.compareTo(-1) ?: 0) == 1
+        if (sinceId != null)
             Common.resetAuthInfo()?.let {
-                MastodonClient(it).getAccountAllToots(account.id, if (next) nextId else null)
+                MastodonClient(it).getAccountAllToots(account.id, if (next) sinceId else null)
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
                         .compose(bindToLifecycle())
                         .subscribe({ result ->
                             if (next) adapter.addAllContentsAtLast(result.response().body().map { status -> Common.getTimelineContent(status) }, -1)
                             else adapter.addAllContents(result.response().body().map { status -> Common.getTimelineContent(status) }, -1)
-                            nextId = result.response().headers().get("Link")?.replace(Regex(".*<https?://.+\\?max_id=(.+?)>.*"), "$1")?.toLong()
+                            maxId = result.response().headers().get("Link")?.replace(getRegexExtractSinceId(), "$1")?.toLong()
+                            sinceId = result.response().headers().get("Link")?.replace(getRegexExtractMaxId(), "$1")?.toLong()
                         }, Throwable::printStackTrace)
             }
     }
+
+    fun getRegexExtractSinceId() = Regex(".*since_id=(\\d+?)>.*")
+    fun getRegexExtractMaxId() = Regex(".*max_id=(\\d+?)>.*")
 
     fun setFollowButtonState(state: Boolean) {
         if (state) {

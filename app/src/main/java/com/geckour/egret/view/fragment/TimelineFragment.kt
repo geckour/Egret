@@ -6,10 +6,6 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.databinding.DataBindingUtil
 import android.net.ConnectivityManager
-import android.net.Network
-import android.net.NetworkInfo
-import android.net.wifi.WifiInfo
-import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.design.widget.Snackbar
@@ -36,6 +32,7 @@ import com.google.gson.reflect.TypeToken
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
+import retrofit2.adapter.rxjava2.Result
 
 class TimelineFragment: BaseFragment() {
 
@@ -82,7 +79,8 @@ class TimelineFragment: BaseFragment() {
     private var waitingNotification = false
     private var waitingDeletedId = false
 
-    private var nextId: Long = -1
+    private var maxId: Long = -1
+    private var sinceId: Long = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -138,6 +136,14 @@ class TimelineFragment: BaseFragment() {
         })
         adapter = TimelineAdapter((activity as MainActivity).timelineListener)
         binding.recyclerView.adapter = adapter
+
+        binding.swipeRefreshLayout.apply {
+            isEnabled = false
+            setColorSchemeResources(R.color.colorAccent)
+            setOnRefreshListener {
+                if (existsAnyRunningStream()) showTimelineByCategory(getCategory())
+            }
+        }
     }
 
     override fun onPause() {
@@ -178,6 +184,10 @@ class TimelineFragment: BaseFragment() {
     fun getCategory(): Category = if (arguments != null && arguments.containsKey(ARGS_KEY_CATEGORY)) Category.valueOf(arguments.getString(ARGS_KEY_CATEGORY, "Unknown")) else Category.Unknown
 
     fun shouldResume(): Boolean = sharedPref.contains(STATE_ARGS_KEY_RESUME) && sharedPref.getBoolean(STATE_ARGS_KEY_RESUME, true) && !isFirst
+
+    fun existsAnyRunningStream() = listOf(publicStream, localStream, userStream).filter { !(it?.isDisposed ?: true) }.isEmpty()
+
+    fun hideRefreshIndicator() { binding.swipeRefreshLayout.isRefreshing = false }
 
     fun refreshBarTitle() {
         val instanceId = Common.getCurrentAccessToken()?.instanceId
@@ -220,30 +230,29 @@ class TimelineFragment: BaseFragment() {
                 (prefStream == "1" &&
                         activeNetworkInfo != null &&
                         activeNetworkInfo.type == ConnectivityManager.TYPE_WIFI)) {
+            binding.swipeRefreshLayout.isEnabled = false
             if (hasContents) {
                 when (category) {
                     Category.Public -> startPublicTimelineStream()
                     Category.Local -> startLocalTimelineStream()
                     Category.User -> startUserTimelineStream()
-                    Category.HashTag -> {
-                    }
+                    Category.HashTag -> {}
                 }
             } else {
                 when (category) {
                     Category.Public -> startPublicTimelineStream()
                     Category.Local -> startLocalTimelineStream()
                     Category.User -> showUserTimeline(true)
-                    Category.HashTag -> {
-                    }
+                    Category.HashTag -> {}
                 }
             }
         } else {
+            binding.swipeRefreshLayout.isEnabled = true
             when (category) {
                 Category.Public -> showPublicTimeline()
                 Category.Local -> showLocalTimeline()
                 Category.User -> showUserTimeline()
-                Category.HashTag -> {
-                }
+                Category.HashTag -> {}
             }
         }
     }
@@ -287,17 +296,12 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun showPublicTimeline(loadNext: Boolean = false) {
-        val next = loadNext && nextId != -1L
-        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(sinceId = if (next) nextId else null)
+        val next = loadNext && maxId != -1L
+        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(maxId = if (next) maxId else null, sinceId = if (sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
-                .subscribe({ result ->
-                    if (next) adapter.addAllContentsAtLast(result.response().body().map { Common.getTimelineContent(it) })
-                    else adapter.addAllContents(result.response().body().map { Common.getTimelineContent(it) })
-
-                    nextId = result.response().headers().get("Link")?.replace(getRegexExtractMaxId(), "$1")?.toLong() ?: -1L
-                }, Throwable::printStackTrace)
+                .subscribe({reflectStatuses(it, next)}, Throwable::printStackTrace)
     }
 
     fun startUserTimelineStream() {
@@ -319,17 +323,13 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun showUserTimeline(loadStream: Boolean = false, loadNext: Boolean = false) {
-        val next = loadNext && nextId != -1L
-        MastodonClient(Common.resetAuthInfo() ?: return).getUserTimeline(if (next) nextId else null)
+        val next = loadNext && maxId != -1L
+        MastodonClient(Common.resetAuthInfo() ?: return).getUserTimeline(maxId = if (next) maxId else null, sinceId = if (sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
-                .subscribe({ result ->
-                    if (next) adapter.addAllContentsAtLast(result.response().body().map { Common.getTimelineContent(it) })
-                    else adapter.addAllContents(result.response().body().map { Common.getTimelineContent(it) })
-
-                    nextId = result.response().headers().get("Link")?.replace(getRegexExtractMaxId(), "$1")?.toLong() ?: -1L
-
+                .subscribe({
+                    reflectStatuses(it, next)
                     if (loadStream) startUserTimelineStream()
                 }, Throwable::printStackTrace)
     }
@@ -352,20 +352,26 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun showLocalTimeline(loadNext: Boolean = false) {
-        val next = loadNext && nextId != -1L
-        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(true, if (next) nextId else null)
+        val next = loadNext && maxId != -1L
+        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(true, maxId = if (next) maxId else null, sinceId = if (sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
-                .subscribe({ result ->
-                    if (next) adapter.addAllContentsAtLast(result.response().body().map { Common.getTimelineContent(it) })
-                    else adapter.addAllContents(result.response().body().map { Common.getTimelineContent(it) })
-
-                    nextId = result.response().headers().get("Link")?.replace(getRegexExtractMaxId(), "$1")?.toLong() ?: -1L
-                }, Throwable::printStackTrace)
+                .subscribe({reflectStatuses(it, next)}, Throwable::printStackTrace)
     }
 
+    fun getRegexExtractSinceId() = Regex(".*since_id=(\\d+?)>.*")
     fun getRegexExtractMaxId() = Regex(".*max_id=(\\d+?)>.*")
+
+    fun reflectStatuses(result: Result<List<Status>>, next: Boolean) {
+        if (next) adapter.addAllContentsAtLast(result.response().body().map { Common.getTimelineContent(it) })
+        else adapter.addAllContents(result.response().body().map { Common.getTimelineContent(it) })
+
+        maxId = result.response().headers().get("Link")?.replace(getRegexExtractMaxId(), "$1")?.toLong() ?: -1L
+        sinceId = result.response().headers().get("Link")?.replace(getRegexExtractSinceId(), "$1")?.toLong() ?: -1L
+
+        hideRefreshIndicator()
+    }
 
     fun onAddItemToAdapter() {
         if (onTop && adapter.itemCount > 1) {

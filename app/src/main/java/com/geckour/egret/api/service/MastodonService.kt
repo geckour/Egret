@@ -83,6 +83,9 @@ interface MastodonService {
             @Query("local")
             isLocal: Boolean = false,
 
+            @Query("max_id")
+            maxId: Long? = null,
+
             @Query("since_id")
             sinceId: Long? = null
     ): Single<Result<List<Status>>>
@@ -95,12 +98,18 @@ interface MastodonService {
             @Query("local")
             isLocal: Boolean = false,
 
+            @Query("max_id")
+            maxId: Long? = null,
+
             @Query("since_id")
             sinceId: Long? = null
     ): Single<Result<List<Status>>>
 
     @GET("api/v1/timelines/home")
     fun getUserTimeline(
+            @Query("max_id")
+            maxId: Long? = null,
+
             @Query("since_id")
             sinceId: Long? = null
     ): Single<Result<List<Status>>>
