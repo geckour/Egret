@@ -5,8 +5,8 @@ Let's play with Mastodon！
 Android app for client of Mastodon.
 
 ## Features
-- Show Public timeline as sreaming
-- Show Local timeline as sreaming
+- Show Public timeline as streaming
+- Show Local timeline as streaming
 - Show User timeline as streaming
 - Switch multiple accounts
 - Switch theme color (Light / Dark)
