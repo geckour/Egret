@@ -108,7 +108,7 @@ class AuthAppFragment: RxFragment() {
     }
 
     private fun focusToEmail() {
-        (activity as BaseActivity).showSoftKeyBoardOnFocusEditText(binding.email)
+        Common.showSoftKeyBoardOnFocusEditText(binding.email)
     }
 
     fun requestAuth(email: String, password: String) {

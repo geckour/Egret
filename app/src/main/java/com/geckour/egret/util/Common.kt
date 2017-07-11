@@ -13,6 +13,8 @@ import android.text.Spanned
 import android.text.format.DateFormat
 import android.text.method.LinkMovementMethod
 import android.text.method.MovementMethod
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import android.widget.TextView
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
@@ -261,5 +263,17 @@ class Common {
         })
 
         fun getStoreContentsKey(category: TimelineFragment.Category) = "${TimelineFragment.STATE_ARGS_KEY_CONTENTS}:${category.name}"
+
+
+        fun showSoftKeyBoardOnFocusEditText(et: EditText, hideOnUnFocus: Boolean = true) {
+            et.setOnFocusChangeListener { view, hasFocus ->
+                if (hasFocus) (view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
+                else if (hideOnUnFocus) (view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(view.windowToken, 0)
+            }
+            et.requestFocusFromTouch()
+            et.requestFocus()
+        }
+
+        fun hideSoftKeyBoard(et: EditText) = (et.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(et.windowToken, 0)
     }
 }

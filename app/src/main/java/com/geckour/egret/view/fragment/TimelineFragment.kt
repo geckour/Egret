@@ -21,9 +21,11 @@ import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Notification
 import com.geckour.egret.api.model.Status
 import com.geckour.egret.api.service.MastodonService
+import com.geckour.egret.databinding.ContentMainBinding
 import com.geckour.egret.databinding.FragmentTimelineBinding
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.Common.Companion.getStoreContentsKey
+import com.geckour.egret.util.Common.Companion.hideSoftKeyBoard
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.MainActivity
 import com.geckour.egret.view.adapter.TimelineAdapter
@@ -144,6 +146,10 @@ class TimelineFragment: BaseFragment() {
                 if (existsAnyRunningStream()) showTimelineByCategory(getCategory())
             }
         }
+
+        (activity as MainActivity).binding.appBarMain.contentMain.apply {
+            buttonSimplicityToot.setOnClickListener { postToot(this) }
+        }
     }
 
     override fun onPause() {
@@ -162,7 +168,7 @@ class TimelineFragment: BaseFragment() {
         (activity as MainActivity).supportActionBar?.show()
         refreshBarTitle()
 
-        if (Common.isModeShowTootBar(activity)) (activity as MainActivity).setSimplicityPostBarVisibility(true)
+        setSimplicityPostBarVisibility((activity as MainActivity).binding.appBarMain.contentMain, Common.isModeShowTootBar(activity))
 
         if (shouldResume()) restoreTimeline()
         else {
@@ -226,11 +232,13 @@ class TimelineFragment: BaseFragment() {
                 if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_WIFI_STATE)
                         == PackageManager.PERMISSION_GRANTED) (activity.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager)
                 else null)?.activeNetworkInfo
+
+        binding.swipeRefreshLayout.isEnabled = true
+        toggleRefreshIndicatorState(true)
         if (prefStream == "0" ||
                 (prefStream == "1" &&
                         activeNetworkInfo != null &&
                         activeNetworkInfo.type == ConnectivityManager.TYPE_WIFI)) {
-            binding.swipeRefreshLayout.isEnabled = false
             if (hasContents) {
                 when (category) {
                     Category.Public -> startPublicTimelineStream()
@@ -247,7 +255,6 @@ class TimelineFragment: BaseFragment() {
                 }
             }
         } else {
-            binding.swipeRefreshLayout.isEnabled = true
             when (category) {
                 Category.Public -> showPublicTimeline()
                 Category.Local -> showLocalTimeline()
@@ -255,6 +262,14 @@ class TimelineFragment: BaseFragment() {
                 Category.HashTag -> {}
             }
         }
+    }
+
+    fun toggleRefreshIndicatorState(show: Boolean) {
+        binding.swipeRefreshLayout.isRefreshing = show
+    }
+
+    fun toggleRefreshIndicatorActivity(activity: Boolean) {
+        binding.swipeRefreshLayout.isEnabled = activity
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -269,6 +284,38 @@ class TimelineFragment: BaseFragment() {
                 }
             }
         }
+    }
+
+    fun postToot(contantMainBinding: ContentMainBinding) {
+        val button = contantMainBinding.buttonSimplicityToot.apply { isEnabled = false }
+        val body = contantMainBinding.simplicityTootBody.text.toString()
+        if (body.isBlank()) {
+            Snackbar.make(binding.root, R.string.error_empty_toot, Snackbar.LENGTH_SHORT).show()
+            return
+        }
+
+        MastodonClient(Common.resetAuthInfo() ?: return)
+                .postNewToot(body)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    Snackbar.make(
+                            binding.root,
+                            R.string.succeed_post_toot,
+                            Snackbar.LENGTH_SHORT).show()
+                    contantMainBinding.simplicityTootBody.let {
+                        it.setText("")
+                        hideSoftKeyBoard(it)
+                    }
+                    button.isEnabled = true
+                }, {
+                    button.isEnabled = true
+                    it.printStackTrace()
+                })
+    }
+
+    fun setSimplicityPostBarVisibility(contentMainBinding: ContentMainBinding, isVisible: Boolean) {
+        contentMainBinding.simplicityPostWrap.visibility = if (isVisible) View.VISIBLE else View.GONE
     }
 
     fun stopTimelineStreams() {
@@ -286,6 +333,8 @@ class TimelineFragment: BaseFragment() {
                             .observeOn(AndroidSchedulers.mainThread())
                             .compose(bindToLifecycle())
                             .subscribe({
+                                toggleRefreshIndicatorState(false)
+                                toggleRefreshIndicatorActivity(false)
                                 parseTimelineStream(it)
                             }, Throwable::printStackTrace)
         }
@@ -301,7 +350,10 @@ class TimelineFragment: BaseFragment() {
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
-                .subscribe({reflectStatuses(it, next)}, Throwable::printStackTrace)
+                .subscribe({
+                    toggleRefreshIndicatorState(false)
+                    reflectStatuses(it, next)
+                }, Throwable::printStackTrace)
     }
 
     fun startUserTimelineStream() {
@@ -313,6 +365,8 @@ class TimelineFragment: BaseFragment() {
                             .observeOn(AndroidSchedulers.mainThread())
                             .compose(bindToLifecycle())
                             .subscribe({
+                                toggleRefreshIndicatorState(false)
+                                toggleRefreshIndicatorActivity(false)
                                 parseTimelineStream(it)
                             }, Throwable::printStackTrace)
         }
@@ -329,6 +383,7 @@ class TimelineFragment: BaseFragment() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
+                    toggleRefreshIndicatorState(false)
                     reflectStatuses(it, next)
                     if (loadStream) startUserTimelineStream()
                 }, Throwable::printStackTrace)
@@ -342,6 +397,8 @@ class TimelineFragment: BaseFragment() {
                     .observeOn(AndroidSchedulers.mainThread())
                     .compose(bindToLifecycle())
                     .subscribe({
+                        toggleRefreshIndicatorState(false)
+                        toggleRefreshIndicatorActivity(false)
                         parseTimelineStream(it)
                     }, Throwable::printStackTrace)
         }
@@ -357,7 +414,10 @@ class TimelineFragment: BaseFragment() {
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
-                .subscribe({reflectStatuses(it, next)}, Throwable::printStackTrace)
+                .subscribe({
+                    toggleRefreshIndicatorState(false)
+                    reflectStatuses(it, next)
+                }, Throwable::printStackTrace)
     }
 
     fun getRegexExtractSinceId() = Regex(".*since_id=(\\d+?)>.*")

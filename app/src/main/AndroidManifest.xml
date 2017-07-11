@@ -29,7 +29,7 @@
             android:name=".view.activity.SplashActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/app_name"
-            android:theme="@style/FullscreenTheme"
+            android:theme="@style/AppTheme.Fullscreen"
             android:noHistory="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -40,7 +40,6 @@
         <activity
             android:name=".view.activity.SettingActivity"
             android:label="@string/title_activity_setting"
-            android:theme="@style/AppTheme.Settings"
             android:windowSoftInputMode="adjustResize" />
     </application>
 

@@ -215,13 +215,14 @@ class TimelineAdapter(val listener: IListener, val doFilter: Boolean = true) : R
     }
 
     fun addAllContents(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
-        val c = contents.filter { !shouldMute(it) }
+        contents.filter { !shouldMute(it) }
+                .let {
+                    if (it.isEmpty()) return
 
-        if (c.isNotEmpty()) {
-            this.contents.addAll(0, c)
-            notifyItemRangeInserted(0, contents.size)
-            removeItemsWhenOverLimit(limit)
-        }
+                    this.contents.addAll(0, it)
+                    notifyItemRangeInserted(0, it.size)
+                    removeItemsWhenOverLimit(limit)
+                }
     }
 
     fun addAllContentsAtLast(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
@@ -270,10 +271,9 @@ class TimelineAdapter(val listener: IListener, val doFilter: Boolean = true) : R
         OrmaProvider.db.selectFromMuteInstance().forEach {
             var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
             if (content.nameWeak == instance) {
-                instance = ""
-                Common.getCurrentAccessToken()?.instanceId?.let {
-                    instance = "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(it).last().instance}"
-                }
+                instance = Common.getCurrentAccessToken()?.instanceId?.let {
+                    "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(it).last().instance}"
+                } ?: ""
             }
 
             if (it.instance == instance) return true
@@ -282,11 +282,10 @@ class TimelineAdapter(val listener: IListener, val doFilter: Boolean = true) : R
         return false
     }
 
-    private fun removeItemsWhenOverLimit(limit: Int) {
-        if (limit > 0 && contents.size > limit) {
-            val size = contents.size
-            contents.removeIf { content -> contents.indexOf(content) > limit - 1 }
-            notifyItemRangeRemoved(limit, size - limit)
+    private fun removeItemsWhenOverLimit(limit: Int = DEFAULT_ITEMS_LIMIT) {
+        itemCount.let {
+            contents.removeAll { contents.indexOf(it) > limit - 1 }
+            notifyItemRangeRemoved(limit, it - limit)
         }
     }
 
