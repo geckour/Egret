@@ -35,31 +35,26 @@ import java.util.*
 class Common {
 
     companion object {
-
-        interface IListener {
-            fun onCheckCertify(hasCertified: Boolean, accountId: Long)
-        }
-
-        fun hasCertified(listener: IListener, accessToken: AccessToken? = null) {
+        fun hasCertified(accessToken: AccessToken? = null, callback: (hasCertified: Boolean, accountId: Long) -> Any) {
             if (accessToken != null) {
-                setAuthInfo(accessToken)?.let { requestWeatherCertified(listener, it) }
+                setAuthInfo(accessToken)?.let { requestWeatherCertified(it, callback) }
             } else {
                 val domain = resetAuthInfo()
                 
-                if (domain == null) listener.onCheckCertify(false, -1)
-                else requestWeatherCertified(listener, domain)
+                if (domain == null) callback(false, -1)
+                else requestWeatherCertified(domain, callback)
             }
         }
 
-        private fun requestWeatherCertified(listener: IListener, domain: String) {
+        private fun requestWeatherCertified(domain: String, callback: (hasCertified: Boolean, accountId: Long) -> Any) {
             MastodonClient(domain).getSelfAccount()
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({ account ->
-                        listener.onCheckCertify(true, account.id)
+                        callback(true, account.id)
                     }, { throwable ->
                         Timber.e(throwable)
-                        listener.onCheckCertify(false, -1)
+                        callback(false, -1)
                     })
         }
 

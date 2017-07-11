@@ -138,19 +138,17 @@ class AuthAppFragment: RxFragment() {
                 .subscribe({
                     Timber.d("token: ${it.token}")
 
-                    Common.hasCertified(object : Common.Companion.IListener {
-                        override fun onCheckCertify(hasCertified: Boolean, accountId: Long) {
-                            if (hasCertified) {
-                                OrmaProvider.db.updateAccessToken().isCurrentEq(true).accountId(accountId).executeAsSingle()
-                                        .subscribeOn(Schedulers.newThread())
-                                        .observeOn(AndroidSchedulers.mainThread())
-                                        .compose(bindToLifecycle())
-                                        .subscribe(
-                                                { (activity as LoginActivity).showMainActivity() },
-                                                Throwable::printStackTrace)
-                            }
+                    Common.hasCertified(it, { hasCertified, accountId ->
+                        if (hasCertified) {
+                            OrmaProvider.db.updateAccessToken().isCurrentEq(true).accountId(accountId).executeAsSingle()
+                                    .subscribeOn(Schedulers.newThread())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .compose(bindToLifecycle())
+                                    .subscribe(
+                                            { (activity as LoginActivity).showMainActivity() },
+                                            Throwable::printStackTrace)
                         }
-                    }, it)
+                    })
                 }, Throwable::printStackTrace)
     }
 

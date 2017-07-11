@@ -18,9 +18,27 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.util.*
 
-class TimelineAdapter(val listener: IListener, val doFilter: Boolean = true) : RecyclerView.Adapter<TimelineAdapter.ViewHolder>() {
+class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : RecyclerView.Adapter<TimelineAdapter.ViewHolder>() {
 
     private val contents: ArrayList<TimelineContent> = ArrayList()
+
+    interface Callbacks {
+        val showTootInBrowser: (content: TimelineContent) -> Any
+
+        val copyTootToClipboard: (content: TimelineContent) -> Any
+
+        val showMuteDialog: (content: TimelineContent) -> Any
+
+        val showProfile: (accountId: Long) -> Any
+
+        val onReply: (content: TimelineContent) -> Any
+
+        val onFavStatus: (statusId: Long, view: ImageView) -> Any
+
+        val onBoostStatus: (statusId: Long, view: ImageView) -> Any
+
+        val onClickMedia: (urls: List<String>, position: Int) -> Any
+    }
 
     inner class ViewHolder(val binding: ItemRecycleTimelineBinding): RecyclerView.ViewHolder(binding.root) {
         fun bindData(content: TimelineContent) {
@@ -170,24 +188,6 @@ class TimelineAdapter(val listener: IListener, val doFilter: Boolean = true) : R
         }
     }
 
-    interface IListener {
-        fun showTootInBrowser(content: TimelineContent)
-
-        fun copyTootToClipboard(content: TimelineContent)
-
-        fun showMuteDialog(content: TimelineContent)
-
-        fun showProfile(accountId: Long)
-
-        fun onReply(content: TimelineContent)
-
-        fun onFavStatus(statusId: Long, view: ImageView)
-
-        fun onBoostStatus(statusId: Long, view: ImageView)
-
-        fun onClickMedia(urls: List<String>, position: Int)
-    }
-
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ViewHolder {
         val binding = DataBindingUtil.inflate<ItemRecycleTimelineBinding>(LayoutInflater.from(parent?.context), R.layout.item_recycle_timeline, parent, false)
         return ViewHolder(binding)
@@ -245,12 +245,12 @@ class TimelineAdapter(val listener: IListener, val doFilter: Boolean = true) : R
 
     fun removeContentByTootId(id: Long) {
         val shouldRemoveContents: ArrayList<TimelineContent> = ArrayList()
-        contents.forEach { content ->
+        this.contents.forEach { content ->
             if (content.id == id) shouldRemoveContents.add(content)
         }
         shouldRemoveContents.forEach { content ->
-            val index = contents.indexOf(content)
-            contents.remove(content)
+            val index = this.contents.indexOf(content)
+            this.contents.remove(content)
             notifyItemRemoved(index)
         }
     }
@@ -284,7 +284,7 @@ class TimelineAdapter(val listener: IListener, val doFilter: Boolean = true) : R
 
     private fun removeItemsWhenOverLimit(limit: Int = DEFAULT_ITEMS_LIMIT) {
         itemCount.let {
-            contents.removeAll { contents.indexOf(it) > limit - 1 }
+            this.contents.removeAll { this.contents.indexOf(it) > limit - 1 }
             notifyItemRangeRemoved(limit, it - limit)
         }
     }

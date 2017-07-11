@@ -11,6 +11,7 @@ import android.preference.PreferenceManager
 import android.support.design.widget.Snackbar
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
+import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.*
@@ -103,7 +104,7 @@ class TimelineFragment: BaseFragment() {
                 .putInt(STATE_KEY_CATEGORY, category.rawValue)
                 .apply()
 
-        binding.recyclerView.setOnTouchListener { view, event ->
+        binding.recyclerView.setOnTouchListener { v, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
                     inTouch = true

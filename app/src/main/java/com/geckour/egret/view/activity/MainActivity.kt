@@ -72,8 +72,8 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    val timelineListener = object: TimelineAdapter.IListener {
-        override fun showTootInBrowser(content: TimelineContent) {
+    val timelineListener = object: TimelineAdapter.Callbacks {
+        override val showTootInBrowser = { content: TimelineContent ->
             val uri = Uri.parse(content.tootUrl)
             if (Common.isModeDefaultBrowser(this@MainActivity)) {
                 startActivity(Intent(Intent.ACTION_VIEW, uri))
@@ -82,13 +82,13 @@ class MainActivity : BaseActivity() {
             }
         }
 
-        override fun copyTootToClipboard(content: TimelineContent) {
+        override val copyTootToClipboard = { content: TimelineContent ->
             val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("toot", content.body.toString())
             clipboard.primaryClip = clip
         }
 
-        override fun showMuteDialog(content: TimelineContent) {
+        override val showMuteDialog = { content: TimelineContent ->
             val itemStrings = resources.getStringArray(R.array.mute_from_toot).toList()
             val items = itemStrings.mapIndexed { i, s ->
                 when (i) {
@@ -193,7 +193,7 @@ class MainActivity : BaseActivity() {
                     }).show(supportFragmentManager, ListDialogFragment.TAG)
         }
 
-        override fun showProfile(accountId: Long) {
+        override val showProfile = { accountId: Long ->
             AccountProfileFragment.newObservableInstance(accountId)
                     .subscribe( {
                         fragment ->
@@ -204,19 +204,19 @@ class MainActivity : BaseActivity() {
                     }, Throwable::printStackTrace)
         }
 
-        override fun onReply(content: TimelineContent) {
+        override val onReply = { content: TimelineContent ->
             replyStatusById(content)
         }
 
-        override fun onFavStatus(statusId: Long, view: ImageView) {
+        override val onFavStatus = { statusId: Long, view: ImageView ->
             favStatusById(statusId, view)
         }
 
-        override fun onBoostStatus(statusId: Long, view: ImageView) {
+        override val onBoostStatus = { statusId: Long, view: ImageView ->
             boostStatusById(statusId, view)
         }
 
-        override fun onClickMedia(urls: List<String>, position: Int) {
+        override val onClickMedia = { urls: List<String>, position: Int ->
             val fragment = ShowImagesDialogFragment.newInstance(urls, position)
             supportFragmentManager.beginTransaction()
                     .add(fragment, ShowImagesDialogFragment.TAG)
