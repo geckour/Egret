@@ -1,6 +1,7 @@
 package com.geckour.egret.view.activity
 
 import android.content.*
+import android.databinding.DataBindingUtil
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.net.Uri
@@ -24,6 +25,7 @@ import com.geckour.egret.App
 import com.geckour.egret.App.Companion.STATE_KEY_CATEGORY
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
+import com.geckour.egret.databinding.ActivityMainBinding
 import com.geckour.egret.model.MuteClient
 import com.geckour.egret.model.MuteInstance
 import com.geckour.egret.util.Common
@@ -50,6 +52,7 @@ import timber.log.Timber
 
 class MainActivity : BaseActivity() {
 
+    lateinit var binding: ActivityMainBinding
     lateinit var drawer: Drawer
     lateinit private var accountHeader: AccountHeader
     lateinit private var sharedPref: SharedPreferences
@@ -69,8 +72,8 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    val timelineListener = object: TimelineAdapter.IListener {
-        override fun showTootInBrowser(content: TimelineContent) {
+    val timelineListener = object: TimelineAdapter.Callbacks {
+        override val showTootInBrowser = { content: TimelineContent ->
             val uri = Uri.parse(content.tootUrl)
             if (Common.isModeDefaultBrowser(this@MainActivity)) {
                 startActivity(Intent(Intent.ACTION_VIEW, uri))
@@ -79,13 +82,13 @@ class MainActivity : BaseActivity() {
             }
         }
 
-        override fun copyTootToClipboard(content: TimelineContent) {
+        override val copyTootToClipboard = { content: TimelineContent ->
             val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("toot", content.body.toString())
             clipboard.primaryClip = clip
         }
 
-        override fun showMuteDialog(content: TimelineContent) {
+        override val showMuteDialog = { content: TimelineContent ->
             val itemStrings = resources.getStringArray(R.array.mute_from_toot).toList()
             val items = itemStrings.mapIndexed { i, s ->
                 when (i) {
@@ -130,7 +133,7 @@ class MainActivity : BaseActivity() {
                                                 .subscribeOn(Schedulers.newThread())
                                                 .observeOn(AndroidSchedulers.mainThread())
                                                 .subscribe({
-                                                    Snackbar.make(findViewById(R.id.container), "Muted account: ${content.nameWeak}", Snackbar.LENGTH_SHORT).show()
+                                                    Snackbar.make(binding.root, "Muted account: ${content.nameWeak}", Snackbar.LENGTH_SHORT).show()
                                                 }, Throwable::printStackTrace)
                                     }
                                 }
@@ -168,7 +171,7 @@ class MainActivity : BaseActivity() {
                                                 .observeOn(AndroidSchedulers.mainThread())
                                                 .compose(bindToLifecycle())
                                                 .subscribe({
-                                                    Snackbar.make(findViewById(R.id.container), "Muted instance: $instance", Snackbar.LENGTH_SHORT).show()
+                                                    Snackbar.make(binding.root, "Muted instance: $instance", Snackbar.LENGTH_SHORT).show()
                                                 }, Throwable::printStackTrace)
                                     }
                                 }
@@ -181,7 +184,7 @@ class MainActivity : BaseActivity() {
                                                 .observeOn(AndroidSchedulers.mainThread())
                                                 .compose(bindToLifecycle())
                                                 .subscribe({
-                                                    Snackbar.make(findViewById(R.id.container), "Muted client: ${content.app}", Snackbar.LENGTH_SHORT).show()
+                                                    Snackbar.make(binding.root, "Muted client: ${content.app}", Snackbar.LENGTH_SHORT).show()
                                                 }, Throwable::printStackTrace)
                                     }
                                 }
@@ -190,7 +193,7 @@ class MainActivity : BaseActivity() {
                     }).show(supportFragmentManager, ListDialogFragment.TAG)
         }
 
-        override fun showProfile(accountId: Long) {
+        override val showProfile = { accountId: Long ->
             AccountProfileFragment.newObservableInstance(accountId)
                     .subscribe( {
                         fragment ->
@@ -201,19 +204,19 @@ class MainActivity : BaseActivity() {
                     }, Throwable::printStackTrace)
         }
 
-        override fun onReply(content: TimelineContent) {
+        override val onReply = { content: TimelineContent ->
             replyStatusById(content)
         }
 
-        override fun onFavStatus(statusId: Long, view: ImageView) {
+        override val onFavStatus = { statusId: Long, view: ImageView ->
             favStatusById(statusId, view)
         }
 
-        override fun onBoostStatus(statusId: Long, view: ImageView) {
+        override val onBoostStatus = { statusId: Long, view: ImageView ->
             boostStatusById(statusId, view)
         }
 
-        override fun onClickMedia(urls: List<String>, position: Int) {
+        override val onClickMedia = { urls: List<String>, position: Int ->
             val fragment = ShowImagesDialogFragment.newInstance(urls, position)
             supportFragmentManager.beginTransaction()
                     .add(fragment, ShowImagesDialogFragment.TAG)
@@ -226,10 +229,9 @@ class MainActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
 
         setTheme(if (isModeDark()) R.style.AppThemeDark_NoActionBar else R.style.AppTheme_NoActionBar)
-        setContentView(R.layout.activity_main)
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
-        val toolbar = findViewById(R.id.toolbar) as Toolbar
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.appBarMain.toolbar)
 
         // NavDrawer内のアカウント情報表示部
         accountHeader = getAccountHeader()
@@ -237,8 +239,7 @@ class MainActivity : BaseActivity() {
         setNavDrawer()
         commitAccountsIntoAccountHeader()
 
-        (findViewById(R.id.fab) as FloatingActionButton).setOnClickListener { showCreateNewTootFragment() }
-        (findViewById(R.id.button_simplicity_toot) as Button).setOnClickListener { postToot() }
+        binding.appBarMain.contentMain.fab.setOnClickListener { showCreateNewTootFragment() }
     }
 
     override fun onResume() {
@@ -289,7 +290,7 @@ class MainActivity : BaseActivity() {
             }
 
             override fun onQueryTextSubmit(text: String?): Boolean {
-                Snackbar.make(findViewById(R.id.container), "Not implemented", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, "Not implemented", Snackbar.LENGTH_SHORT).show()
                 return false
             }
         })
@@ -413,12 +414,10 @@ class MainActivity : BaseActivity() {
                     .build()
 
     fun setNavDrawer() {
-        val toolbar = findViewById(R.id.toolbar) as Toolbar
-
         drawer = DrawerBuilder().withActivity(this)
                 .withTranslucentStatusBar(false)
                 .withActionBarDrawerToggleAnimated(true)
-                .withToolbar(toolbar)
+                .withToolbar(binding.appBarMain.toolbar)
                 .addDrawerItems(
                         PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_public).withIdentifier(NAV_ITEM_TL_PUBLIC).withIcon(R.drawable.ic_public_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
                         PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_local).withIdentifier(NAV_ITEM_TL_LOCAL).withIcon(R.drawable.ic_place_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
@@ -464,14 +463,6 @@ class MainActivity : BaseActivity() {
                 .build()
     }
 
-    fun setSimplicityPostBarVisibility(isVisible: Boolean) {
-        if (isVisible) {
-            findViewById(R.id.simplicity_post_wrap)?.visibility = View.VISIBLE
-        } else {
-            findViewById(R.id.simplicity_post_wrap)?.visibility = View.GONE
-        }
-    }
-
     fun showTimelineFragment(category: TimelineFragment.Category = currentCategory, force: Boolean = false) {
         val reqFragment = supportFragmentManager.findFragmentByTag(category.name)
         val currentFragment = supportFragmentManager.findFragmentByTag(currentCategory.name)
@@ -508,30 +499,6 @@ class MainActivity : BaseActivity() {
                 .replace(R.id.container, fragment, NewTootCreateFragment.TAG)
                 .addToBackStack(NewTootCreateFragment.TAG)
                 .commit()
-    }
-
-    fun postToot() {
-        (findViewById(R.id.button_simplicity_toot) as Button).isEnabled = false
-        val body = (findViewById(R.id.simplicity_toot_body) as EditText).text.toString()
-        if (TextUtils.isEmpty(body)) {
-            Snackbar.make(findViewById(R.id.drawer_layout), R.string.error_empty_toot, Snackbar.LENGTH_SHORT).show()
-            return
-        }
-
-        MastodonClient(Common.resetAuthInfo() ?: return)
-                .postNewToot(body)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    Snackbar.make(
-                            findViewById(R.id.drawer_layout),
-                            R.string.succeed_post_toot,
-                            Snackbar.LENGTH_SHORT).show()
-                    val editText = (findViewById(R.id.simplicity_toot_body) as EditText)
-                    editText.setText("")
-                    (findViewById(R.id.button_simplicity_toot) as Button).isEnabled = true
-                    hideSoftKeyBoard(editText)
-                }, Throwable::printStackTrace)
     }
 
     fun replyStatusById(content: TimelineContent) {

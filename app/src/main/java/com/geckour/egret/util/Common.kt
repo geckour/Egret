@@ -13,6 +13,8 @@ import android.text.Spanned
 import android.text.format.DateFormat
 import android.text.method.LinkMovementMethod
 import android.text.method.MovementMethod
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import android.widget.TextView
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
@@ -33,31 +35,26 @@ import java.util.*
 class Common {
 
     companion object {
-
-        interface IListener {
-            fun onCheckCertify(hasCertified: Boolean, accountId: Long)
-        }
-
-        fun hasCertified(listener: IListener, accessToken: AccessToken? = null) {
+        fun hasCertified(accessToken: AccessToken? = null, callback: (hasCertified: Boolean, accountId: Long) -> Any) {
             if (accessToken != null) {
-                setAuthInfo(accessToken)?.let { requestWeatherCertified(listener, it) }
+                setAuthInfo(accessToken)?.let { requestWeatherCertified(it, callback) }
             } else {
                 val domain = resetAuthInfo()
                 
-                if (domain == null) listener.onCheckCertify(false, -1)
-                else requestWeatherCertified(listener, domain)
+                if (domain == null) callback(false, -1)
+                else requestWeatherCertified(domain, callback)
             }
         }
 
-        private fun requestWeatherCertified(listener: IListener, domain: String) {
+        private fun requestWeatherCertified(domain: String, callback: (hasCertified: Boolean, accountId: Long) -> Any) {
             MastodonClient(domain).getSelfAccount()
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({ account ->
-                        listener.onCheckCertify(true, account.id)
+                        callback(true, account.id)
                     }, { throwable ->
                         Timber.e(throwable)
-                        listener.onCheckCertify(false, -1)
+                        callback(false, -1)
                     })
         }
 
@@ -261,5 +258,17 @@ class Common {
         })
 
         fun getStoreContentsKey(category: TimelineFragment.Category) = "${TimelineFragment.STATE_ARGS_KEY_CONTENTS}:${category.name}"
+
+
+        fun showSoftKeyBoardOnFocusEditText(et: EditText, hideOnUnFocus: Boolean = true) {
+            et.setOnFocusChangeListener { view, hasFocus ->
+                if (hasFocus) (view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
+                else if (hideOnUnFocus) (view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(view.windowToken, 0)
+            }
+            et.requestFocusFromTouch()
+            et.requestFocus()
+        }
+
+        fun hideSoftKeyBoard(et: EditText) = (et.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(et.windowToken, 0)
     }
 }

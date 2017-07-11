@@ -1,27 +1,30 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             android:background="@color/splash_bg"
-             tools:context=".view.activity.SplashActivity">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- The primary full-screen view. This can be replaced with whatever view
-         is needed to present your content, e.g. VideoView, SurfaceView,
-         TextureView, etc. -->
-    <TextView
-        android:id="@+id/fullscreen_content"
-        fontPath="fonts/Arvo-Bold.ttf"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center"
-        android:keepScreenOn="true"
-        android:text="@string/splash_content"
-        android:textColor="@color/splash_content"
-        android:textSize="54sp"
-        android:textStyle="bold"
-        tools:ignore="MissingPrefix"/>
+        android:background="@color/splash_bg"
+        tools:context=".view.activity.SplashActivity">
 
-    <!-- This FrameLayout insets its children based on system windows using
-         android:fitsSystemWindows. -->
+        <!-- The primary full-screen view. This can be replaced with whatever view
+             is needed to present your content, e.g. VideoView, SurfaceView,
+             TextureView, etc. -->
+        <TextView
+            android:id="@+id/fullscreen_content"
+            fontPath="fonts/Arvo-Bold.ttf"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:keepScreenOn="true"
+            android:text="@string/splash_content"
+            android:textColor="@color/splash_content"
+            android:textSize="54sp"
+            android:textStyle="bold"
+            tools:ignore="MissingPrefix" />
 
-</FrameLayout>
+        <!-- This FrameLayout insets its children based on system windows using
+             android:fitsSystemWindows. -->
+
+    </FrameLayout>
+</layout>

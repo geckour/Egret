@@ -11,7 +11,6 @@ import android.provider.MediaStore
 import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.Snackbar
 import android.text.Editable
-import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -103,7 +102,7 @@ class NewTootCreateFragment : BaseFragment() {
                     Picasso.with(binding.icon.context).load(content.avatarUrl).into(binding.icon)
                 }, Throwable::printStackTrace)
 
-        (activity as MainActivity).showSoftKeyBoardOnFocusEditText(binding.tootBody)
+        Common.showSoftKeyBoardOnFocusEditText(binding.tootBody)
 
         binding.gallery.setOnClickListener { pickMedia() }
 
@@ -142,7 +141,7 @@ class NewTootCreateFragment : BaseFragment() {
     }
 
     fun postToot(body: String) {
-        if (TextUtils.isEmpty(body)) {
+        if (body.isBlank()) {
             Snackbar.make(binding.root, R.string.error_empty_toot, Snackbar.LENGTH_SHORT)
             return
         }
