@@ -11,7 +11,6 @@ import android.preference.PreferenceManager
 import android.support.design.widget.Snackbar
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
-import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.*
@@ -141,10 +140,10 @@ class TimelineFragment: BaseFragment() {
         binding.recyclerView.adapter = adapter
 
         binding.swipeRefreshLayout.apply {
-            isEnabled = false
             setColorSchemeResources(R.color.colorAccent)
             setOnRefreshListener {
-                if (existsAnyRunningStream()) showTimelineByCategory(getCategory())
+                if (existsNoRunningStream()) showTimelineByCategory(getCategory())
+                else toggleRefreshIndicatorState(false)
             }
         }
 
@@ -192,9 +191,7 @@ class TimelineFragment: BaseFragment() {
 
     fun shouldResume(): Boolean = sharedPref.contains(STATE_ARGS_KEY_RESUME) && sharedPref.getBoolean(STATE_ARGS_KEY_RESUME, true) && !isFirst
 
-    fun existsAnyRunningStream() = listOf(publicStream, localStream, userStream).filter { !(it?.isDisposed ?: true) }.isEmpty()
-
-    fun hideRefreshIndicator() { binding.swipeRefreshLayout.isRefreshing = false }
+    fun existsNoRunningStream() = listOf(publicStream, localStream, userStream).none { !(it?.isDisposed ?: true) }
 
     fun refreshBarTitle() {
         val instanceId = Common.getCurrentAccessToken()?.instanceId
@@ -219,7 +216,7 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun showTimelineByCategory(category: Category, hasContents: Boolean = false) {
-        val prefStream = sharedPref.getString("manage_stream", "")
+        val prefStream = sharedPref.getString("manage_stream", "1")
 
         if (prefStream == "1") {
             if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_NETWORK_STATE)
@@ -234,7 +231,6 @@ class TimelineFragment: BaseFragment() {
                         == PackageManager.PERMISSION_GRANTED) (activity.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager)
                 else null)?.activeNetworkInfo
 
-        binding.swipeRefreshLayout.isEnabled = true
         toggleRefreshIndicatorState(true)
         if (prefStream == "0" ||
                 (prefStream == "1" &&
@@ -287,9 +283,9 @@ class TimelineFragment: BaseFragment() {
         }
     }
 
-    fun postToot(contantMainBinding: ContentMainBinding) {
-        val button = contantMainBinding.buttonSimplicityToot.apply { isEnabled = false }
-        val body = contantMainBinding.simplicityTootBody.text.toString()
+    fun postToot(contentMainBinding: ContentMainBinding) {
+        val button = contentMainBinding.buttonSimplicityToot.apply { isEnabled = false }
+        val body = contentMainBinding.simplicityTootBody.text.toString()
         if (body.isBlank()) {
             Snackbar.make(binding.root, R.string.error_empty_toot, Snackbar.LENGTH_SHORT).show()
             return
@@ -304,7 +300,7 @@ class TimelineFragment: BaseFragment() {
                             binding.root,
                             R.string.succeed_post_toot,
                             Snackbar.LENGTH_SHORT).show()
-                    contantMainBinding.simplicityTootBody.let {
+                    contentMainBinding.simplicityTootBody.let {
                         it.setText("")
                         hideSoftKeyBoard(it)
                     }
@@ -326,6 +322,8 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun startPublicTimelineStream() {
+        publicStream?.dispose()
+        publicStream = null
         Common.resetAuthInfo()?.let {
             publicStream =
                     MastodonClient(it).getPublicTimelineAsStream()
@@ -335,9 +333,11 @@ class TimelineFragment: BaseFragment() {
                             .compose(bindToLifecycle())
                             .subscribe({
                                 toggleRefreshIndicatorState(false)
-                                toggleRefreshIndicatorActivity(false)
                                 parseTimelineStream(it)
-                            }, Throwable::printStackTrace)
+                            }, { throwable ->
+                                throwable.printStackTrace()
+                                publicStream?.dispose()
+                            })
         }
     }
 
@@ -346,18 +346,20 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun showPublicTimeline(loadNext: Boolean = false) {
-        val next = loadNext && maxId != -1L
-        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(maxId = if (next) maxId else null, sinceId = if (sinceId != -1L) sinceId else null)
+        if (loadNext && maxId == -1L) return
+        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(maxId = if (loadNext) maxId else null, sinceId = if (sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
                     toggleRefreshIndicatorState(false)
-                    reflectStatuses(it, next)
+                    reflectStatuses(it, loadNext)
                 }, Throwable::printStackTrace)
     }
 
     fun startUserTimelineStream() {
+        userStream?.dispose()
+        userStream = null
         Common.resetAuthInfo()?.let {
             userStream =
                     MastodonClient(it).getUserTimelineAsStream()
@@ -367,9 +369,11 @@ class TimelineFragment: BaseFragment() {
                             .compose(bindToLifecycle())
                             .subscribe({
                                 toggleRefreshIndicatorState(false)
-                                toggleRefreshIndicatorActivity(false)
                                 parseTimelineStream(it)
-                            }, Throwable::printStackTrace)
+                            }, { throwable ->
+                                throwable.printStackTrace()
+                                userStream?.dispose()
+                            })
         }
     }
 
@@ -378,30 +382,35 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun showUserTimeline(loadStream: Boolean = false, loadNext: Boolean = false) {
-        val next = loadNext && maxId != -1L
-        MastodonClient(Common.resetAuthInfo() ?: return).getUserTimeline(maxId = if (next) maxId else null, sinceId = if (sinceId != -1L) sinceId else null)
+        if (loadNext && maxId == -1L) return
+        MastodonClient(Common.resetAuthInfo() ?: return).getUserTimeline(maxId = if (loadNext) maxId else null, sinceId = if (sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
                     toggleRefreshIndicatorState(false)
-                    reflectStatuses(it, next)
+                    reflectStatuses(it, loadNext)
                     if (loadStream) startUserTimelineStream()
                 }, Throwable::printStackTrace)
     }
 
     fun startLocalTimelineStream() {
+        localStream?.dispose()
+        localStream = null
         Common.resetAuthInfo()?.let {
-            MastodonClient(it).getLocalTimelineAsStream()
-                    .flatMap { responseBody -> MastodonService.events(responseBody.source()) }
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .compose(bindToLifecycle())
-                    .subscribe({
-                        toggleRefreshIndicatorState(false)
-                        toggleRefreshIndicatorActivity(false)
-                        parseTimelineStream(it)
-                    }, Throwable::printStackTrace)
+            localStream =
+                    MastodonClient(it).getLocalTimelineAsStream()
+                            .flatMap { responseBody -> MastodonService.events(responseBody.source()) }
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .compose(bindToLifecycle())
+                            .subscribe({
+                                toggleRefreshIndicatorState(false)
+                                parseTimelineStream(it)
+                            }, { throwable ->
+                                throwable.printStackTrace()
+                                localStream?.dispose()
+                            })
         }
     }
 
@@ -410,14 +419,14 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun showLocalTimeline(loadNext: Boolean = false) {
-        val next = loadNext && maxId != -1L
-        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(true, maxId = if (next) maxId else null, sinceId = if (sinceId != -1L) sinceId else null)
+        if (loadNext && maxId == -1L) return
+        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(true, maxId = if (loadNext) maxId else null, sinceId = if (sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
                     toggleRefreshIndicatorState(false)
-                    reflectStatuses(it, next)
+                    reflectStatuses(it, loadNext)
                 }, Throwable::printStackTrace)
     }
 
@@ -431,7 +440,7 @@ class TimelineFragment: BaseFragment() {
         maxId = result.response().headers().get("Link")?.replace(getRegexExtractMaxId(), "$1")?.toLong() ?: -1L
         sinceId = result.response().headers().get("Link")?.replace(getRegexExtractSinceId(), "$1")?.toLong() ?: -1L
 
-        hideRefreshIndicator()
+        toggleRefreshIndicatorState(false)
     }
 
     fun onAddItemToAdapter() {
