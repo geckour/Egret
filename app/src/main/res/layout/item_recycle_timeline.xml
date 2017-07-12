@@ -10,371 +10,373 @@
             type="com.geckour.egret.view.adapter.model.TimelineContent" />
     </data>
 
-        <android.support.constraint.ConstraintLayout
-            android:layout_width="match_parent"
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?android:attr/colorBackground"
+        android:clickable="true"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/indicate_reblog"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="8dp"
+            android:tint="@color/secondary_text_material_light"
+            android:visibility="gone"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_repeat_black_24px" />
+
+        <TextView
+            android:id="@+id/rebloggedBy"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="?android:attr/colorBackground"
+            android:layout_marginLeft="4dp"
+            android:text="@string/reblogged_by"
+            android:textSize="10sp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/indicate_reblog"
+            app:layout_constraintLeft_toRightOf="@+id/indicate_reblog"
+            app:layout_constraintTop_toTopOf="@+id/indicate_reblog"
+            tools:layout_editor_absoluteX="0dp" />
+
+        <TextView
+            android:id="@+id/reblogged_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:text="@{content.nameStrong}"
+            android:textSize="10sp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/rebloggedBy"
+            app:layout_constraintLeft_toRightOf="@+id/rebloggedBy"
+            app:layout_constraintTop_toTopOf="@+id/rebloggedBy"
+            tools:layout_editor_absoluteY="81dp"
+            tools:text="ゆーざーねーむ" />
+
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
-            android:orientation="horizontal">
+            app:imageUrl="@{(content.rebloggedStatusContent == null) ? content.iconUrl : content.rebloggedStatusContent.iconUrl}"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/indicate_reblog" />
 
-            <ImageView
-                android:id="@+id/indicate_reblog"
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginTop="8dp"
-                android:tint="@color/secondary_text_material_light"
-                android:visibility="gone"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_repeat_black_24px" />
+        <TextView
+            android:id="@+id/name_strong"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:ellipsize="end"
+            android:inputType="none"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:text="@{(content.rebloggedStatusContent == null) ? content.nameStrong : content.rebloggedStatusContent.nameStrong}"
+            android:textColor="?attr/colorGray"
+            android:textSize="12sp"
+            app:layout_constraintLeft_toRightOf="@+id/icon"
+            app:layout_constraintRight_toLeftOf="@+id/time"
+            app:layout_constraintTop_toTopOf="@+id/icon"
+            tools:text="つよいなまえ" />
+
+        <TextView
+            android:id="@+id/name_weak"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="8dp"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:text="@{(content.rebloggedStatusContent == null) ? content.nameWeak : content.rebloggedStatusContent.nameWeak}"
+            android:textSize="10sp"
+            app:layout_constraintLeft_toLeftOf="@+id/name_strong"
+            app:layout_constraintRight_toLeftOf="@+id/time"
+            app:layout_constraintTop_toBottomOf="@+id/name_strong"
+            tools:text="よわいなまえ" />
+
+        <ImageView
+            android:id="@+id/opt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="8dp"
+            android:layout_marginTop="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:tint="@color/icon_tint_dark"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_more_vert_black_24px" />
+
+        <TextView
+            android:id="@+id/time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="8dp"
+            android:text="@{(content.rebloggedStatusContent == null) ? content.time : content.rebloggedStatusContent.time}"
+            android:textSize="10sp"
+            app:layout_constraintBottom_toBottomOf="@+id/name_weak"
+            app:layout_constraintRight_toLeftOf="@+id/opt"
+            app:layout_constraintTop_toTopOf="@+id/name_strong"
+            tools:text="HH:MM" />
+
+        <TextView
+            android:id="@+id/body"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="8dp"
+            android:layout_marginTop="8dp"
+            android:bufferType="spannable"
+            android:clickable="true"
+            android:ellipsize="none"
+            android:text="@{(content.rebloggedStatusContent == null) ? content.body : content.rebloggedStatusContent.body}"
+            android:textColor="?attr/colorGray"
+            android:textSize="12sp"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintLeft_toLeftOf="@+id/name_weak"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/name_weak"
+            tools:text="これはトゥート本文です" />
+
+        <ImageView
+            android:id="@+id/media1"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_marginLeft="2dp"
+            android:layout_marginRight="2dp"
+            android:layout_marginTop="8dp"
+            android:scaleType="centerCrop"
+            android:visibility="visible"
+            app:layout_constraintLeft_toLeftOf="@+id/body"
+            app:layout_constraintRight_toLeftOf="@+id/media2"
+            app:layout_constraintTop_toBottomOf="@+id/body"
+            app:srcCompat="@mipmap/ic_launcher" />
+
+        <FrameLayout
+            android:id="@+id/media_spoiler_wrap_1"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@color/black_overlay_spoiler"
+            android:clickable="true"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/media1"
+            app:layout_constraintLeft_toLeftOf="@+id/media1"
+            app:layout_constraintRight_toRightOf="@+id/media1"
+            app:layout_constraintTop_toTopOf="@+id/media1">
 
             <TextView
-                android:id="@+id/rebloggedBy"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="4dp"
-                android:text="@string/reblogged_by"
-                android:textSize="10sp"
-                android:visibility="gone"
-                app:layout_constraintBottom_toBottomOf="@+id/indicate_reblog"
-                app:layout_constraintLeft_toRightOf="@+id/indicate_reblog"
-                app:layout_constraintTop_toTopOf="@+id/indicate_reblog"
-                tools:layout_editor_absoluteX="0dp" />
+                android:layout_gravity="center"
+                android:text="@string/spoiler_media"
+                android:textColor="@color/material_gray_light"
+                android:textSize="12sp" />
+        </FrameLayout>
+
+        <ImageView
+            android:id="@+id/media2"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_marginLeft="2dp"
+            android:layout_marginRight="2dp"
+            android:scaleType="centerCrop"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="@+id/media1"
+            app:layout_constraintLeft_toRightOf="@+id/media1"
+            app:layout_constraintRight_toRightOf="@+id/body"
+            app:layout_constraintTop_toTopOf="@+id/media1"
+            app:srcCompat="@mipmap/ic_launcher" />
+
+        <FrameLayout
+            android:id="@+id/media_spoiler_wrap_2"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@color/black_overlay_spoiler"
+            android:clickable="true"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/media2"
+            app:layout_constraintLeft_toLeftOf="@+id/media2"
+            app:layout_constraintRight_toRightOf="@+id/media2"
+            app:layout_constraintTop_toTopOf="@+id/media2">
 
             <TextView
-                android:id="@+id/reblogged_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="4dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:singleLine="true"
-                android:text="@{content.nameStrong}"
-                android:textSize="10sp"
-                android:visibility="gone"
-                app:layout_constraintBottom_toBottomOf="@+id/rebloggedBy"
-                app:layout_constraintLeft_toRightOf="@+id/rebloggedBy"
-                app:layout_constraintTop_toTopOf="@+id/rebloggedBy"
-                tools:layout_editor_absoluteY="81dp"
-                tools:text="ゆーざーねーむ" />
+                android:layout_gravity="center"
+                android:text="@string/spoiler_media"
+                android:textColor="@color/material_gray_light"
+                android:textSize="12sp" />
+        </FrameLayout>
 
-            <ImageView
-                android:id="@+id/icon"
-                android:layout_width="42dp"
-                android:layout_height="42dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginStart="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                app:imageUrl="@{(content.rebloggedStatusContent == null) ? content.iconUrl : content.rebloggedStatusContent.iconUrl}"
-                app:layout_constraintLeft_toLeftOf="parent"
-                android:layout_marginTop="8dp"
-                app:layout_constraintTop_toBottomOf="@+id/indicate_reblog" />
+        <ImageView
+            android:id="@+id/media3"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_marginLeft="2dp"
+            android:layout_marginRight="2dp"
+            android:layout_marginTop="4dp"
+            android:scaleType="centerCrop"
+            android:visibility="visible"
+            app:layout_constraintLeft_toLeftOf="@+id/body"
+            app:layout_constraintRight_toLeftOf="@+id/media4"
+            app:layout_constraintTop_toBottomOf="@+id/media1"
+            app:srcCompat="@mipmap/ic_launcher" />
 
-            <TextView
-                android:id="@+id/name_strong"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
-                android:layout_marginTop="0dp"
-                android:ellipsize="end"
-                android:inputType="none"
-                android:maxLines="1"
-                android:singleLine="true"
-                android:text="@{(content.rebloggedStatusContent == null) ? content.nameStrong : content.rebloggedStatusContent.nameStrong}"
-                android:textColor="?attr/colorGray"
-                android:textSize="12sp"
-                app:layout_constraintLeft_toRightOf="@+id/icon"
-                app:layout_constraintRight_toLeftOf="@+id/time"
-                app:layout_constraintTop_toTopOf="@+id/icon"
-                tools:text="つよいなまえ" />
+        <FrameLayout
+            android:id="@+id/media_spoiler_wrap_3"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@color/black_overlay_spoiler"
+            android:clickable="true"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/media3"
+            app:layout_constraintLeft_toLeftOf="@+id/media3"
+            app:layout_constraintRight_toRightOf="@+id/media3"
+            app:layout_constraintTop_toTopOf="@+id/media3">
 
             <TextView
-                android:id="@+id/name_weak"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginRight="8dp"
-                android:layout_marginTop="4dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:singleLine="true"
-                android:text="@{(content.rebloggedStatusContent == null) ? content.nameWeak : content.rebloggedStatusContent.nameWeak}"
-                android:textSize="10sp"
-                app:layout_constraintLeft_toLeftOf="@+id/name_strong"
-                app:layout_constraintRight_toLeftOf="@+id/time"
-                app:layout_constraintTop_toBottomOf="@+id/name_strong"
-                tools:text="よわいなまえ" />
-
-            <ImageView
-                android:id="@+id/opt"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:tint="@color/icon_tint_dark"
-                app:srcCompat="@drawable/ic_more_vert_black_24px"
-                android:layout_marginRight="8dp"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:layout_marginTop="8dp" />
+                android:layout_gravity="center"
+                android:text="@string/spoiler_media"
+                android:textColor="@color/material_gray_light"
+                android:textSize="12sp" />
+        </FrameLayout>
+
+        <ImageView
+            android:id="@+id/media4"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_marginLeft="2dp"
+            android:layout_marginRight="2dp"
+            android:scaleType="centerCrop"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="@+id/media3"
+            app:layout_constraintLeft_toRightOf="@+id/media3"
+            app:layout_constraintRight_toRightOf="@+id/body"
+            app:layout_constraintTop_toTopOf="@+id/media3"
+            app:layout_constraintVertical_bias="0.0"
+            app:srcCompat="@mipmap/ic_launcher" />
+
+        <FrameLayout
+            android:id="@+id/media_spoiler_wrap_4"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@color/black_overlay_spoiler"
+            android:clickable="true"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/media4"
+            app:layout_constraintLeft_toLeftOf="@+id/media4"
+            app:layout_constraintRight_toRightOf="@+id/media4"
+            app:layout_constraintTop_toTopOf="@+id/media4">
 
             <TextView
-                android:id="@+id/time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="8dp"
-                android:text="@{(content.rebloggedStatusContent == null) ? content.time : content.rebloggedStatusContent.time}"
-                android:textSize="10sp"
-                app:layout_constraintBottom_toBottomOf="@+id/name_weak"
-                app:layout_constraintRight_toLeftOf="@+id/opt"
-                app:layout_constraintTop_toTopOf="@+id/name_strong"
-                tools:text="HH:MM" />
+                android:layout_gravity="center"
+                android:text="@string/spoiler_media"
+                android:textColor="@color/material_gray_light"
+                android:textSize="12sp" />
+        </FrameLayout>
 
-            <TextView
-                android:id="@+id/body"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginRight="8dp"
-                android:layout_marginTop="8dp"
-                android:bufferType="spannable"
-                android:clickable="true"
-                android:ellipsize="none"
-                android:text="@{(content.rebloggedStatusContent == null) ? content.body : content.rebloggedStatusContent.body}"
-                android:textColor="?attr/colorGray"
-                android:textSize="12sp"
-                app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintLeft_toLeftOf="@+id/name_weak"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/name_weak"
-                tools:text="これはトゥート本文です" />
+        <ImageView
+            android:id="@+id/reply"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:tint="@color/icon_tint_dark"
+            app:layout_constraintLeft_toLeftOf="@+id/body"
+            app:layout_constraintTop_toBottomOf="@+id/media3"
+            app:srcCompat="@drawable/ic_reply_black_24px" />
 
-            <ImageView
-                android:id="@+id/media1"
-                android:layout_width="0dp"
-                android:layout_height="80dp"
-                android:layout_marginRight="2dp"
-                android:layout_marginTop="8dp"
-                android:scaleType="centerCrop"
-                android:visibility="visible"
-                app:layout_constraintLeft_toLeftOf="@+id/body"
-                app:layout_constraintRight_toLeftOf="@+id/media2"
-                app:layout_constraintTop_toBottomOf="@+id/body"
-                app:srcCompat="@mipmap/ic_launcher" />
+        <ImageView
+            android:id="@+id/fav"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:tint="@color/icon_tint_dark"
+            app:layout_constraintBottom_toBottomOf="@+id/reply"
+            app:layout_constraintLeft_toRightOf="@+id/reply"
+            app:layout_constraintRight_toLeftOf="@+id/boost"
+            app:layout_constraintTop_toTopOf="@+id/reply"
+            app:srcCompat="@drawable/ic_star_black_24px" />
 
-            <FrameLayout
-                android:id="@+id/media_spoiler_wrap_1"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:background="@color/black_overlay_spoiler"
-                android:clickable="true"
-                android:visibility="gone"
-                app:layout_constraintBottom_toBottomOf="@+id/media1"
-                app:layout_constraintLeft_toLeftOf="@+id/media1"
-                app:layout_constraintRight_toRightOf="@+id/media1"
-                app:layout_constraintTop_toTopOf="@+id/media1">
+        <TextView
+            android:id="@+id/fav_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="2dp"
+            android:text="@{content.favCount > 0 ? String.valueOf(content.favCount) : null}"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@+id/fav"
+            app:layout_constraintLeft_toRightOf="@+id/fav"
+            app:layout_constraintTop_toTopOf="@+id/fav"
+            tools:layout_editor_absoluteX="0dp"
+            tools:text="1" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="@string/spoiler_media"
-                    android:textColor="@color/material_gray_light"
-                    android:textSize="12sp" />
-            </FrameLayout>
+        <ImageView
+            android:id="@+id/boost"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:tint="@color/icon_tint_dark"
+            app:layout_constraintBottom_toBottomOf="@+id/reply"
+            app:layout_constraintLeft_toRightOf="@+id/fav"
+            app:layout_constraintRight_toLeftOf="@+id/padding"
+            app:layout_constraintTop_toTopOf="@+id/reply"
+            app:srcCompat="@drawable/ic_repeat_black_24px" />
 
-            <ImageView
-                android:id="@+id/media2"
-                android:layout_width="0dp"
-                android:layout_height="80dp"
-                android:layout_marginLeft="2dp"
-                android:scaleType="centerCrop"
-                android:visibility="visible"
-                app:layout_constraintLeft_toRightOf="@+id/media1"
-                app:layout_constraintRight_toRightOf="@+id/body"
-                app:layout_constraintTop_toTopOf="@+id/media1"
-                app:srcCompat="@mipmap/ic_launcher" />
+        <TextView
+            android:id="@+id/boost_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="2dp"
+            android:text="@{content.reblogCount > 0 ? String.valueOf(content.reblogCount) : null}"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@+id/boost"
+            app:layout_constraintLeft_toRightOf="@+id/boost"
+            app:layout_constraintTop_toTopOf="@+id/boost"
+            tools:text="3" />
 
-            <FrameLayout
-                android:id="@+id/media_spoiler_wrap_2"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:background="@color/black_overlay_spoiler"
-                android:clickable="true"
-                android:visibility="gone"
-                app:layout_constraintBottom_toBottomOf="@+id/media2"
-                app:layout_constraintLeft_toLeftOf="@+id/media2"
-                app:layout_constraintRight_toRightOf="@+id/media2"
-                app:layout_constraintTop_toTopOf="@+id/media2">
+        <FrameLayout
+            android:id="@+id/padding"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginRight="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="@+id/reply"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/reply">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="@string/spoiler_media"
-                    android:textColor="@color/material_gray_light"
-                    android:textSize="12sp" />
-            </FrameLayout>
+        </FrameLayout>
 
-            <ImageView
-                android:id="@+id/media3"
-                android:layout_width="0dp"
-                android:layout_height="80dp"
-                android:layout_marginBottom="8dp"
-                android:layout_marginRight="2dp"
-                android:layout_marginTop="4dp"
-                android:scaleType="centerCrop"
-                android:visibility="visible"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="@+id/media1"
-                app:layout_constraintRight_toLeftOf="@+id/media4"
-                app:layout_constraintTop_toBottomOf="@+id/media1"
-                app:layout_constraintVertical_bias="0.0"
-                app:srcCompat="@mipmap/ic_launcher" />
+        <FrameLayout
+            android:id="@+id/divider"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:background="?attr/colorDivider"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/reply" />
 
-            <FrameLayout
-                android:id="@+id/media_spoiler_wrap_3"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:background="@color/black_overlay_spoiler"
-                android:clickable="true"
-                android:visibility="gone"
-                app:layout_constraintBottom_toBottomOf="@+id/media3"
-                app:layout_constraintLeft_toLeftOf="@+id/media3"
-                app:layout_constraintRight_toRightOf="@+id/media3"
-                app:layout_constraintTop_toTopOf="@+id/media3">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="@string/spoiler_media"
-                    android:textColor="@color/material_gray_light"
-                    android:textSize="12sp" />
-            </FrameLayout>
-
-            <ImageView
-                android:id="@+id/media4"
-                android:layout_width="0dp"
-                android:layout_height="80dp"
-                android:layout_marginLeft="2dp"
-                android:scaleType="centerCrop"
-                android:visibility="visible"
-                app:layout_constraintBottom_toBottomOf="@+id/media3"
-                app:layout_constraintLeft_toRightOf="@+id/media3"
-                app:layout_constraintRight_toRightOf="@+id/body"
-                app:layout_constraintTop_toTopOf="@+id/media3"
-                app:layout_constraintVertical_bias="0.0"
-                app:srcCompat="@mipmap/ic_launcher" />
-
-            <FrameLayout
-                android:id="@+id/media_spoiler_wrap_4"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:background="@color/black_overlay_spoiler"
-                android:clickable="true"
-                android:visibility="gone"
-                app:layout_constraintBottom_toBottomOf="@+id/media4"
-                app:layout_constraintLeft_toLeftOf="@+id/media4"
-                app:layout_constraintRight_toRightOf="@+id/media4"
-                app:layout_constraintTop_toTopOf="@+id/media4">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="@string/spoiler_media"
-                    android:textColor="@color/material_gray_light"
-                    android:textSize="12sp" />
-            </FrameLayout>
-
-            <ImageView
-                android:id="@+id/reply"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_marginBottom="8dp"
-                android:layout_marginTop="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:tint="@color/icon_tint_dark"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="@+id/body"
-                app:layout_constraintTop_toBottomOf="@+id/media3"
-                app:srcCompat="@drawable/ic_reply_black_24px" />
-
-            <ImageView
-                android:id="@+id/fav"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:tint="@color/icon_tint_dark"
-                app:layout_constraintBottom_toBottomOf="@+id/reply"
-                app:layout_constraintLeft_toRightOf="@+id/reply"
-                app:layout_constraintRight_toLeftOf="@+id/boost"
-                app:layout_constraintTop_toTopOf="@+id/reply"
-                app:srcCompat="@drawable/ic_star_black_24px" />
-
-            <TextView
-                android:id="@+id/fav_count"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="2dp"
-                android:text="@{content.favCount > 0 ? String.valueOf(content.favCount) : null}"
-                android:textSize="12sp"
-                app:layout_constraintBottom_toBottomOf="@+id/fav"
-                app:layout_constraintLeft_toRightOf="@+id/fav"
-                app:layout_constraintTop_toTopOf="@+id/fav"
-                tools:layout_editor_absoluteX="0dp"
-                tools:text="1" />
-
-            <ImageView
-                android:id="@+id/boost"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:tint="@color/icon_tint_dark"
-                app:layout_constraintBottom_toBottomOf="@+id/reply"
-                app:layout_constraintLeft_toRightOf="@+id/fav"
-                app:layout_constraintRight_toLeftOf="@+id/padding"
-                app:layout_constraintTop_toTopOf="@+id/reply"
-                app:srcCompat="@drawable/ic_repeat_black_24px" />
-
-            <TextView
-                android:id="@+id/boost_count"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="2dp"
-                android:text="@{content.reblogCount > 0 ? String.valueOf(content.reblogCount) : null}"
-                android:textSize="12sp"
-                app:layout_constraintBottom_toBottomOf="@+id/boost"
-                app:layout_constraintLeft_toRightOf="@+id/boost"
-                app:layout_constraintTop_toTopOf="@+id/boost"
-                tools:text="3" />
-
-            <FrameLayout
-                android:id="@+id/padding"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_marginRight="8dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                app:layout_constraintBottom_toBottomOf="@+id/reply"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/reply">
-
-            </FrameLayout>
-
-            <FrameLayout
-                android:id="@+id/divider"
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:background="?attr/colorDivider"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent" />
-
-        </android.support.constraint.ConstraintLayout>
+    </android.support.constraint.ConstraintLayout>
 </layout>
