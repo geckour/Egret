@@ -347,7 +347,7 @@ class TimelineFragment: BaseFragment() {
 
     fun showPublicTimeline(loadNext: Boolean = false) {
         if (loadNext && maxId == -1L) return
-        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(maxId = if (loadNext) maxId else null, sinceId = if (sinceId != -1L) sinceId else null)
+        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(maxId = if (loadNext) maxId else null, sinceId = if (!loadNext && sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
@@ -383,7 +383,7 @@ class TimelineFragment: BaseFragment() {
 
     fun showUserTimeline(loadStream: Boolean = false, loadNext: Boolean = false) {
         if (loadNext && maxId == -1L) return
-        MastodonClient(Common.resetAuthInfo() ?: return).getUserTimeline(maxId = if (loadNext) maxId else null, sinceId = if (sinceId != -1L) sinceId else null)
+        MastodonClient(Common.resetAuthInfo() ?: return).getUserTimeline(maxId = if (loadNext) maxId else null, sinceId = if (!loadNext && sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
@@ -420,7 +420,7 @@ class TimelineFragment: BaseFragment() {
 
     fun showLocalTimeline(loadNext: Boolean = false) {
         if (loadNext && maxId == -1L) return
-        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(true, maxId = if (loadNext) maxId else null, sinceId = if (sinceId != -1L) sinceId else null)
+        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(true, maxId = if (loadNext) maxId else null, sinceId = if (!loadNext && sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
@@ -434,13 +434,15 @@ class TimelineFragment: BaseFragment() {
     fun getRegexExtractMaxId() = Regex(".*max_id=(\\d+?)>.*")
 
     fun reflectStatuses(result: Result<List<Status>>, next: Boolean) {
-        if (next) adapter.addAllContentsAtLast(result.response().body().map { Common.getTimelineContent(it) })
-        else adapter.addAllContents(result.response().body().map { Common.getTimelineContent(it) })
+        result.response()?.let {
+            if (next) adapter.addAllContentsAtLast(it.body().map { Common.getTimelineContent(it) })
+            else adapter.addAllContents(it.body().map { Common.getTimelineContent(it) })
 
-        maxId = result.response().headers().get("Link")?.replace(getRegexExtractMaxId(), "$1")?.toLong() ?: -1L
-        sinceId = result.response().headers().get("Link")?.replace(getRegexExtractSinceId(), "$1")?.toLong() ?: -1L
+            maxId = it.headers().get("Link")?.replace(getRegexExtractMaxId(), "$1")?.toLong() ?: -1L
+            sinceId = it.headers().get("Link")?.replace(getRegexExtractSinceId(), "$1")?.toLong() ?: -1L
 
-        toggleRefreshIndicatorState(false)
+            toggleRefreshIndicatorState(false)
+        }
     }
 
     fun onAddItemToAdapter() {
