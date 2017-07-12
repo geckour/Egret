@@ -5,9 +5,13 @@
 
     <data>
         <import type="android.text.Html" />
+        <import type="com.geckour.egret.api.model.Notification.Companion.NotificationType" />
         <variable
-            name="content"
-            type="com.geckour.egret.view.adapter.model.TimelineContent" />
+            name="status"
+            type="com.geckour.egret.view.adapter.model.TimelineContent.TimelineStatus" />
+        <variable
+            name="notification"
+            type="com.geckour.egret.view.adapter.model.TimelineContent.TimelineNotification" />
     </data>
 
     <android.support.constraint.ConstraintLayout
@@ -50,7 +54,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:singleLine="true"
-            android:text="@{content.nameStrong}"
+            android:text="@{(notification == null) ? status.nameStrong : notification.nameStrong}"
             android:textSize="10sp"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="@+id/rebloggedBy"
@@ -68,7 +72,7 @@
             android:layout_marginTop="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
-            app:imageUrl="@{(content.rebloggedStatusContent == null) ? content.iconUrl : content.rebloggedStatusContent.iconUrl}"
+            app:imageUrl="@{(notification == null) ? ((status.rebloggedStatusContent == null) ? status.iconUrl : status.rebloggedStatusContent.iconUrl) : notification.iconUrl}"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/indicate_reblog" />
 
@@ -82,7 +86,7 @@
             android:inputType="none"
             android:maxLines="1"
             android:singleLine="true"
-            android:text="@{(content.rebloggedStatusContent == null) ? content.nameStrong : content.rebloggedStatusContent.nameStrong}"
+            android:text="@{(notification == null) ? ((status.rebloggedStatusContent == null) ? status.nameStrong : status.rebloggedStatusContent.nameStrong) : ((notification.status != null) ? notification.status.nameStrong : null)}"
             android:textColor="?attr/colorGray"
             android:textSize="12sp"
             app:layout_constraintLeft_toRightOf="@+id/icon"
@@ -99,7 +103,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:singleLine="true"
-            android:text="@{(content.rebloggedStatusContent == null) ? content.nameWeak : content.rebloggedStatusContent.nameWeak}"
+            android:text="@{(notification == null) ? ((status.rebloggedStatusContent == null) ? status.nameWeak : status.rebloggedStatusContent.nameWeak) : ((notification.status != null) ? notification.status.nameWeak : null)}"
             android:textSize="10sp"
             app:layout_constraintLeft_toLeftOf="@+id/name_strong"
             app:layout_constraintRight_toLeftOf="@+id/time"
@@ -124,7 +128,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="8dp"
-            android:text="@{(content.rebloggedStatusContent == null) ? content.time : content.rebloggedStatusContent.time}"
+            android:text="@{(notification == null) ? ((status.rebloggedStatusContent == null) ? status.time : status.rebloggedStatusContent.time) : ((notification.status != null) ? notification.status.time : notification.time)}"
             android:textSize="10sp"
             app:layout_constraintBottom_toBottomOf="@+id/name_weak"
             app:layout_constraintRight_toLeftOf="@+id/opt"
@@ -140,7 +144,7 @@
             android:bufferType="spannable"
             android:clickable="true"
             android:ellipsize="none"
-            android:text="@{(content.rebloggedStatusContent == null) ? content.body : content.rebloggedStatusContent.body}"
+            android:text="@{(notification == null) ? ((status.rebloggedStatusContent == null) ? status.body : status.rebloggedStatusContent.body) : ((notification.status != null) ? notification.status.body : null)}"
             android:textColor="?attr/colorGray"
             android:textSize="12sp"
             app:layout_constraintHorizontal_bias="0.0"
@@ -321,7 +325,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="2dp"
-            android:text="@{content.favCount > 0 ? String.valueOf(content.favCount) : null}"
+            android:text="@{(notification == null) ? (status.favCount > 0 ? String.valueOf(status.favCount) : null): (notification.status.favCount > 0 ? String.valueOf(notification.status.favCount) : null)}"
             android:textSize="12sp"
             app:layout_constraintBottom_toBottomOf="@+id/fav"
             app:layout_constraintLeft_toRightOf="@+id/fav"
@@ -347,7 +351,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="2dp"
-            android:text="@{content.reblogCount > 0 ? String.valueOf(content.reblogCount) : null}"
+            android:text="@{(notification == null) ? (status.reblogCount > 0 ? String.valueOf(status.reblogCount) : null) : (notification.status.favCount > 0 ? String.valueOf(notification.status.favCount) : null)}"
             android:textSize="12sp"
             app:layout_constraintBottom_toBottomOf="@+id/boost"
             app:layout_constraintLeft_toRightOf="@+id/boost"

@@ -9,6 +9,7 @@ import android.widget.ImageView
 import android.widget.PopupMenu
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
+import com.geckour.egret.api.model.Notification
 import com.geckour.egret.databinding.ItemRecycleTimelineBinding
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
@@ -20,18 +21,23 @@ import java.util.*
 
 class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : RecyclerView.Adapter<TimelineAdapter.ViewHolder>() {
 
+    enum class ContentType {
+        Status,
+        Notification
+    }
+
     private val contents: ArrayList<TimelineContent> = ArrayList()
 
     interface Callbacks {
-        val showTootInBrowser: (content: TimelineContent) -> Any
+        val showTootInBrowser: (content: TimelineContent.TimelineStatus) -> Any
 
-        val copyTootToClipboard: (content: TimelineContent) -> Any
+        val copyTootToClipboard: (content: TimelineContent.TimelineStatus) -> Any
 
-        val showMuteDialog: (content: TimelineContent) -> Any
+        val showMuteDialog: (content: TimelineContent.TimelineStatus) -> Any
 
         val showProfile: (accountId: Long) -> Any
 
-        val onReply: (content: TimelineContent) -> Any
+        val onReply: (content: TimelineContent.TimelineStatus) -> Any
 
         val onFavStatus: (statusId: Long, view: ImageView) -> Any
 
@@ -41,10 +47,10 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
     }
 
     inner class ViewHolder(val binding: ItemRecycleTimelineBinding): RecyclerView.ViewHolder(binding.root) {
-        fun bindData(content: TimelineContent) {
+        fun bindData(content: TimelineContent.TimelineStatus) {
             initVisibility()
 
-            binding.content = content
+            binding.status = content
 
             binding.body.visibility = View.VISIBLE
 
@@ -69,25 +75,38 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
                 }
             }
 
-            if (binding.content.rebloggedStatusContent != null) {
+            if (binding.status.rebloggedStatusContent != null) {
                 showRebloggedBy()
             }
 
             binding.fav.setColorFilter(
                     ContextCompat.getColor(
                             binding.fav.context,
-                            if (binding.content.rebloggedStatusContent?.favourited ?: binding.content.favourited) R.color.colorAccent else R.color.icon_tint_dark))
+                            if (binding.status.rebloggedStatusContent?.favourited ?: binding.status.favourited) R.color.colorAccent else R.color.icon_tint_dark))
             binding.boost.setColorFilter(
                     ContextCompat.getColor(
                             binding.boost.context,
-                            if (binding.content.rebloggedStatusContent?.reblogged ?: binding.content.reblogged) R.color.colorAccent else R.color.icon_tint_dark))
+                            if (binding.status.rebloggedStatusContent?.reblogged ?: binding.status.reblogged) R.color.colorAccent else R.color.icon_tint_dark))
 
             binding.opt.setOnClickListener { showPopup(it) }
-            binding.icon.setOnClickListener { listener.showProfile(binding.content.rebloggedStatusContent?.accountId ?: binding.content.accountId) }
-            binding.reply.setOnClickListener { listener.onReply(binding.content.rebloggedStatusContent ?: binding.content) }
-            binding.fav.setOnClickListener { listener.onFavStatus(binding.content.rebloggedStatusContent?.id ?: binding.content.id, binding.fav) }
-            binding.boost.setOnClickListener { listener.onBoostStatus(binding.content.rebloggedStatusContent?.id ?: binding.content.id, binding.boost) }
+            binding.icon.setOnClickListener { listener.showProfile(binding.status.rebloggedStatusContent?.accountId ?: binding.status.accountId) }
+            binding.reply.setOnClickListener { listener.onReply(binding.status.rebloggedStatusContent ?: binding.status) }
+            binding.fav.setOnClickListener { listener.onFavStatus(binding.status.rebloggedStatusContent?.id ?: binding.status.id, binding.fav) }
+            binding.boost.setOnClickListener { listener.onBoostStatus(binding.status.rebloggedStatusContent?.id ?: binding.status.id, binding.boost) }
             binding.body.movementMethod = Common.getMovementMethodFromPreference(binding.body.context)
+        }
+
+        fun bindData(content: TimelineContent.TimelineNotification) {
+            initVisibility()
+
+            binding.notification = content
+
+            when (content.type) {
+                Notification.Companion.NotificationType.mention.name -> {}
+                Notification.Companion.NotificationType.reblog.name -> {}
+                Notification.Companion.NotificationType.favourite.name -> {}
+                Notification.Companion.NotificationType.follow.name -> {}
+            }
         }
 
         fun initVisibility() {
@@ -113,7 +132,7 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
                     .forEach {
                         it.apply {
                             visibility = View.VISIBLE
-                            setOnClickListener { listener.showProfile(binding.content.accountId) }
+                            setOnClickListener { listener.showProfile(binding.status.accountId) }
                         }
                     }
         }
@@ -121,32 +140,32 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
         fun showPopup(view: View) {
             val popup = PopupMenu(view.context, view)
             val currentAccountId = OrmaProvider.db.selectFromAccessToken().isCurrentEq(true).last().accountId
-            val contentAccountId = binding.content.accountId
+            val contentAccountId = binding.status.accountId
 
             popup.setOnMenuItemClickListener { item ->
                 when (item?.itemId) {
                     R.id.action_open -> {
-                        listener.showTootInBrowser(binding.content)
+                        listener.showTootInBrowser(binding.status)
                         true
                     }
 
                     R.id.action_copy -> {
-                        listener.copyTootToClipboard(binding.content)
+                        listener.copyTootToClipboard(binding.status)
                         true
                     }
 
                     R.id.action_mute -> {
-                        listener.showMuteDialog(binding.content)
+                        listener.showMuteDialog(binding.status)
                         true
                     }
 
                     R.id.action_block -> {
                         Common.resetAuthInfo()?.let {
-                            MastodonClient(it).blockAccount(binding.content.accountId)
+                            MastodonClient(it).blockAccount(binding.status.accountId)
                                     .subscribeOn(Schedulers.newThread())
                                     .observeOn(AndroidSchedulers.mainThread())
                                     .subscribe({
-                                        Snackbar.make(view, "Blocked: ${binding.content.nameWeak}", Snackbar.LENGTH_SHORT).show()
+                                        Snackbar.make(view, "Blocked: ${binding.status.nameWeak}", Snackbar.LENGTH_SHORT).show()
                                     }, Throwable::printStackTrace)
                         }
                         true
@@ -154,12 +173,12 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
 
                     R.id.action_delete -> {
                         Common.resetAuthInfo()?.let {
-                            MastodonClient(it).deleteToot(binding.content.id)
+                            MastodonClient(it).deleteToot(binding.status.id)
                                     .subscribeOn(Schedulers.newThread())
                                     .observeOn(AndroidSchedulers.mainThread())
                                     .subscribe({
-                                        removeContentByTootId(binding.content.id)
-                                        Snackbar.make(view, "Deleted: ${binding.content.body}", Snackbar.LENGTH_SHORT).show()
+                                        removeContentByTootId(binding.status.id)
+                                        Snackbar.make(view, "Deleted: ${binding.status.body}", Snackbar.LENGTH_SHORT).show()
                                     }, Throwable::printStackTrace)
                         }
                         true
@@ -188,14 +207,21 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
         }
     }
 
+    override fun getItemViewType(position: Int): Int {
+        return contents[position].let { if (it.status != null) ContentType.Status.ordinal else if (it.notification != null) ContentType.Notification.ordinal else -1 }
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ViewHolder {
-        val binding = DataBindingUtil.inflate<ItemRecycleTimelineBinding>(LayoutInflater.from(parent?.context), R.layout.item_recycle_timeline, parent, false)
-        return ViewHolder(binding)
+        if (viewType == ContentType.Status.ordinal || viewType == ContentType.Notification.ordinal) {
+            val binding = DataBindingUtil.inflate<ItemRecycleTimelineBinding>(LayoutInflater.from(parent?.context), R.layout.item_recycle_timeline, parent, false)
+            return ViewHolder(binding)
+        } else throw IllegalArgumentException("viewType does not match any defined type.")
     }
 
     override fun onBindViewHolder(holder: ViewHolder?, position: Int) {
         val item = contents[position]
-        holder?.bindData(item)
+        item.status?.let { holder?.bindData(it) }
+        item.notification?.let { holder?.bindData(it) }
     }
 
     override fun getItemCount(): Int {
@@ -246,7 +272,7 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
     fun removeContentByTootId(id: Long) {
         val shouldRemoveContents: ArrayList<TimelineContent> = ArrayList()
         this.contents.forEach { content ->
-            if (content.id == id) shouldRemoveContents.add(content)
+            if (content.status?.id == id) shouldRemoveContents.add(content)
         }
         shouldRemoveContents.forEach { content ->
             val index = this.contents.indexOf(content)
@@ -258,19 +284,19 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
     fun shouldMute(content: TimelineContent): Boolean {
         if (!doFilter) return false
         OrmaProvider.db.selectFromMuteClient().forEach {
-            if (content.app == it.client) return true
+            if (content.status?.app == it.client) return true
         }
         OrmaProvider.db.selectFromMuteHashTag().forEach { tag ->
-            content.tags.forEach { if (tag.hashTag == it) return true }
+            content.status?.tags?.forEach { if (tag.hashTag == it) return true }
         }
         OrmaProvider.db.selectFromMuteKeyword().forEach {
             if (it.isRegex) {
-                if (content.body.toString().matches(Regex(it.keyword, RegexOption.MULTILINE))) return true
-            } else if (content.body.toString().contains(it.keyword)) return true
+                if (content.status?.body?.toString()?.matches(Regex(it.keyword, RegexOption.MULTILINE)) ?: false) return true
+            } else if (content.status?.body?.toString()?.contains(it.keyword) ?: false) return true
         }
         OrmaProvider.db.selectFromMuteInstance().forEach {
-            var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
-            if (content.nameWeak == instance) {
+            var instance = content.status?.nameWeak?.replace(Regex("^@.+@(.+)$"), "@$1") ?: ""
+            if (content.status?.nameWeak == instance) {
                 instance = Common.getCurrentAccessToken()?.instanceId?.let {
                     "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(it).last().instance}"
                 } ?: ""
