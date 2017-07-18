@@ -54,8 +54,8 @@ class AccountProfileFragment: BaseFragment() {
     lateinit private var binding: FragmentAccountProfileBinding
     lateinit private var adapter: TimelineAdapter
     lateinit private var sharedPref: SharedPreferences
-    private var maxId: Long? = -1
-    private var sinceId: Long? = -1
+    private var sinceId: Long = -1
+    private var maxId: Long = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -186,7 +186,6 @@ class AccountProfileFragment: BaseFragment() {
         })
 
         binding.timeline.swipeRefreshLayout.apply {
-            isEnabled = false
             setColorSchemeResources(R.color.colorAccent)
             setOnRefreshListener {
                 showToots()
@@ -207,20 +206,25 @@ class AccountProfileFragment: BaseFragment() {
     }
 
     fun showToots(loadNext: Boolean = false) {
-        val next = loadNext && sinceId != null && (sinceId?.compareTo(-1) ?: 0) == 1
-        if (sinceId != null)
-            Common.resetAuthInfo()?.let {
-                MastodonClient(it).getAccountAllToots(account.id, if (next) sinceId else null)
-                        .subscribeOn(Schedulers.newThread())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .compose(bindToLifecycle())
-                        .subscribe({ result ->
-                            if (next) adapter.addAllContentsAtLast(result.response().body().map { status -> Common.getTimelineContent(status) }, -1)
-                            else adapter.addAllContents(result.response().body().map { status -> Common.getTimelineContent(status) }, -1)
-                            maxId = result.response().headers().get("Link")?.replace(getRegexExtractSinceId(), "$1")?.toLong()
-                            sinceId = result.response().headers().get("Link")?.replace(getRegexExtractMaxId(), "$1")?.toLong()
-                        }, Throwable::printStackTrace)
-            }
+        if (loadNext && maxId == -1L) return
+
+        toggleRefreshIndicatorState(true)
+        Common.resetAuthInfo()?.let {
+            MastodonClient(it).getAccountAllToots(account.id, if (loadNext) maxId else null, if (!loadNext && sinceId != -1L) sinceId else null)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .compose(bindToLifecycle())
+                    .subscribe({ result ->
+                        if (loadNext) adapter.addAllContentsAtLast(result.response().body().map { status -> Common.getTimelineContent(status) })
+                        else adapter.addAllContents(result.response().body().map { status -> Common.getTimelineContent(status) })
+                        maxId = result.response().headers().get("Link")?.replace(getRegexExtractMaxId(), "$1")?.let { if (it.isEmpty()) "-1" else it }?.toLong() ?: -1L
+                        sinceId = result.response().headers().get("Link")?.replace(getRegexExtractSinceId(), "$1")?.let { if (it.isEmpty()) "-1" else it }?.toLong() ?: -1L
+                        toggleRefreshIndicatorState(false)
+                    }, { throwable ->
+                        throwable.printStackTrace()
+                        toggleRefreshIndicatorState(false)
+                    })
+        }
     }
 
     fun getRegexExtractSinceId() = Regex(".*since_id=(\\d+?)>.*")
@@ -257,4 +261,8 @@ class AccountProfileFragment: BaseFragment() {
         binding.url.movementMethod = movementMethod
         binding.note.movementMethod = movementMethod
     }
+
+    fun toggleRefreshIndicatorState(show: Boolean) = Common.toggleRefreshIndicatorState(binding.timeline.swipeRefreshLayout, show)
+
+    fun toggleRefreshIndicatorActivity(show: Boolean) = Common.toggleRefreshIndicatorActivity(binding.timeline.swipeRefreshLayout, show)
 }

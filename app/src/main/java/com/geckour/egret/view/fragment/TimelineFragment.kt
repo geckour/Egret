@@ -217,6 +217,10 @@ class TimelineFragment: BaseFragment() {
         sharedPref.edit().remove(STATE_ARGS_KEY_CONTENTS).apply()
     }
 
+    fun toggleRefreshIndicatorState(show: Boolean) = Common.toggleRefreshIndicatorState(binding.swipeRefreshLayout, show)
+
+    fun toggleRefreshIndicatorActivity(show: Boolean) = Common.toggleRefreshIndicatorActivity(binding.swipeRefreshLayout, show)
+
     fun showTimelineByCategory(category: Category, hasContents: Boolean = false) {
         val prefStream = sharedPref.getString("manage_stream", "1")
 
@@ -264,14 +268,6 @@ class TimelineFragment: BaseFragment() {
                 Category.Notification -> showNotificationTimeline()
             }
         }
-    }
-
-    fun toggleRefreshIndicatorState(show: Boolean) {
-        binding.swipeRefreshLayout.isRefreshing = show
-    }
-
-    fun toggleRefreshIndicatorActivity(activity: Boolean) {
-        binding.swipeRefreshLayout.isEnabled = activity
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -342,6 +338,7 @@ class TimelineFragment: BaseFragment() {
                             }, { throwable ->
                                 throwable.printStackTrace()
                                 publicStream?.dispose()
+                                toggleRefreshIndicatorState(false)
                             })
         }
     }
@@ -359,7 +356,10 @@ class TimelineFragment: BaseFragment() {
                 .subscribe({
                     toggleRefreshIndicatorState(false)
                     reflectContents(it, loadNext)
-                }, Throwable::printStackTrace)
+                }, { throwable ->
+                    throwable.printStackTrace()
+                    toggleRefreshIndicatorState(false)
+                })
     }
 
     fun startUserTimelineStream() {
@@ -378,6 +378,7 @@ class TimelineFragment: BaseFragment() {
                             }, { throwable ->
                                 throwable.printStackTrace()
                                 userStream?.dispose()
+                                toggleRefreshIndicatorState(false)
                             })
         }
     }
@@ -396,7 +397,10 @@ class TimelineFragment: BaseFragment() {
                     toggleRefreshIndicatorState(false)
                     reflectContents(it, loadNext)
                     if (loadStream) startUserTimelineStream()
-                }, Throwable::printStackTrace)
+                }, { throwable ->
+                    throwable.printStackTrace()
+                    toggleRefreshIndicatorState(false)
+                })
     }
 
     fun startLocalTimelineStream() {
@@ -415,6 +419,7 @@ class TimelineFragment: BaseFragment() {
                             }, { throwable ->
                                 throwable.printStackTrace()
                                 localStream?.dispose()
+                                toggleRefreshIndicatorState(false)
                             })
         }
     }
@@ -432,7 +437,10 @@ class TimelineFragment: BaseFragment() {
                 .subscribe({
                     toggleRefreshIndicatorState(false)
                     reflectContents(it, loadNext)
-                }, Throwable::printStackTrace)
+                }, { throwable ->
+                    throwable.printStackTrace()
+                    toggleRefreshIndicatorState(false)
+                })
     }
 
     fun stopNotificationTimelineStream() {
@@ -449,7 +457,10 @@ class TimelineFragment: BaseFragment() {
                     toggleRefreshIndicatorState(false)
                     reflectContents(it, loadNext)
                     if (loadStream) startUserTimelineStream()
-                }, Throwable::printStackTrace)
+                }, { throwable ->
+                    throwable.printStackTrace()
+                    toggleRefreshIndicatorState(false)
+                })
     }
 
     fun getRegexExtractSinceId() = Regex(".*since_id=(\\d+?)>.*")

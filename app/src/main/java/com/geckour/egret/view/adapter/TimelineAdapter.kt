@@ -76,7 +76,7 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
             }
 
             if (binding.status.rebloggedStatusContent != null) {
-                showRebloggedBy()
+                bindAction(Notification.Companion.NotificationType.reblog, binding.status)
             }
 
             binding.fav.setColorFilter(
@@ -110,12 +110,13 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
         }
 
         fun initVisibility() {
+            toggleAction(false)
+
             binding.body.apply {
                 text = null
                 visibility = View.GONE
             }
-            listOf(binding.indicateReblog, binding.rebloggedBy, binding.rebloggedName)
-                    .forEach { it.visibility = View.GONE }
+
             listOf(binding.media1, binding.media2, binding.media3, binding.media4)
                     .forEach {
                         it.apply {
@@ -123,16 +124,21 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
                             visibility = View.GONE
                         }
                     }
+
             listOf(binding.mediaSpoilerWrap1, binding.mediaSpoilerWrap2, binding.mediaSpoilerWrap3, binding.mediaSpoilerWrap4)
                     .forEach { toggleMediaSpoiler(it, false) }
         }
 
-        fun showRebloggedBy() {
-            listOf(binding.indicateReblog, binding.rebloggedBy, binding.rebloggedName)
+        fun bindAction(type: Notification.Companion.NotificationType, status: TimelineContent.TimelineStatus) { // TODO: 実装する
+            toggleAction(true)
+        }
+
+        fun toggleAction(show: Boolean) {
+            listOf(binding.indicateAction, binding.actionIcon, binding.actionBy, binding.actionName)
                     .forEach {
                         it.apply {
-                            visibility = View.VISIBLE
-                            setOnClickListener { listener.showProfile(binding.status.accountId) }
+                            visibility = if (show) View.VISIBLE else View.GONE
+                            if (show) setOnClickListener { listener.showProfile(binding.status.accountId) }
                         }
                     }
         }

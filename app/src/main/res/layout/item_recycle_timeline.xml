@@ -22,45 +22,53 @@
         android:orientation="horizontal">
 
         <ImageView
-            android:id="@+id/indicate_reblog"
+            android:id="@+id/indicate_action"
             android:layout_width="16dp"
             android:layout_height="16dp"
             android:layout_marginLeft="8dp"
             android:layout_marginTop="8dp"
             android:tint="@color/secondary_text_material_light"
-            android:visibility="gone"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_repeat_black_24px" />
+            tools:src="@drawable/ic_notifications_black_24px" />
+
+        <ImageView
+            android:id="@+id/action_icon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginLeft="4dp"
+            app:layout_constraintBottom_toBottomOf="@+id/indicate_action"
+            app:layout_constraintLeft_toRightOf="@+id/indicate_action"
+            app:layout_constraintTop_toTopOf="@+id/indicate_action"
+            tools:src="@drawable/egret" />
 
         <TextView
-            android:id="@+id/rebloggedBy"
+            android:id="@+id/actionBy"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="4dp"
-            android:text="@string/reblogged_by"
             android:textSize="10sp"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="@+id/indicate_reblog"
-            app:layout_constraintLeft_toRightOf="@+id/indicate_reblog"
-            app:layout_constraintTop_toTopOf="@+id/indicate_reblog"
-            tools:layout_editor_absoluteX="0dp" />
+            app:layout_constraintBottom_toBottomOf="@+id/indicate_action"
+            app:layout_constraintLeft_toRightOf="@+id/action_icon"
+            app:layout_constraintTop_toTopOf="@+id/indicate_action"
+            tools:layout_editor_absoluteX="0dp"
+            tools:text="actioned by:" />
 
         <TextView
-            android:id="@+id/reblogged_name"
-            android:layout_width="wrap_content"
+            android:id="@+id/action_name"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="4dp"
+            android:layout_marginRight="8dp"
             android:ellipsize="end"
             android:maxLines="1"
             android:singleLine="true"
             android:text="@{(notification == null) ? status.nameStrong : notification.nameStrong}"
             android:textSize="10sp"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="@+id/rebloggedBy"
-            app:layout_constraintLeft_toRightOf="@+id/rebloggedBy"
-            app:layout_constraintTop_toTopOf="@+id/rebloggedBy"
-            tools:layout_editor_absoluteY="81dp"
+            app:layout_constraintBottom_toBottomOf="@+id/indicate_action"
+            app:layout_constraintLeft_toRightOf="@+id/actionBy"
+            app:layout_constraintRight_toLeftOf="@+id/time"
+            app:layout_constraintTop_toTopOf="@+id/indicate_action"
             tools:text="ゆーざーねーむ" />
 
         <ImageView
@@ -74,7 +82,7 @@
             android:clickable="true"
             app:imageUrl="@{(notification == null) ? ((status.rebloggedStatusContent == null) ? status.iconUrl : status.rebloggedStatusContent.iconUrl) : notification.iconUrl}"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/indicate_reblog" />
+            app:layout_constraintTop_toBottomOf="@+id/indicate_action" />
 
         <TextView
             android:id="@+id/name_strong"
@@ -127,12 +135,12 @@
             android:id="@+id/time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="8dp"
+            android:layout_marginRight="7dp"
             android:text="@{(notification == null) ? ((status.rebloggedStatusContent == null) ? status.time : status.rebloggedStatusContent.time) : ((notification.status != null) ? notification.status.time : notification.time)}"
             android:textSize="10sp"
-            app:layout_constraintBottom_toBottomOf="@+id/name_weak"
+            app:layout_constraintBottom_toBottomOf="@+id/opt"
             app:layout_constraintRight_toLeftOf="@+id/opt"
-            app:layout_constraintTop_toTopOf="@+id/name_strong"
+            app:layout_constraintTop_toTopOf="@+id/opt"
             tools:text="HH:MM" />
 
         <TextView
@@ -140,7 +148,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginRight="8dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="12dp"
             android:bufferType="spannable"
             android:clickable="true"
             android:ellipsize="none"

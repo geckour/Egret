@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Build
 import android.support.customtabs.CustomTabsIntent
 import android.support.v4.content.ContextCompat
+import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.preference.PreferenceManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.helper.ItemTouchHelper
@@ -288,5 +289,14 @@ class Common {
         }
 
         fun hideSoftKeyBoard(et: EditText) = (et.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(et.windowToken, 0)
+
+
+        fun toggleRefreshIndicatorState(indicator: SwipeRefreshLayout, show: Boolean) {
+            indicator.isRefreshing = show
+        }
+
+        fun toggleRefreshIndicatorActivity(indicator: SwipeRefreshLayout, activity: Boolean) {
+            indicator.isEnabled = activity
+        }
     }
 }
