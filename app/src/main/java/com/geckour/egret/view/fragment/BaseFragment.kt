@@ -1,9 +1,8 @@
 package com.geckour.egret.view.fragment
 
 import android.os.Bundle
-import android.support.design.widget.FloatingActionButton
 import android.view.View
-import com.geckour.egret.R
+import com.geckour.egret.util.Common
 import com.geckour.egret.view.activity.MainActivity
 import com.trello.rxlifecycle2.components.support.RxFragment
 
@@ -14,7 +13,8 @@ open class BaseFragment: RxFragment() {
 
         if (activity is MainActivity) {
             (activity as MainActivity).supportActionBar?.show()
-            ((activity as MainActivity).findViewById(R.id.fab) as FloatingActionButton?)?.show()
+            (activity as MainActivity).binding.appBarMain.contentMain.fab.show()
+            Common.setSimplicityPostBarVisibility((activity as MainActivity).binding.appBarMain.contentMain, false)
         }
     }
 
@@ -23,7 +23,8 @@ open class BaseFragment: RxFragment() {
 
         if (activity is MainActivity) {
             (activity as MainActivity).supportActionBar?.show()
-            ((activity as MainActivity).findViewById(R.id.fab) as FloatingActionButton?)?.show()
+            (activity as MainActivity).binding.appBarMain.contentMain.fab.show()
+            Common.setSimplicityPostBarVisibility((activity as MainActivity).binding.appBarMain.contentMain, false)
         }
     }
 }

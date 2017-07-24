@@ -26,6 +26,7 @@ import com.geckour.egret.databinding.FragmentTimelineBinding
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.Common.Companion.getStoreContentsKey
 import com.geckour.egret.util.Common.Companion.hideSoftKeyBoard
+import com.geckour.egret.util.Common.Companion.setSimplicityPostBarVisibility
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.MainActivity
 import com.geckour.egret.view.adapter.TimelineAdapter
@@ -309,10 +310,6 @@ class TimelineFragment: BaseFragment() {
                     button.isEnabled = true
                     it.printStackTrace()
                 })
-    }
-
-    fun setSimplicityPostBarVisibility(contentMainBinding: ContentMainBinding, isVisible: Boolean) {
-        contentMainBinding.simplicityPostWrap.visibility = if (isVisible) View.VISIBLE else View.GONE
     }
 
     fun stopTimelineStreams() {

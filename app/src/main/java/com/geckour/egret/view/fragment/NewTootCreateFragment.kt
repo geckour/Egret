@@ -72,14 +72,15 @@ class NewTootCreateFragment : BaseFragment() {
         super.onCreate(savedInstanceState)
 
         (activity as MainActivity).supportActionBar?.hide()
-        ((activity as MainActivity).findViewById(R.id.fab) as FloatingActionButton?)?.hide()
+        (activity as MainActivity).binding.appBarMain.contentMain.fab.hide()
     }
 
     override fun onResume() {
         super.onResume()
 
         (activity as MainActivity).supportActionBar?.hide()
-        ((activity as MainActivity).findViewById(R.id.fab) as FloatingActionButton?)?.hide()
+        (activity as MainActivity).binding.appBarMain.contentMain.fab.hide()
+        (activity as MainActivity)
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
