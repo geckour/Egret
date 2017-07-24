@@ -11,9 +11,11 @@ import android.provider.MediaStore
 import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.Snackbar
 import android.text.Editable
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.ImageView
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
@@ -105,6 +107,40 @@ class NewTootCreateFragment : BaseFragment() {
         Common.showSoftKeyBoardOnFocusEditText(binding.tootBody)
 
         binding.gallery.setOnClickListener { pickMedia() }
+
+        binding.tootBody.setOnKeyListener { v, keyCode, event ->
+            when (event.action) {
+                KeyEvent.ACTION_DOWN -> {
+                    when (keyCode) {
+                        KeyEvent.KEYCODE_DPAD_LEFT -> {
+                            (v as EditText).let {
+                                if (it.selectionStart == 0 && it.selectionStart == it.selectionEnd) {
+                                    it.requestFocusFromTouch()
+                                    it.requestFocus()
+                                    it.setSelection(0)
+                                    true
+                                } else false
+                            }
+                        }
+
+                        KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                            (v as EditText).let {
+                                if (it.selectionEnd == it.text.length && it.selectionStart == it.selectionEnd) {
+                                    it.requestFocusFromTouch()
+                                    it.requestFocus()
+                                    it.setSelection(it.text.length)
+                                    true
+                                } else false
+                            }
+                        }
+
+                        else -> false
+                    }
+                }
+
+                else -> false
+            }
+        }
 
         binding.buttonToot.setOnClickListener {
             binding.buttonToot.isEnabled = false

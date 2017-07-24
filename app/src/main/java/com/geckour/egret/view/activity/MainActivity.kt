@@ -15,6 +15,8 @@ import android.support.v7.widget.SearchView
 import android.support.v7.widget.Toolbar
 import android.text.Html
 import android.text.TextUtils
+import android.util.Log
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -30,6 +32,7 @@ import com.geckour.egret.model.MuteClient
 import com.geckour.egret.model.MuteInstance
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.Common.Companion.getStoreContentsKey
+import com.geckour.egret.util.Common.Companion.hideSoftKeyBoard
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.adapter.TimelineAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
@@ -258,6 +261,47 @@ class MainActivity : BaseActivity() {
         currentCategory =
                 if (sharedPref.contains(STATE_KEY_CATEGORY)) TimelineFragment.Category.values()[sharedPref.getInt(STATE_KEY_CATEGORY, TimelineFragment.Category.Public.rawValue)]
                 else TimelineFragment.Category.Public
+
+        binding.appBarMain.contentMain.apply {
+            simplicityTootBody.setOnKeyListener { v, keyCode, event ->
+                when (event.action) {
+                    KeyEvent.ACTION_DOWN -> {
+                        when (keyCode) {
+                            KeyEvent.KEYCODE_DPAD_LEFT -> {
+                                (v as EditText).let {
+                                    if (it.selectionStart == 0 && it.selectionStart == it.selectionEnd) {
+                                        it.requestFocusFromTouch()
+                                        it.requestFocus()
+                                        it.setSelection(0)
+                                        true
+                                    } else false
+                                }
+                            }
+
+                            KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                                (v as EditText).let {
+                                    if (it.selectionEnd == it.text.length && it.selectionStart == it.selectionEnd) {
+                                        it.requestFocusFromTouch()
+                                        it.requestFocus()
+                                        it.setSelection(it.text.length)
+                                        true
+                                    } else false
+                                }
+                            }
+
+                            else -> false
+                        }
+                    }
+
+                    else -> false
+                }
+            }
+
+            if (simplicityTootBody.text.isEmpty()) {
+                simplicityTootBody.clearFocus()
+                hideSoftKeyBoard(simplicityTootBody)
+            }
+        }
     }
 
     override fun onPause() {
