@@ -58,7 +58,7 @@
 
     <string name="reblogged_by">Boosted by</string>
 
-    <string name="hint_new_toot">What\'s go on with you?</string>
+    <string name="hint_new_toot">What\'s up?</string>
     <string name="hint_add_mute_keyword">Enter new keyword to mute</string>
     <string name="hint_add_mute_hash_tag">Enter new hash tag to mute</string>
     <string name="hint_add_mute_instance">Enter new instance name to mute</string>
