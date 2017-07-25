@@ -62,12 +62,13 @@ class MainActivity : BaseActivity() {
     lateinit private var currentCategory: TimelineFragment.Category
 
     companion object {
-        val STATE_KEY_THEME_MODE = "stateKeyThemeMode"
-        val NAV_ITEM_LOGIN: Long = 0
-        val NAV_ITEM_TL_PUBLIC: Long = 1
-        val NAV_ITEM_TL_LOCAL: Long = 2
-        val NAV_ITEM_TL_USER: Long = 3
-        val NAV_ITEM_SETTINGS: Long = 4
+        const val STATE_KEY_THEME_MODE = "stateKeyThemeMode"
+        const val NAV_ITEM_LOGIN: Long = 0
+        const val NAV_ITEM_TL_PUBLIC: Long = 1
+        const val NAV_ITEM_TL_LOCAL: Long = 2
+        const val NAV_ITEM_TL_USER: Long = 3
+        const val NAV_ITEM_TL_NOTIFICATION: Long = 4
+        const val NAV_ITEM_SETTINGS: Long = 5
 
         fun getIntent(context: Context): Intent {
             val intent = Intent(context, MainActivity::class.java)
@@ -82,7 +83,7 @@ class MainActivity : BaseActivity() {
             clipboard.primaryClip = clip
         }
 
-        override val showTootInBrowser = { content: TimelineContent ->
+        override val showTootInBrowser = { content: TimelineContent.TimelineStatus ->
             val uri = Uri.parse(content.tootUrl)
             if (Common.isModeDefaultBrowser(this@MainActivity)) {
                 startActivity(Intent(Intent.ACTION_VIEW, uri))
@@ -91,13 +92,13 @@ class MainActivity : BaseActivity() {
             }
         }
 
-        override val copyTootToClipboard = { content: TimelineContent ->
+        override val copyTootToClipboard = { content: TimelineContent.TimelineStatus ->
             val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("toot", content.body.toString())
             clipboard.primaryClip = clip
         }
 
-        override val showMuteDialog = { content: TimelineContent ->
+        override val showMuteDialog = { content: TimelineContent.TimelineStatus ->
             val itemStrings = resources.getStringArray(R.array.mute_from_toot).toList()
             val items = itemStrings.mapIndexed { i, s ->
                 when (i) {
@@ -213,7 +214,7 @@ class MainActivity : BaseActivity() {
                     }, Throwable::printStackTrace)
         }
 
-        override val onReply = { content: TimelineContent ->
+        override val onReply = { content: TimelineContent.TimelineStatus ->
             replyStatusById(content)
         }
 
@@ -472,6 +473,7 @@ class MainActivity : BaseActivity() {
                         PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_public).withIdentifier(NAV_ITEM_TL_PUBLIC).withIcon(R.drawable.ic_public_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
                         PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_local).withIdentifier(NAV_ITEM_TL_LOCAL).withIcon(R.drawable.ic_place_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
                         PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_user).withIdentifier(NAV_ITEM_TL_USER).withIcon(R.drawable.ic_mood_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
+                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_notification).withIdentifier(NAV_ITEM_TL_NOTIFICATION).withIcon(R.drawable.ic_notifications_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
                         DividerDrawerItem(),
                         PrimaryDrawerItem().withName(R.string.navigation_drawer_item_login).withIdentifier(NAV_ITEM_LOGIN).withIcon(R.drawable.ic_person_add_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
                         DividerDrawerItem(),
@@ -496,6 +498,11 @@ class MainActivity : BaseActivity() {
 
                         NAV_ITEM_TL_USER -> {
                             showTimelineFragment(TimelineFragment.Category.User)
+                            false
+                        }
+
+                        NAV_ITEM_TL_NOTIFICATION -> {
+                            showTimelineFragment(TimelineFragment.Category.Notification)
                             false
                         }
 
@@ -551,7 +558,7 @@ class MainActivity : BaseActivity() {
                 .commit()
     }
 
-    fun replyStatusById(content: TimelineContent) {
+    fun replyStatusById(content: TimelineContent.TimelineStatus) {
         val fragment = NewTootCreateFragment.newInstance(
                 Common.getCurrentAccessToken()?.id ?: return,
                 replyToStatusId = content.id,

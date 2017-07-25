@@ -9,6 +9,8 @@ import android.widget.ImageView
 import android.widget.PopupMenu
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
+import com.geckour.egret.api.model.Notification
+import com.geckour.egret.databinding.ItemRecycleNotificationBinding
 import com.geckour.egret.databinding.ItemRecycleTimelineBinding
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
@@ -20,20 +22,25 @@ import java.util.*
 
 class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : RecyclerView.Adapter<TimelineAdapter.ViewHolder>() {
 
+    enum class ContentType {
+        Status,
+        Notification
+    }
+
     private val contents: ArrayList<TimelineContent> = ArrayList()
 
     interface Callbacks {
         val copyTootUrlToClipboard: (url: String) -> Any
 
-        val showTootInBrowser: (content: TimelineContent) -> Any
+        val showTootInBrowser: (content: TimelineContent.TimelineStatus) -> Any
 
-        val copyTootToClipboard: (content: TimelineContent) -> Any
+        val copyTootToClipboard: (content: TimelineContent.TimelineStatus) -> Any
 
-        val showMuteDialog: (content: TimelineContent) -> Any
+        val showMuteDialog: (content: TimelineContent.TimelineStatus) -> Any
 
         val showProfile: (accountId: Long) -> Any
 
-        val onReply: (content: TimelineContent) -> Any
+        val onReply: (content: TimelineContent.TimelineStatus) -> Any
 
         val onFavStatus: (statusId: Long, view: ImageView) -> Any
 
@@ -42,137 +49,287 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
         val onClickMedia: (urls: List<String>, position: Int) -> Any
     }
 
-    inner class ViewHolder(val binding: ItemRecycleTimelineBinding): RecyclerView.ViewHolder(binding.root) {
-        fun bindData(content: TimelineContent) {
-            initVisibility()
+    inner class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
+        lateinit private var timelineBinding: ItemRecycleTimelineBinding
+        lateinit private var notificationBinding: ItemRecycleNotificationBinding
 
-            binding.content = content
+        constructor(binding: ItemRecycleTimelineBinding): this(binding.root) {
+            timelineBinding = binding
+        }
 
-            binding.body.visibility = View.VISIBLE
+        constructor(binding: ItemRecycleNotificationBinding): this(binding.root) {
+            notificationBinding = binding
+        }
+
+        fun bindData(content: TimelineContent.TimelineStatus) {
+            initVisibility(ContentType.Status)
+
+            timelineBinding.status = content
+
+            timelineBinding.body.visibility = View.VISIBLE
 
             content.mediaUrls.indices.forEach {
                 when (it) {
                     0 -> {
-                        if (content.isSensitive) toggleMediaSpoiler(binding.mediaSpoilerWrap1, true)
-                        setupMedia(binding.media1, content.mediaPreviewUrls, content.mediaUrls, it)
+                        if (content.isSensitive) toggleMediaSpoiler(timelineBinding.mediaSpoilerWrap1, true)
+                        setupMedia(timelineBinding.media1, content.mediaPreviewUrls, content.mediaUrls, it)
                     }
                     1 -> {
-                        if (content.isSensitive) toggleMediaSpoiler(binding.mediaSpoilerWrap2, true)
-                        setupMedia(binding.media2, content.mediaPreviewUrls, content.mediaUrls, it)
+                        if (content.isSensitive) toggleMediaSpoiler(timelineBinding.mediaSpoilerWrap2, true)
+                        setupMedia(timelineBinding.media2, content.mediaPreviewUrls, content.mediaUrls, it)
                     }
                     2 -> {
-                        if (content.isSensitive) toggleMediaSpoiler(binding.mediaSpoilerWrap3, true)
-                        setupMedia(binding.media3, content.mediaPreviewUrls, content.mediaUrls, it)
+                        if (content.isSensitive) toggleMediaSpoiler(timelineBinding.mediaSpoilerWrap3, true)
+                        setupMedia(timelineBinding.media3, content.mediaPreviewUrls, content.mediaUrls, it)
                     }
                     3 -> {
-                        if (content.isSensitive) toggleMediaSpoiler(binding.mediaSpoilerWrap4, true)
-                        setupMedia(binding.media4, content.mediaPreviewUrls, content.mediaUrls, it)
+                        if (content.isSensitive) toggleMediaSpoiler(timelineBinding.mediaSpoilerWrap4, true)
+                        setupMedia(timelineBinding.media4, content.mediaPreviewUrls, content.mediaUrls, it)
                     }
                 }
             }
 
-            if (binding.content.rebloggedStatusContent != null) {
-                showRebloggedBy()
+            if (timelineBinding.status.rebloggedStatusContent != null) {
+                bindAction(ContentType.Status, Notification.NotificationType.reblog)
             }
 
-            binding.fav.setColorFilter(
+            timelineBinding.fav.setColorFilter(
                     ContextCompat.getColor(
-                            binding.fav.context,
-                            if (binding.content.rebloggedStatusContent?.favourited ?: binding.content.favourited) R.color.colorAccent else R.color.icon_tint_dark))
-            binding.boost.setColorFilter(
+                            timelineBinding.fav.context,
+                            if (timelineBinding.status.rebloggedStatusContent?.favourited ?: timelineBinding.status.favourited) R.color.colorAccent else R.color.icon_tint_dark))
+            timelineBinding.boost.setColorFilter(
                     ContextCompat.getColor(
-                            binding.boost.context,
-                            if (binding.content.rebloggedStatusContent?.reblogged ?: binding.content.reblogged) R.color.colorAccent else R.color.icon_tint_dark))
+                            timelineBinding.boost.context,
+                            if (timelineBinding.status.rebloggedStatusContent?.reblogged ?: timelineBinding.status.reblogged) R.color.colorAccent else R.color.icon_tint_dark))
 
-            binding.opt.setOnClickListener { showPopup(it) }
-            binding.icon.setOnClickListener { listener.showProfile(binding.content.rebloggedStatusContent?.accountId ?: binding.content.accountId) }
-            binding.reply.setOnClickListener { listener.onReply(binding.content.rebloggedStatusContent ?: binding.content) }
-            binding.fav.setOnClickListener { listener.onFavStatus(binding.content.rebloggedStatusContent?.id ?: binding.content.id, binding.fav) }
-            binding.boost.setOnClickListener { listener.onBoostStatus(binding.content.rebloggedStatusContent?.id ?: binding.content.id, binding.boost) }
-            binding.body.movementMethod = Common.getMovementMethodFromPreference(binding.body.context)
+            timelineBinding.opt.setOnClickListener { showPopup(ContentType.Status, it) }
+            timelineBinding.icon.setOnClickListener { listener.showProfile(timelineBinding.status.rebloggedStatusContent?.accountId ?: timelineBinding.status.accountId) }
+            timelineBinding.reply.setOnClickListener { listener.onReply(timelineBinding.status.rebloggedStatusContent ?: timelineBinding.status) }
+            timelineBinding.fav.setOnClickListener { listener.onFavStatus(timelineBinding.status.rebloggedStatusContent?.id ?: timelineBinding.status.id, timelineBinding.fav) }
+            timelineBinding.boost.setOnClickListener { listener.onBoostStatus(timelineBinding.status.rebloggedStatusContent?.id ?: timelineBinding.status.id, timelineBinding.boost) }
+            timelineBinding.body.movementMethod = Common.getMovementMethodFromPreference(timelineBinding.body.context)
+
+            toggleStatus(ContentType.Status, true)
         }
 
-        fun initVisibility() {
-            binding.body.apply {
-                text = null
-                visibility = View.GONE
+        fun bindData(content: TimelineContent.TimelineNotification) {
+            initVisibility(ContentType.Notification)
+
+            notificationBinding.notification = content
+
+            val type = content.type.let { Notification.NotificationType.valueOf(it) }
+            bindAction(ContentType.Notification, type)
+            if (type == Notification.NotificationType.follow) toggleStatus(ContentType.Notification, false)
+            else toggleStatus(ContentType.Notification, true)
+        }
+
+        fun initVisibility(type: ContentType) {
+            toggleAction(type, false)
+            toggleStatus(type, false)
+
+            when(type) {
+                ContentType.Status -> {
+                    timelineBinding.body.apply {
+                        text = null
+                        visibility = View.GONE
+                    }
+
+                    listOf(timelineBinding.media1, timelineBinding.media2, timelineBinding.media3, timelineBinding.media4)
+                            .forEach {
+                                it.apply {
+                                    setImageBitmap(null)
+                                    visibility = View.GONE
+                                }
+                            }
+
+                    listOf(timelineBinding.mediaSpoilerWrap1, timelineBinding.mediaSpoilerWrap2, timelineBinding.mediaSpoilerWrap3, timelineBinding.mediaSpoilerWrap4)
+                            .forEach { toggleMediaSpoiler(it, false) }
+                }
+
+                ContentType.Notification -> {
+                    notificationBinding.body.apply {
+                        text = null
+                        visibility = View.GONE
+                    }
+
+                    listOf(notificationBinding.media1, notificationBinding.media2, notificationBinding.media3, notificationBinding.media4)
+                            .forEach {
+                                it.apply {
+                                    setImageBitmap(null)
+                                    visibility = View.GONE
+                                }
+                            }
+
+                    listOf(notificationBinding.mediaSpoilerWrap1, notificationBinding.mediaSpoilerWrap2, notificationBinding.mediaSpoilerWrap3, notificationBinding.mediaSpoilerWrap4)
+                            .forEach { toggleMediaSpoiler(it, false) }
+                }
             }
-            listOf(binding.indicateReblog, binding.rebloggedBy, binding.rebloggedName)
-                    .forEach { it.visibility = View.GONE }
-            listOf(binding.media1, binding.media2, binding.media3, binding.media4)
-                    .forEach {
-                        it.apply {
-                            setImageBitmap(null)
-                            visibility = View.GONE
-                        }
-                    }
-            listOf(binding.mediaSpoilerWrap1, binding.mediaSpoilerWrap2, binding.mediaSpoilerWrap3, binding.mediaSpoilerWrap4)
-                    .forEach { toggleMediaSpoiler(it, false) }
         }
 
-        fun showRebloggedBy() {
-            listOf(binding.indicateReblog, binding.rebloggedBy, binding.rebloggedName)
-                    .forEach {
-                        it.apply {
-                            visibility = View.VISIBLE
-                            setOnClickListener { listener.showProfile(binding.content.accountId) }
+        fun bindAction(contentType: ContentType, notificationType: Notification.NotificationType) {
+            when (contentType) {
+                ContentType.Status -> {
+                    if (notificationType == Notification.NotificationType.reblog) {
+                        timelineBinding.indicateAction.setImageResource(R.drawable.ic_repeat_black_24px)
+                        timelineBinding.actionBy.setText(R.string.reblogged_by)
+                        toggleAction(contentType, true)
+                    }
+                }
+
+                ContentType.Notification -> {
+                    when (notificationType) {
+                        Notification.NotificationType.mention -> {
+                            notificationBinding.indicateAction.setImageResource(R.drawable.ic_reply_black_24px)
+                            notificationBinding.actionBy.setText(R.string.mentioned_by)
+                        }
+                        Notification.NotificationType.reblog -> {
+                            notificationBinding.indicateAction.setImageResource(R.drawable.ic_repeat_black_24px)
+                            notificationBinding.actionBy.setText(R.string.reblogged_by)
+                        }
+                        Notification.NotificationType.favourite -> {
+                            notificationBinding.indicateAction.setImageResource(R.drawable.ic_star_black_24px)
+                            notificationBinding.actionBy.setText(R.string.favourited_by)
+                        }
+                        Notification.NotificationType.follow -> {
+                            notificationBinding.indicateAction.setImageResource(R.drawable.ic_person_add_black_24px)
+                            notificationBinding.actionBy.setText(R.string.followed_by)
                         }
                     }
+                    toggleAction(contentType, true)
+                }
+            }
         }
 
-        fun showPopup(view: View) {
+        fun toggleAction(type: ContentType, show: Boolean) {
+            when(type) {
+                ContentType.Status -> {
+                    listOf(timelineBinding.indicateAction, timelineBinding.actionIcon, timelineBinding.actionBy, timelineBinding.actionName)
+                            .forEach {
+                                it.apply {
+                                    visibility = if (show) View.VISIBLE else View.GONE
+                                    if (show) setOnClickListener { listener.showProfile(timelineBinding.status.accountId) }
+                                }
+                            }
+                }
+
+                ContentType.Notification -> {
+                    listOf(notificationBinding.indicateAction, notificationBinding.actionIcon, notificationBinding.actionBy, notificationBinding.actionName)
+                            .forEach {
+                                it.apply {
+                                    visibility = if (show) View.VISIBLE else View.GONE
+                                    if (show) setOnClickListener { listener.showProfile(notificationBinding.notification.accountId) }
+                                }
+                            }
+                }
+            }
+        }
+
+        fun toggleStatus(type: ContentType, show: Boolean) {
+            when(type) {
+                ContentType.Status -> {
+                    listOf(
+                            timelineBinding.icon,
+                            timelineBinding.nameStrong,
+                            timelineBinding.nameWeak,
+                            timelineBinding.body,
+                            timelineBinding.reply,
+                            timelineBinding.fav,
+                            timelineBinding.favCount,
+                            timelineBinding.boost,
+                            timelineBinding.boostCount,
+                            timelineBinding.padding)
+                            .forEach {
+                                it.apply { visibility = if (show) View.VISIBLE else View.GONE }
+                            }
+                }
+
+                ContentType.Notification -> {
+                    listOf(
+                            notificationBinding.icon,
+                            notificationBinding.nameStrong,
+                            notificationBinding.nameWeak,
+                            notificationBinding.body,
+                            notificationBinding.reply,
+                            notificationBinding.fav,
+                            notificationBinding.favCount,
+                            notificationBinding.boost,
+                            notificationBinding.boostCount,
+                            notificationBinding.padding)
+                            .forEach {
+                                it.apply { visibility = if (show) View.VISIBLE else View.GONE }
+                            }
+                }
+            }
+        }
+
+        fun showPopup(type: ContentType, view: View) {
             val popup = PopupMenu(view.context, view)
             val currentAccountId = OrmaProvider.db.selectFromAccessToken().isCurrentEq(true).last().accountId
-            val contentAccountId = binding.content.accountId
+            val contentAccountId = when(type) {
+                ContentType.Status -> timelineBinding.status.accountId
+                ContentType.Notification -> notificationBinding.notification.accountId
+            }
 
-            popup.setOnMenuItemClickListener { item ->
-                when (item?.itemId) {
-                    R.id.action_url -> {
-                        listener.copyTootUrlToClipboard(binding.content.tootUrl)
-                        true
-                    }
+            when(type) {
+                ContentType.Status -> {
+                    popup.setOnMenuItemClickListener { item ->
+                        when (item?.itemId) {
+                            R.id.action_url -> {
+                                listener.copyTootUrlToClipboard(timelineBinding.status.tootUrl)
+                                true
+                            }
 
-                    R.id.action_open -> {
-                        listener.showTootInBrowser(binding.content)
-                        true
-                    }
+                            R.id.action_open -> {
+                                listener.showTootInBrowser(timelineBinding.status)
+                                true
+                            }
 
-                    R.id.action_copy -> {
-                        listener.copyTootToClipboard(binding.content)
-                        true
-                    }
+                            R.id.action_copy -> {
+                                listener.copyTootToClipboard(timelineBinding.status)
+                                true
+                            }
 
-                    R.id.action_mute -> {
-                        listener.showMuteDialog(binding.content)
-                        true
-                    }
+                            R.id.action_mute -> {
+                                listener.showMuteDialog(timelineBinding.status)
+                                true
+                            }
 
-                    R.id.action_block -> {
-                        Common.resetAuthInfo()?.let {
-                            MastodonClient(it).blockAccount(binding.content.accountId)
-                                    .subscribeOn(Schedulers.newThread())
-                                    .observeOn(AndroidSchedulers.mainThread())
-                                    .subscribe({
-                                        Snackbar.make(view, "Blocked: ${binding.content.nameWeak}", Snackbar.LENGTH_SHORT).show()
-                                    }, Throwable::printStackTrace)
+                            R.id.action_block -> {
+                                Common.resetAuthInfo()?.let {
+                                    MastodonClient(it).blockAccount(timelineBinding.status.accountId)
+                                            .subscribeOn(Schedulers.newThread())
+                                            .observeOn(AndroidSchedulers.mainThread())
+                                            .subscribe({
+                                                Snackbar.make(view, "Blocked: ${timelineBinding.status.nameWeak}", Snackbar.LENGTH_SHORT).show()
+                                            }, Throwable::printStackTrace)
+                                }
+                                true
+                            }
+
+                            R.id.action_delete -> {
+                                Common.resetAuthInfo()?.let {
+                                    MastodonClient(it).deleteToot(timelineBinding.status.id)
+                                            .subscribeOn(Schedulers.newThread())
+                                            .observeOn(AndroidSchedulers.mainThread())
+                                            .subscribe({
+                                                removeContentByTootId(timelineBinding.status.id)
+                                                Snackbar.make(view, "Deleted: ${timelineBinding.status.body}", Snackbar.LENGTH_SHORT).show()
+                                            }, Throwable::printStackTrace)
+                                }
+                                true
+                            }
+
+                            else -> false
                         }
-                        true
                     }
+                }
 
-                    R.id.action_delete -> {
-                        Common.resetAuthInfo()?.let {
-                            MastodonClient(it).deleteToot(binding.content.id)
-                                    .subscribeOn(Schedulers.newThread())
-                                    .observeOn(AndroidSchedulers.mainThread())
-                                    .subscribe({
-                                        removeContentByTootId(binding.content.id)
-                                        Snackbar.make(view, "Deleted: ${binding.content.body}", Snackbar.LENGTH_SHORT).show()
-                                    }, Throwable::printStackTrace)
+                ContentType.Notification -> {
+                    popup.setOnMenuItemClickListener { item ->
+                        when (item?.itemId) { // TODO: オプションメニューを実装する
+                            else -> false
                         }
-                        true
                     }
-
-                    else -> false
                 }
             }
             popup.inflate(if (contentAccountId == currentAccountId) R.menu.toot_own else R.menu.toot_general)
@@ -191,18 +348,30 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
                 visibility = View.VISIBLE
                 setOnClickListener { listener.onClickMedia(urls, position) }
             }
-            Picasso.with(binding.media1.context).load(previewUrls[position]).into(view)
+            Picasso.with(view.context).load(previewUrls[position]).into(view)
         }
     }
 
+    override fun getItemViewType(position: Int): Int {
+        return contents[position].let { if (it.status != null) ContentType.Status.ordinal else if (it.notification != null) ContentType.Notification.ordinal else -1 }
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ViewHolder {
-        val binding = DataBindingUtil.inflate<ItemRecycleTimelineBinding>(LayoutInflater.from(parent?.context), R.layout.item_recycle_timeline, parent, false)
-        return ViewHolder(binding)
+        if (viewType == ContentType.Status.ordinal) {
+            val binding = DataBindingUtil.inflate<ItemRecycleTimelineBinding>(LayoutInflater.from(parent?.context), R.layout.item_recycle_timeline, parent, false)
+            return ViewHolder(binding)
+        }
+        if (viewType == ContentType.Notification.ordinal) {
+            val binding = DataBindingUtil.inflate<ItemRecycleNotificationBinding>(LayoutInflater.from(parent?.context), R.layout.item_recycle_notification, parent, false)
+            return ViewHolder(binding)
+        }
+        throw IllegalArgumentException("viewType does not match any defined type.")
     }
 
     override fun onBindViewHolder(holder: ViewHolder?, position: Int) {
         val item = contents[position]
-        holder?.bindData(item)
+        item.status?.let { holder?.bindData(it) }
+        item.notification?.let { holder?.bindData(it) }
     }
 
     override fun getItemCount(): Int {
@@ -258,7 +427,7 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
     fun removeContentByTootId(id: Long) {
         val shouldRemoveContents: ArrayList<TimelineContent> = ArrayList()
         this.contents.forEach { content ->
-            if (content.id == id) shouldRemoveContents.add(content)
+            if (content.status?.id == id) shouldRemoveContents.add(content)
         }
         shouldRemoveContents.forEach { content ->
             val index = this.contents.indexOf(content)
@@ -271,19 +440,19 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
         if (!doFilter) return false
 
         OrmaProvider.db.selectFromMuteClient().forEach {
-            if (content.app == it.client) return true
+            if (content.status?.app == it.client) return true
         }
         OrmaProvider.db.selectFromMuteHashTag().forEach { tag ->
-            content.tags.forEach { if (tag.hashTag == it) return true }
+            content.status?.tags?.forEach { if (tag.hashTag == it) return true }
         }
         OrmaProvider.db.selectFromMuteKeyword().forEach {
             if (it.isRegex) {
-                if (content.body.toString().matches(Regex(it.keyword, RegexOption.MULTILINE))) return true
-            } else if (content.body.toString().contains(it.keyword)) return true
+                if (content.status?.body?.toString()?.matches(Regex(it.keyword, RegexOption.MULTILINE)) ?: false) return true
+            } else if (content.status?.body?.toString()?.contains(it.keyword) ?: false) return true
         }
         OrmaProvider.db.selectFromMuteInstance().forEach {
-            var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
-            if (content.nameWeak == instance) {
+            var instance = content.status?.nameWeak?.replace(Regex("^@.+@(.+)$"), "@$1") ?: ""
+            if (content.status?.nameWeak == instance) {
                 instance = Common.getCurrentAccessToken()?.instanceId?.let {
                     "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(it).last().instance}"
                 } ?: ""

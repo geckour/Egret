@@ -77,6 +77,7 @@ class TimelineFragment: BaseFragment() {
     private var publicStream: Disposable? = null
     private var localStream: Disposable? = null
     private var userStream: Disposable? = null
+    private var notificationStream: Disposable? = null
 
     private var waitingContent = false
     private var waitingNotification = false
@@ -131,7 +132,7 @@ class TimelineFragment: BaseFragment() {
                             Category.Public ->showPublicTimeline(true)
                             Category.Local -> showLocalTimeline(true)
                             Category.User -> showUserTimeline(loadNext = true)
-                            Category.HashTag -> {}
+                            Category.HashTag -> showNotificationTimeline(loadNext = true)
                         }
                     }
                 }
@@ -182,6 +183,7 @@ class TimelineFragment: BaseFragment() {
                     Category.Public -> MainActivity.NAV_ITEM_TL_PUBLIC
                     Category.Local -> MainActivity.NAV_ITEM_TL_LOCAL
                     Category.User -> MainActivity.NAV_ITEM_TL_USER
+                    Category.Notification -> MainActivity.NAV_ITEM_TL_NOTIFICATION
                     else -> -1
                 })
 
@@ -216,6 +218,10 @@ class TimelineFragment: BaseFragment() {
         sharedPref.edit().remove(STATE_ARGS_KEY_CONTENTS).apply()
     }
 
+    fun toggleRefreshIndicatorState(show: Boolean) = Common.toggleRefreshIndicatorState(binding.swipeRefreshLayout, show)
+
+    fun toggleRefreshIndicatorActivity(show: Boolean) = Common.toggleRefreshIndicatorActivity(binding.swipeRefreshLayout, show)
+
     fun showTimelineByCategory(category: Category, hasContents: Boolean = false) {
         val prefStream = sharedPref.getString("manage_stream", "1")
 
@@ -243,6 +249,7 @@ class TimelineFragment: BaseFragment() {
                     Category.Local -> startLocalTimelineStream()
                     Category.User -> startUserTimelineStream()
                     Category.HashTag -> {}
+                    Category.Notification -> startUserTimelineStream()
                 }
             } else {
                 when (category) {
@@ -250,6 +257,7 @@ class TimelineFragment: BaseFragment() {
                     Category.Local -> startLocalTimelineStream()
                     Category.User -> showUserTimeline(true)
                     Category.HashTag -> {}
+                    Category.Notification -> showNotificationTimeline(true)
                 }
             }
         } else {
@@ -258,16 +266,9 @@ class TimelineFragment: BaseFragment() {
                 Category.Local -> showLocalTimeline()
                 Category.User -> showUserTimeline()
                 Category.HashTag -> {}
+                Category.Notification -> showNotificationTimeline()
             }
         }
-    }
-
-    fun toggleRefreshIndicatorState(show: Boolean) {
-        binding.swipeRefreshLayout.isRefreshing = show
-    }
-
-    fun toggleRefreshIndicatorActivity(activity: Boolean) {
-        binding.swipeRefreshLayout.isEnabled = activity
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -316,6 +317,7 @@ class TimelineFragment: BaseFragment() {
         stopPublicTimelineStream()
         stopLocalTimelineStream()
         stopUserTimelineStream()
+        stopNotificationTimelineStream()
     }
 
     fun startPublicTimelineStream() {
@@ -334,6 +336,7 @@ class TimelineFragment: BaseFragment() {
                             }, { throwable ->
                                 throwable.printStackTrace()
                                 publicStream?.dispose()
+                                toggleRefreshIndicatorState(false)
                             })
         }
     }
@@ -350,7 +353,7 @@ class TimelineFragment: BaseFragment() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
-                    reflectStatuses(it, loadNext)
+                    reflectContents(it, loadNext)
                 }, Throwable::printStackTrace)
     }
 
@@ -370,6 +373,7 @@ class TimelineFragment: BaseFragment() {
                             }, { throwable ->
                                 throwable.printStackTrace()
                                 userStream?.dispose()
+                                toggleRefreshIndicatorState(false)
                             })
         }
     }
@@ -386,9 +390,12 @@ class TimelineFragment: BaseFragment() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
-                    reflectStatuses(it, loadNext)
+                    reflectContents(it, loadNext)
                     if (loadStream) startUserTimelineStream()
-                }, Throwable::printStackTrace)
+                }, { throwable ->
+                    throwable.printStackTrace()
+                    toggleRefreshIndicatorState(false)
+                })
     }
 
     fun startLocalTimelineStream() {
@@ -407,6 +414,7 @@ class TimelineFragment: BaseFragment() {
                             }, { throwable ->
                                 throwable.printStackTrace()
                                 localStream?.dispose()
+                                toggleRefreshIndicatorState(false)
                             })
         }
     }
@@ -423,17 +431,66 @@ class TimelineFragment: BaseFragment() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
-                    reflectStatuses(it, loadNext)
+                    reflectContents(it, loadNext)
                 }, Throwable::printStackTrace)
+    }
+
+    fun startNotificationTimelineStream() {
+        notificationStream?.dispose()
+        notificationStream = null
+        Common.resetAuthInfo()?.let {
+            notificationStream =
+                    MastodonClient(it).getNotificationTimelineAsStream()
+                            .flatMap { responseBody -> MastodonService.events(responseBody.source()) }
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .compose(bindToLifecycle())
+                            .subscribe({
+                                toggleRefreshIndicatorState(false)
+                                parseTimelineStream(it)
+                            }, { throwable ->
+                                throwable.printStackTrace()
+                                notificationStream?.dispose()
+                                toggleRefreshIndicatorState(false)
+                            })
+        }
+    }
+
+    fun stopNotificationTimelineStream() {
+        if (getCategory() == Category.User && !(userStream?.isDisposed ?: true)) userStream?.dispose()
+    }
+
+    fun showNotificationTimeline(loadStream: Boolean = false, loadNext: Boolean = false) {
+        if (loadNext && maxId == -1L) return
+        MastodonClient(Common.resetAuthInfo() ?: return).getNotificationTimeline(maxId = if (loadNext) maxId else null, sinceId = if (!loadNext && sinceId != -1L) sinceId else null)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe({
+                    toggleRefreshIndicatorState(false)
+                    reflectContents(it, loadNext)
+                    if (loadStream) startUserTimelineStream()
+                }, { throwable ->
+                    throwable.printStackTrace()
+                    toggleRefreshIndicatorState(false)
+                })
     }
 
     fun getRegexExtractSinceId() = Regex(".*since_id=(\\d+?)>.*")
     fun getRegexExtractMaxId() = Regex(".*max_id=(\\d+?)>.*")
 
-    fun reflectStatuses(result: Result<List<Status>>, next: Boolean) {
+    fun <V>reflectContents(result: Result<List<V>>, next: Boolean) {
         result.response()?.let {
-            if (next) adapter.addAllContentsAtLast(it.body().map { Common.getTimelineContent(it) })
-            else adapter.addAllContents(it.body().map { Common.getTimelineContent(it) })
+            it.body()?.let {
+                if (it.first() is Status) {
+                    if (next) adapter.addAllContentsAtLast(it.map { Common.getTimelineContent(status = it as Status)})
+                    else adapter.addAllContents(it.map { Common.getTimelineContent(status = it as Status) })
+                }
+                if (it.first() is Notification) {
+                    if (next) adapter.addAllContentsAtLast(it.map { Common.getTimelineContent(notification = it as Notification)})
+                    else adapter.addAllContents(it.map { Common.getTimelineContent(notification = it as Notification) })
+                }
+            }
 
             maxId = it.headers().get("Link")?.replace(getRegexExtractMaxId(), "$1")?.toLong() ?: -1L
             sinceId = it.headers().get("Link")?.replace(getRegexExtractSinceId(), "$1")?.toLong() ?: -1L
@@ -454,7 +511,7 @@ class TimelineFragment: BaseFragment() {
             val data = source.replace(Regex("^data:\\s(.+)"), "$1")
             if (waitingContent) {
                 val status = gson.fromJson(data, Status::class.java)
-                val content = Common.getTimelineContent(status)
+                val content = Common.getTimelineContent(status = status)
                 Log.d("parse", "body: ${status.content}")
 
                 adapter.addContent(content)
@@ -462,23 +519,17 @@ class TimelineFragment: BaseFragment() {
             }
             if (waitingNotification) {
                 val notification = gson.fromJson(data, Notification::class.java)
-                if (notification.type == Notification.Companion.NotificationType.reblog.name) {
-                    val status = notification.status
-                    if (status != null) {
-                        val content = Common.getTimelineContent(status, notification)
-                        Log.d("parse", "body: ${status.content}")
+                val content = Common.getTimelineContent(notification = notification)
 
-                        adapter.addContent(content)
-                        onAddItemToAdapter()
-                    }
-                }
+                adapter.addContent(content)
+                onAddItemToAdapter()
             }
             if (waitingDeletedId) {
                 adapter.removeContentByTootId(data.toLong())
             }
         } else {
-            waitingContent = source == "event: update"
-            waitingNotification = source == "event: notification"
+            waitingContent = source == "event: update" && getCategory() != Category.Notification
+            waitingNotification = source == "event: notification" && getCategory() == Category.Notification
             waitingDeletedId = source == "event: delete"
         }
     }

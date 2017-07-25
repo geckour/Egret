@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Build
 import android.support.customtabs.CustomTabsIntent
 import android.support.v4.content.ContextCompat
+import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.preference.PreferenceManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.helper.ItemTouchHelper
@@ -80,26 +81,44 @@ class Common {
             return instanceInfo.instance
         }
 
-        fun getTimelineContent(status: Status, notification: Notification? = null): TimelineContent = TimelineContent(
-                status.id,
-                status.url,
-                status.account.id,
-                status.account.avatarUrl,
-                status.account.displayName,
-                "@${status.account.acct}",
-                Date(status.createdAt.time),
-                getSpannedWithoutExtraMarginFromHtml(status.content),
-                status.media.map { it.previewImgUrl },
-                status.media.map { it.url },
-                status.sensitive,
-                status.tags.map { it.name },
-                status.favourited,
-                status.reblogged,
-                status.favCount,
-                status.reblogCount,
-                if (status.reblog != null || notification != null)
-                    getTimelineContent(notification?.status ?: status.reblog!!) else null,
-                status.application?.name)
+        fun getTimelineContent(status: Status? = null, notification: Notification? = null): TimelineContent =
+                if (status != null) TimelineContent(
+                        status = TimelineContent.TimelineStatus(
+                                status.id,
+                                status.url,
+                                status.account.id,
+                                status.account.avatarUrl,
+                                status.account.displayName,
+                                "@${status.account.acct}",
+                                Date(status.createdAt.time),
+                                getSpannedWithoutExtraMarginFromHtml(status.content),
+                                status.media.map { it.previewImgUrl },
+                                status.media.map { it.url },
+                                status.sensitive,
+                                status.tags.map { it.name },
+                                status.favourited,
+                                status.reblogged,
+                                status.favCount,
+                                status.reblogCount,
+                                if (status.reblog != null) getTimelineContent(status.reblog!!).status else null,
+                                status.application?.name
+                        )
+                )
+                else if (notification != null) TimelineContent(
+                        notification = notification.let {
+                            TimelineContent.TimelineNotification(
+                                    it.id,
+                                    it.type,
+                                    it.account.id,
+                                    it.account.avatarUrl,
+                                    it.account.displayName,
+                                    "@${it.account.acct}",
+                                    Date(it.createdAt.time),
+                                    getTimelineContent(status = it.status).status
+                            )
+                        }
+                )
+                else TimelineContent()
 
         fun getProfileContent(account: Account): ProfileContent = ProfileContent(
                 account.avatarUrl,
@@ -275,6 +294,15 @@ class Common {
 
         fun setSimplicityPostBarVisibility(contentMainBinding: ContentMainBinding, isVisible: Boolean) {
             contentMainBinding.simplicityPostWrap.visibility = if (isVisible) View.VISIBLE else View.GONE
+        }
+
+
+        fun toggleRefreshIndicatorState(indicator: SwipeRefreshLayout, show: Boolean) {
+            indicator.isRefreshing = show
+        }
+
+        fun toggleRefreshIndicatorActivity(indicator: SwipeRefreshLayout, activity: Boolean) {
+            indicator.isEnabled = activity
         }
     }
 }

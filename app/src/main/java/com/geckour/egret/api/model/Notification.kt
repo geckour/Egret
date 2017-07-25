@@ -15,12 +15,10 @@ class Notification(
 
         var status: Status?
 ) {
-    companion object {
-        enum class NotificationType(val rawValue: Int) {
-            mention(0),
-            reblog(1),
-            favourite(2),
-            follow(3)
-        }
+    enum class NotificationType(val rawValue: Int) {
+        mention(0),
+        reblog(1),
+        favourite(2),
+        follow(3)
     }
 }
