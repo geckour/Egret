@@ -104,7 +104,7 @@ class TimelineFragment: BaseFragment() {
                 .putInt(STATE_KEY_CATEGORY, category.rawValue)
                 .apply()
 
-        binding.recyclerView.setOnTouchListener { v, event ->
+        binding.recyclerView.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
                     inTouch = true
@@ -344,12 +344,12 @@ class TimelineFragment: BaseFragment() {
 
     fun showPublicTimeline(loadNext: Boolean = false) {
         if (loadNext && maxId == -1L) return
+
         MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(maxId = if (loadNext) maxId else null, sinceId = if (!loadNext && sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
-                    toggleRefreshIndicatorState(false)
                     reflectStatuses(it, loadNext)
                 }, Throwable::printStackTrace)
     }
@@ -380,12 +380,12 @@ class TimelineFragment: BaseFragment() {
 
     fun showUserTimeline(loadStream: Boolean = false, loadNext: Boolean = false) {
         if (loadNext && maxId == -1L) return
+
         MastodonClient(Common.resetAuthInfo() ?: return).getUserTimeline(maxId = if (loadNext) maxId else null, sinceId = if (!loadNext && sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
-                    toggleRefreshIndicatorState(false)
                     reflectStatuses(it, loadNext)
                     if (loadStream) startUserTimelineStream()
                 }, Throwable::printStackTrace)
@@ -417,12 +417,12 @@ class TimelineFragment: BaseFragment() {
 
     fun showLocalTimeline(loadNext: Boolean = false) {
         if (loadNext && maxId == -1L) return
+
         MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(true, maxId = if (loadNext) maxId else null, sinceId = if (!loadNext && sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
-                    toggleRefreshIndicatorState(false)
                     reflectStatuses(it, loadNext)
                 }, Throwable::printStackTrace)
     }

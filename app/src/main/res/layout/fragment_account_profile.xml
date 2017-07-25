@@ -16,353 +16,331 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <android.support.constraint.ConstraintLayout
-            android:id="@+id/info_wrap"
+        <ImageView
+            android:id="@+id/header"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_centerInParent="true"
+            android:adjustViewBounds="true"
+            android:scaleType="centerCrop"
+            app:layout_constraintDimensionRatio="700:335"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            >
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <ImageView
-                android:id="@+id/header"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_centerInParent="true"
-                android:adjustViewBounds="true"
-                android:scaleType="centerCrop"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintDimensionRatio="700:335"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                />
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="124dp"
+            android:background="@color/account_profile_info_bg"
+            app:layout_constraintBottom_toBottomOf="@+id/icon"
+            app:layout_constraintLeft_toLeftOf="@+id/header"
+            app:layout_constraintRight_toRightOf="@+id/header"
+            app:layout_constraintTop_toTopOf="@+id/icon">
 
-            <LinearLayout
-                android:id="@+id/linearLayout"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:background="@color/account_profile_info_bg"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:padding="8dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+        </FrameLayout>
 
-                <ImageView
-                    android:id="@+id/icon"
-                    android:layout_width="100sp"
-                    android:layout_height="100sp"
-                    app:imageUrl="@{content.iconUrl}"
-                    app:srcCompat="@drawable/egret"/>
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginLeft="32dp"
+            app:imageUrl="@{content.iconUrl}"
+            app:layout_constraintBottom_toBottomOf="@+id/header"
+            app:layout_constraintLeft_toLeftOf="@+id/header"
+            app:layout_constraintTop_toTopOf="@+id/header"
+            app:srcCompat="@drawable/egret"
+            android:layout_marginStart="32dp" />
 
-                <android.support.constraint.ConstraintLayout
-                    android:id="@+id/name_wrap"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="8sp"
-                    app:layout_constraintRight_toRightOf="parent">
+        <TextView
+            android:id="@+id/screenName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:ellipsize="end"
+            android:minLines="1"
+            android:singleLine="true"
+            android:text="@{content.screenName}"
+            android:textColor="@color/account_profile_text"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toTopOf="@+id/username"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintLeft_toRightOf="@+id/icon"
+            app:layout_constraintRight_toRightOf="@+id/header"
+            app:layout_constraintTop_toTopOf="@+id/icon"
+            app:layout_constraintVertical_chainStyle="packed"
+            tools:text="おなまえ"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp" />
 
-                    <TextView
-                        android:id="@+id/screenName"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:minLines="1"
-                        android:singleLine="true"
-                        android:text="@{content.screenName}"
-                        android:textColor="@color/account_profile_text"
-                        android:textSize="18sp"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        tools:text="おなまえ"/>
+        <TextView
+            android:id="@+id/username"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="8dp"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:minLines="1"
+            android:singleLine="true"
+            android:text="@{content.username}"
+            android:textColor="@color/account_profile_text"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toTopOf="@+id/followingText"
+            app:layout_constraintLeft_toLeftOf="@+id/screenName"
+            app:layout_constraintRight_toRightOf="@+id/header"
+            app:layout_constraintTop_toBottomOf="@+id/screenName"
+            app:layout_constraintVertical_chainStyle="packed"
+            tools:text="あいでぃー"
+            android:layout_marginEnd="8dp" />
 
-                    <TextView
-                        android:id="@+id/username"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:ellipsize="end"
-                        android:minLines="1"
-                        android:singleLine="true"
-                        android:text="@{content.username}"
-                        android:textColor="@color/account_profile_text"
-                        android:textSize="12sp"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/screenName"
-                        tools:text="あいでぃー"/>
+        <TextView
+            android:id="@+id/followingText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="following:"
+            android:textColor="@color/account_profile_text"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toTopOf="@+id/url"
+            app:layout_constraintLeft_toLeftOf="@+id/screenName"
+            app:layout_constraintTop_toBottomOf="@+id/username"
+            app:layout_constraintVertical_chainStyle="packed" />
 
-                    <TextView
-                        android:id="@+id/followingText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:layout_marginTop="8dp"
-                        android:text="following:"
-                        android:textColor="@color/account_profile_text"
-                        android:textSize="12sp"
-                        app:layout_constraintBottom_toBottomOf="@+id/followingCount"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toTopOf="@+id/followingCount"/>
+        <TextView
+            android:id="@+id/followerCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:ellipsize="end"
+            android:minLines="1"
+            android:singleLine="true"
+            android:text="@{String.valueOf(content.followerCount)}"
+            android:textColor="@color/account_profile_text"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@+id/followingText"
+            app:layout_constraintLeft_toRightOf="@+id/followerText"
+            app:layout_constraintTop_toTopOf="@+id/followingText"
+            tools:text="345"
+            android:layout_marginStart="4dp" />
 
-                    <TextView
-                        android:id="@+id/followingCount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:layout_marginLeft="4dp"
-                        android:layout_marginTop="8dp"
-                        android:ellipsize="end"
-                        android:minLines="1"
-                        android:singleLine="true"
-                        android:text="@{String.valueOf(content.followingCount)}"
-                        android:textColor="@color/account_profile_text"
-                        android:textSize="12sp"
-                        app:layout_constraintBottom_toBottomOf="@+id/divide_follow"
-                        app:layout_constraintLeft_toRightOf="@+id/followingText"
-                        app:layout_constraintTop_toTopOf="@+id/divide_follow"
-                        tools:text="123"/>
+        <TextView
+            android:id="@+id/divide_follow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:text="/"
+            android:textColor="@color/account_profile_text"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@+id/followingText"
+            app:layout_constraintLeft_toRightOf="@+id/followingCount"
+            app:layout_constraintTop_toTopOf="@+id/followingText"
+            android:layout_marginStart="4dp" />
 
-                    <TextView
-                        android:id="@+id/divide_follow"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="4dp"
-                        android:layout_marginStart="4dp"
-                        android:layout_marginTop="8dp"
-                        android:text="/"
-                        android:textColor="@color/account_profile_text"
-                        android:textSize="12sp"
-                        app:layout_constraintLeft_toRightOf="@+id/followingCount"
-                        app:layout_constraintTop_toBottomOf="@+id/username"/>
+        <TextView
+            android:id="@+id/followerText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:text="follower:"
+            android:textColor="@color/account_profile_text"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@+id/followingText"
+            app:layout_constraintLeft_toRightOf="@+id/divide_follow"
+            app:layout_constraintTop_toTopOf="@+id/followingText"
+            android:layout_marginStart="4dp" />
 
-                    <TextView
-                        android:id="@+id/followerText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:layout_marginLeft="4dp"
-                        android:layout_marginStart="4dp"
-                        android:layout_marginTop="8dp"
-                        android:text="follower:"
-                        android:textColor="@color/account_profile_text"
-                        android:textSize="12sp"
-                        app:layout_constraintBottom_toBottomOf="@+id/divide_follow"
-                        app:layout_constraintLeft_toRightOf="@+id/divide_follow"
-                        app:layout_constraintTop_toTopOf="@+id/divide_follow"/>
+        <TextView
+            android:id="@+id/followingCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:ellipsize="end"
+            android:minLines="1"
+            android:singleLine="true"
+            android:text="@{String.valueOf(content.followingCount)}"
+            android:textColor="@color/account_profile_text"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@+id/followingText"
+            app:layout_constraintLeft_toRightOf="@+id/followingText"
+            app:layout_constraintTop_toTopOf="@+id/followingText"
+            tools:text="123"
+            android:layout_marginStart="4dp" />
 
-                    <TextView
-                        android:id="@+id/followerCount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:layout_marginLeft="4dp"
-                        android:layout_marginStart="4dp"
-                        android:layout_marginTop="8dp"
-                        android:ellipsize="end"
-                        android:minLines="1"
-                        android:singleLine="true"
-                        android:text="@{String.valueOf(content.followerCount)}"
-                        android:textColor="@color/account_profile_text"
-                        android:textSize="12sp"
-                        app:layout_constraintBottom_toBottomOf="@+id/followerText"
-                        app:layout_constraintLeft_toRightOf="@+id/followerText"
-                        app:layout_constraintTop_toTopOf="@+id/followerText"
-                        tools:text="345"/>
+        <TextView
+            android:id="@+id/url"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:clickable="true"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:text="@{content.url}"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@+id/icon"
+            app:layout_constraintLeft_toLeftOf="@+id/screenName"
+            app:layout_constraintTop_toBottomOf="@+id/followingText"
+            tools:text="http://hoge.example.com" />
 
-                    <TextView
-                        android:id="@+id/url"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:clickable="true"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:singleLine="true"
-                        android:text="@{content.url}"
-                        android:textSize="12sp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/divide_follow"
-                        tools:text="http://hoge.example.com"/>
-
-                </android.support.constraint.ConstraintLayout>
-
-            </LinearLayout>
-
-        </android.support.constraint.ConstraintLayout>
-
-        <android.support.constraint.ConstraintLayout
-            android:id="@+id/bio_wrap"
+        <TextView
+            android:id="@+id/note"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
             android:layout_marginTop="8dp"
             android:clickable="true"
+            android:maxLines="5"
+            android:scrollHorizontally="false"
+            android:scrollbars="vertical"
+            android:singleLine="false"
+            android:text="@{content.note}"
+            android:textAlignment="center"
+            android:textSize="14sp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/info_wrap">
+            app:layout_constraintTop_toBottomOf="@+id/header"
+            tools:text="SampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleTextSampleText" />
+
+        <LinearLayout
+            android:id="@+id/tootsCount_wrap"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            app:layout_constraintLeft_toLeftOf="@+id/note"
+            app:layout_constraintRight_toRightOf="@+id/note"
+            app:layout_constraintTop_toBottomOf="@+id/note">
 
             <TextView
-                android:id="@+id/note"
-                android:layout_width="0dp"
+                android:id="@+id/tootText"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
-                android:clickable="true"
-                android:text="@{content.note}"
-                android:textAlignment="center"
-                android:textSize="14sp"
+                android:layout_marginRight="4dp"
+                android:layout_weight="1"
+                android:text="Toots:"
+                android:textSize="12sp"
                 app:layout_constraintLeft_toLeftOf="parent"
+                tools:layout_editor_absoluteY="0dp" />
+
+            <TextView
+                android:id="@+id/tootCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:minLines="1"
+                android:singleLine="true"
+                android:text="@{String.valueOf(content.tootCount)}"
+                android:textSize="12sp"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintWidth_default="wrap"
-                app:layout_constraintWidth_max="480sp"
-                tools:text="TextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextTextText"/>
+                tools:text="12345678" />
 
-            <LinearLayout
-                android:id="@+id/tootsCount_wrap"
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/createdAt_wrap"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            app:layout_constraintLeft_toLeftOf="@+id/tootsCount_wrap"
+            app:layout_constraintRight_toRightOf="@+id/tootsCount_wrap"
+            app:layout_constraintTop_toBottomOf="@+id/tootsCount_wrap"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp">
+
+            <TextView
+                android:id="@+id/createdAtText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
-                android:gravity="center"
-                android:orientation="horizontal"
-                app:layout_constraintLeft_toLeftOf="@+id/note"
-                app:layout_constraintRight_toRightOf="@+id/note"
-                app:layout_constraintTop_toBottomOf="@+id/note">
+                android:layout_marginRight="4dp"
+                android:layout_weight="1"
+                android:text="started at:"
+                android:textSize="12sp" />
 
-                <TextView
-                    android:id="@+id/tootText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="4dp"
-                    android:layout_weight="1"
-                    android:text="Toots:"
-                    android:textSize="12sp"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    tools:layout_editor_absoluteY="0dp"/>
-
-                <TextView
-                    android:id="@+id/tootCount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:minLines="1"
-                    android:singleLine="true"
-                    android:text="@{String.valueOf(content.tootCount)}"
-                    android:textSize="12sp"
-                    app:layout_constraintRight_toRightOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    tools:text="12345678"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/createdAt_wrap"
+            <TextView
+                android:id="@+id/createdAt"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"
-                android:layout_marginTop="4dp"
-                android:gravity="center"
-                android:orientation="horizontal"
+                android:layout_weight="1"
+                android:text="@{timeString}"
+                android:textSize="12sp"
                 app:layout_constraintLeft_toLeftOf="@+id/tootsCount_wrap"
                 app:layout_constraintRight_toRightOf="@+id/tootsCount_wrap"
-                app:layout_constraintTop_toBottomOf="@+id/tootsCount_wrap">
+                app:layout_constraintTop_toBottomOf="@+id/tootsCount_wrap"
+                tools:text="yyyy:m:dd" />
+        </LinearLayout>
 
-                <TextView
-                    android:id="@+id/createdAtText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="4dp"
-                    android:layout_weight="1"
-                    android:text="started at:"
-                    android:textSize="12sp"/>
+        <ImageView
+            android:id="@+id/mute"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginBottom="4dp"
+            android:layout_marginLeft="14dp"
+            android:clickable="true"
+            android:tint="@color/icon_tint_dark"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toTopOf="@+id/timeline"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:srcCompat="@drawable/ic_volume_off_black_24px"
+            android:layout_marginStart="14dp" />
 
-                <TextView
-                    android:id="@+id/createdAt"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@{timeString}"
-                    android:textSize="12sp"
-                    app:layout_constraintLeft_toLeftOf="@+id/tootsCount_wrap"
-                    app:layout_constraintRight_toRightOf="@+id/tootsCount_wrap"
-                    app:layout_constraintTop_toBottomOf="@+id/tootsCount_wrap"
-                    tools:text="yyyy:m:dd"/>
-            </LinearLayout>
+        <ImageView
+            android:id="@+id/block"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:tint="@color/icon_tint_dark"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/mute"
+            app:layout_constraintLeft_toRightOf="@+id/mute"
+            app:layout_constraintTop_toTopOf="@+id/mute"
+            app:srcCompat="@drawable/ic_block_black_24px"
+            android:layout_marginStart="10dp" />
 
-            <ImageView
-                android:id="@+id/mute"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_marginBottom="14dp"
-                android:layout_marginLeft="14dp"
-                android:clickable="true"
-                android:tint="@color/icon_tint_dark"
-                android:visibility="invisible"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:srcCompat="@drawable/ic_volume_off_black_24px"/>
+        <ImageView
+            android:id="@+id/follow"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginBottom="4dp"
+            android:layout_marginRight="14dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:tint="@color/icon_tint_dark"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toTopOf="@+id/timeline"
+            app:layout_constraintRight_toRightOf="parent"
+            app:srcCompat="@drawable/ic_person_add_black_24px"
+            android:layout_marginEnd="14dp" />
 
-            <ImageView
-                android:id="@+id/block"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_marginBottom="8dp"
-                android:layout_marginLeft="10dp"
-                android:layout_marginTop="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:tint="@color/icon_tint_dark"
-                android:visibility="invisible"
-                app:layout_constraintBottom_toBottomOf="@+id/mute"
-                app:layout_constraintLeft_toRightOf="@+id/mute"
-                app:layout_constraintTop_toTopOf="@+id/mute"
-                app:srcCompat="@drawable/ic_block_black_24px"/>
-
-            <ImageView
-                android:id="@+id/follow"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_marginBottom="14dp"
-                android:layout_marginRight="14dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:tint="@color/icon_tint_dark"
-                android:visibility="invisible"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:srcCompat="@drawable/ic_person_add_black_24px"/>
-
-        </android.support.constraint.ConstraintLayout>
-
-        <include layout="@layout/fragment_timeline"
+        <include
             android:id="@+id/timeline"
+            layout="@layout/fragment_timeline"
             android:layout_width="0dp"
             android:layout_height="0dp"
+            android:layout_marginBottom="4dp"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/bio_wrap"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@+id/createdAt_wrap" />
 
     </android.support.constraint.ConstraintLayout>
 </layout>
