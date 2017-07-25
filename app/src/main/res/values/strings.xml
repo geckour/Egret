@@ -6,6 +6,7 @@
 
     <string name="action_settings">Settings</string>
     <string name="action_search">Search</string>
+    <string name="action_copy_toot_url">Copy URL of toot</string>
     <string name="action_open_toot_in_web">Open in browser</string>
     <string name="action_copy_toot_body">Copy toot</string>
     <string name="action_mute">Mute…</string>
@@ -40,7 +41,8 @@
         completions."
     </string>
     
-    <string name="message_necessity_wifi_grant">Grant authority of accessing Wi-Fi status to app to control streaming by such status.</string>
+    <string name="message_necessity_wifi_grant">To control streaming by such status, grant authority of accessing Wi-Fi status to app.</string>
+    <string name="message_necessity_read_storage_grant">To pick medias, grant authority of reading storage to app.</string>
 
     <string name="splash_content">Egret</string>
 

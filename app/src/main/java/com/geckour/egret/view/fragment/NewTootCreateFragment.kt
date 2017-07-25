@@ -1,15 +1,18 @@
 package com.geckour.egret.view.fragment
 
+import android.Manifest
 import android.app.Activity
 import android.content.ClipData
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.databinding.DataBindingUtil
 import android.net.Uri
 import android.os.Bundle
 import android.provider.DocumentsContract
 import android.provider.MediaStore
-import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.Snackbar
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
 import android.text.Editable
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -49,6 +52,7 @@ class NewTootCreateFragment : BaseFragment() {
         private val ARGS_KEY_REPLY_TO_STATUS_ID = "replyToStatusId"
         private val ARGS_KEY_REPLY_TO_ACCOUNT_NAME = "replyToAccountName"
         private val REQUEST_CODE_PICK_MEDIA = 1
+        private val REQUEST_CODE_GRANT_READ_STORAGE = 2
 
         fun newInstance(
                 currentTokenId: Long,
@@ -193,10 +197,29 @@ class NewTootCreateFragment : BaseFragment() {
     }
 
     fun pickMedia() {
-        val intent = Intent(Intent.ACTION_GET_CONTENT)
-        intent.type = "image/* video/*"
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-        startActivityForResult(intent, REQUEST_CODE_PICK_MEDIA)
+        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), REQUEST_CODE_GRANT_READ_STORAGE)
+        } else {
+            val intent = Intent(Intent.ACTION_GET_CONTENT)
+            intent.type = "image/* video/*"
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+            startActivityForResult(intent, REQUEST_CODE_PICK_MEDIA)
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            REQUEST_CODE_GRANT_READ_STORAGE -> {
+                if (grantResults.isNotEmpty() &&
+                        grantResults.filter { it != PackageManager.PERMISSION_GRANTED }.isEmpty()) {
+                    pickMedia()
+                } else {
+                    Snackbar.make(binding.root, R.string.message_necessity_read_storage_grant, Snackbar.LENGTH_SHORT)
+                }
+            }
+        }
     }
 
     fun bindMedia(data: Intent) {

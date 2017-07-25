@@ -76,6 +76,12 @@ class MainActivity : BaseActivity() {
     }
 
     val timelineListener = object: TimelineAdapter.Callbacks {
+        override val copyTootUrlToClipboard = { url: String ->
+            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = ClipData.newPlainText("url of toot", url)
+            clipboard.primaryClip = clip
+        }
+
         override val showTootInBrowser = { content: TimelineContent ->
             val uri = Uri.parse(content.tootUrl)
             if (Common.isModeDefaultBrowser(this@MainActivity)) {

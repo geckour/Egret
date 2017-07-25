@@ -23,6 +23,8 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
     private val contents: ArrayList<TimelineContent> = ArrayList()
 
     interface Callbacks {
+        val copyTootUrlToClipboard: (url: String) -> Any
+
         val showTootInBrowser: (content: TimelineContent) -> Any
 
         val copyTootToClipboard: (content: TimelineContent) -> Any
@@ -125,6 +127,11 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
 
             popup.setOnMenuItemClickListener { item ->
                 when (item?.itemId) {
+                    R.id.action_url -> {
+                        listener.copyTootUrlToClipboard(binding.content.tootUrl)
+                        true
+                    }
+
                     R.id.action_open -> {
                         listener.showTootInBrowser(binding.content)
                         true
