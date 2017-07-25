@@ -9,6 +9,7 @@
     <string name="action_copy_toot_url">Copy URL of toot</string>
     <string name="action_open_toot_in_web">Open in browser</string>
     <string name="action_copy_toot_body">Copy toot</string>
+    <string name="error_toot_not_exist">Oops! the Toot does not exist!</string>
     <string name="action_mute">Mute…</string>
     <string name="action_block">Block this account</string>
     <string name="action_delete">Delete this toot</string>
@@ -59,7 +60,10 @@
     <string name="error_too_many_media">Attach media within 4.</string>
     <string name="button_create_toot">Toot</string>
 
+    <string name="mentioned_by">Mentioned by</string>
     <string name="reblogged_by">Boosted by</string>
+    <string name="favourited_by">Favourited by</string>
+    <string name="followed_by">Followed by</string>
 
     <string name="hint_new_toot">What\'s up?</string>
     <string name="hint_add_mute_keyword">Enter new keyword to mute</string>

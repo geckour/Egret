@@ -83,7 +83,7 @@ class MainActivity : BaseActivity() {
             clipboard.primaryClip = clip
         }
 
-        override val showTootInBrowser = { content: TimelineContent ->
+        override val showTootInBrowser = { content: TimelineContent.TimelineStatus ->
             val uri = Uri.parse(content.tootUrl)
             if (Common.isModeDefaultBrowser(this@MainActivity)) {
                 startActivity(Intent(Intent.ACTION_VIEW, uri))

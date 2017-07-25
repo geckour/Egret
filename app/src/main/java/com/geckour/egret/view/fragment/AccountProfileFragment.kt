@@ -59,8 +59,6 @@ class AccountProfileFragment: BaseFragment() {
     private var inTouch = false
     lateinit private var adapter: TimelineAdapter
     lateinit private var sharedPref: SharedPreferences
-    private var sinceId: Long = -1
-    private var maxId: Long = -1
 
     private var maxId: Long = -1
     private var sinceId: Long = -1

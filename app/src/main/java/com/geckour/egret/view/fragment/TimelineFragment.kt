@@ -317,6 +317,7 @@ class TimelineFragment: BaseFragment() {
         stopPublicTimelineStream()
         stopLocalTimelineStream()
         stopUserTimelineStream()
+        stopNotificationTimelineStream()
     }
 
     fun startPublicTimelineStream() {
@@ -352,7 +353,7 @@ class TimelineFragment: BaseFragment() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
-                    reflectStatuses(it, loadNext)
+                    reflectContents(it, loadNext)
                 }, Throwable::printStackTrace)
     }
 
@@ -389,7 +390,7 @@ class TimelineFragment: BaseFragment() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
-                    reflectStatuses(it, loadNext)
+                    reflectContents(it, loadNext)
                     if (loadStream) startUserTimelineStream()
                 }, { throwable ->
                     throwable.printStackTrace()
@@ -430,8 +431,29 @@ class TimelineFragment: BaseFragment() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
-                    reflectStatuses(it, loadNext)
+                    reflectContents(it, loadNext)
                 }, Throwable::printStackTrace)
+    }
+
+    fun startNotificationTimelineStream() {
+        notificationStream?.dispose()
+        notificationStream = null
+        Common.resetAuthInfo()?.let {
+            notificationStream =
+                    MastodonClient(it).getNotificationTimelineAsStream()
+                            .flatMap { responseBody -> MastodonService.events(responseBody.source()) }
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .compose(bindToLifecycle())
+                            .subscribe({
+                                toggleRefreshIndicatorState(false)
+                                parseTimelineStream(it)
+                            }, { throwable ->
+                                throwable.printStackTrace()
+                                notificationStream?.dispose()
+                                toggleRefreshIndicatorState(false)
+                            })
+        }
     }
 
     fun stopNotificationTimelineStream() {
@@ -497,12 +519,10 @@ class TimelineFragment: BaseFragment() {
             }
             if (waitingNotification) {
                 val notification = gson.fromJson(data, Notification::class.java)
-                if (notification.type == Notification.Companion.NotificationType.reblog.name) {
-                    val content = Common.getTimelineContent(notification = notification)
+                val content = Common.getTimelineContent(notification = notification)
 
-                    adapter.addContent(content)
-                    onAddItemToAdapter()
-                }
+                adapter.addContent(content)
+                onAddItemToAdapter()
             }
             if (waitingDeletedId) {
                 adapter.removeContentByTootId(data.toLong())
