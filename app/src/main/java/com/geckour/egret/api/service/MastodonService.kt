@@ -120,7 +120,10 @@ interface MastodonService {
             accountId: Long,
 
             @Query("max_id")
-            maxId: Long?
+            maxId: Long?,
+
+            @Query("since_id")
+            sinceId: Long? = null
     ): Single<Result<List<Status>>>
 
     @FormUrlEncoded

@@ -57,7 +57,7 @@ class MastodonClient(baseUrl: String) {
 
     fun getUserTimeline(maxId: Long? = null, sinceId: Long? = null): Single<Result<List<Status>>> = service.getUserTimeline(maxId, sinceId)
 
-    fun getAccountAllToots(accountId: Long, maxId: Long? = null): Single<Result<List<Status>>> = service.getAccountAllToots(accountId, maxId)
+    fun getAccountAllToots(accountId: Long, maxId: Long? = null, sinceId: Long?): Single<Result<List<Status>>> = service.getAccountAllToots(accountId, maxId, sinceId)
 
     fun favoriteByStatusId(statusId: Long): Single<Status> = service.favoriteStatusById(statusId)
 
