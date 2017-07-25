@@ -218,12 +218,12 @@ class MainActivity : BaseActivity() {
             replyStatusById(content)
         }
 
-        override val onFavStatus = { statusId: Long, view: ImageView ->
-            favStatusById(statusId, view)
+        override val onFavStatus = { content: TimelineContent.TimelineStatus, view: ImageView ->
+            favStatusById(content, view)
         }
 
-        override val onBoostStatus = { statusId: Long, view: ImageView ->
-            boostStatusById(statusId, view)
+        override val onBoostStatus = { content: TimelineContent.TimelineStatus, view: ImageView ->
+            boostStatusById(content, view)
         }
 
         override val onClickMedia = { urls: List<String>, position: Int ->
@@ -570,7 +570,8 @@ class MainActivity : BaseActivity() {
                 .commit()
     }
 
-    fun favStatusById(statusId: Long, view: ImageView) {
+    fun favStatusById(content: TimelineContent.TimelineStatus, view: ImageView) {
+        val statusId = content.rebloggedStatusContent?.id ?: content.id
         val domain = Common.resetAuthInfo() ?: return
         MastodonClient(domain).getStatusByStatusId(statusId)
                 .flatMap { status ->
@@ -581,11 +582,13 @@ class MainActivity : BaseActivity() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe( { status ->
+                    if (content.rebloggedStatusContent == null) content.favourited = status.favourited else content.rebloggedStatusContent?.favourited = status.reblog?.favourited ?: false
                     view.setColorFilter(ContextCompat.getColor(this, if (status.favourited) R.color.colorAccent else R.color.icon_tint_dark))
                 }, Throwable::printStackTrace)
     }
 
-    fun boostStatusById(statusId: Long, view: ImageView) {
+    fun boostStatusById(content: TimelineContent.TimelineStatus, view: ImageView) {
+        val statusId = content.rebloggedStatusContent?.id ?: content.id
         val domain = Common.resetAuthInfo() ?: return
         MastodonClient(domain).getStatusByStatusId(statusId)
                 .flatMap { status ->
@@ -596,6 +599,7 @@ class MainActivity : BaseActivity() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe( { status ->
+                    if (content.rebloggedStatusContent == null) content.reblogged = status.reblogged else content.rebloggedStatusContent?.reblogged = status.reblog?.reblogged ?: false
                     view.setColorFilter(ContextCompat.getColor(this, if (status.reblogged) R.color.colorAccent else R.color.icon_tint_dark))
                 }, Throwable::printStackTrace)
     }
