@@ -24,11 +24,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/fab_margin"
-            android:focusableInTouchMode="true"
             android:tint="@android:color/white"
             app:backgroundTint="@color/colorPrimary"
-            app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintBottom_toTopOf="@+id/simplicity_post_wrap"
+            app:layout_constraintRight_toRightOf="parent"
             app:srcCompat="@drawable/ic_edit_white_24px" />
 
         <android.support.constraint.ConstraintLayout

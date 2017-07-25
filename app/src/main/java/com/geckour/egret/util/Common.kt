@@ -14,6 +14,7 @@ import android.text.Spanned
 import android.text.format.DateFormat
 import android.text.method.LinkMovementMethod
 import android.text.method.MovementMethod
+import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.TextView
@@ -22,6 +23,7 @@ import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Account
 import com.geckour.egret.api.model.Notification
 import com.geckour.egret.api.model.Status
+import com.geckour.egret.databinding.ContentMainBinding
 import com.geckour.egret.model.AccessToken
 import com.geckour.egret.view.adapter.*
 import com.geckour.egret.view.adapter.model.NewTootIndentifyContent
@@ -289,6 +291,10 @@ class Common {
         }
 
         fun hideSoftKeyBoard(et: EditText) = (et.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(et.windowToken, 0)
+
+        fun setSimplicityPostBarVisibility(contentMainBinding: ContentMainBinding, isVisible: Boolean) {
+            contentMainBinding.simplicityPostWrap.visibility = if (isVisible) View.VISIBLE else View.GONE
+        }
 
 
         fun toggleRefreshIndicatorState(indicator: SwipeRefreshLayout, show: Boolean) {

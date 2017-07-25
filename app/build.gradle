@@ -63,7 +63,6 @@ dependencies {
     compile 'com.facebook.stetho:stetho:1.5.0'
     compile 'com.facebook.stetho:stetho-okhttp3:1.5.0'
 
-
     // ReactiveX
     compile 'io.reactivex.rxjava2:rxkotlin:2.0.0'
     compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
@@ -87,6 +86,9 @@ dependencies {
 
     // Picasso: Image processing
     compile 'com.squareup.picasso:picasso:2.5.2'
+
+    // GIF animation support
+    compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.7'
 
     // Timber: Logging
     compile 'com.jakewharton.timber:timber:4.5.1'

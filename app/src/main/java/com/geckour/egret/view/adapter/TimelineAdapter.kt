@@ -29,7 +29,9 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
     private val contents: ArrayList<TimelineContent> = ArrayList()
 
     interface Callbacks {
-        val showTootInBrowser: (content: TimelineContent.TimelineStatus) -> Any
+        val copyTootUrlToClipboard: (url: String) -> Any
+
+        val showTootInBrowser: (content: TimelineContent) -> Any
 
         val copyTootToClipboard: (content: TimelineContent.TimelineStatus) -> Any
 
@@ -150,6 +152,11 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
 
             popup.setOnMenuItemClickListener { item ->
                 when (item?.itemId) {
+                    R.id.action_url -> {
+                        listener.copyTootUrlToClipboard(binding.content.tootUrl)
+                        true
+                    }
+
                     R.id.action_open -> {
                         listener.showTootInBrowser(binding.status)
                         true
@@ -258,10 +265,15 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
     }
 
     fun addAllContentsAtLast(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
-        val size = this.contents.size
-        this.contents.addAll(contents)
-        notifyItemRangeInserted(size, contents.size)
-        removeItemsWhenOverLimit(limit)
+        contents.filter { !shouldMute(it) }
+                .let {
+                    if (it.isEmpty()) return
+
+                    val size = this.contents.size
+                    this.contents.addAll(contents)
+                    notifyItemRangeInserted(size, contents.size)
+                    removeItemsWhenOverLimit(limit)
+                }
     }
 
     fun clearContents() {
@@ -289,6 +301,7 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
 
     fun shouldMute(content: TimelineContent): Boolean {
         if (!doFilter) return false
+
         OrmaProvider.db.selectFromMuteClient().forEach {
             if (content.status?.app == it.client) return true
         }

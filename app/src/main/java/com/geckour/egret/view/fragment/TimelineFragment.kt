@@ -26,6 +26,7 @@ import com.geckour.egret.databinding.FragmentTimelineBinding
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.Common.Companion.getStoreContentsKey
 import com.geckour.egret.util.Common.Companion.hideSoftKeyBoard
+import com.geckour.egret.util.Common.Companion.setSimplicityPostBarVisibility
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.MainActivity
 import com.geckour.egret.view.adapter.TimelineAdapter
@@ -104,7 +105,7 @@ class TimelineFragment: BaseFragment() {
                 .putInt(STATE_KEY_CATEGORY, category.rawValue)
                 .apply()
 
-        binding.recyclerView.setOnTouchListener { v, event ->
+        binding.recyclerView.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
                     inTouch = true
@@ -312,10 +313,6 @@ class TimelineFragment: BaseFragment() {
                 })
     }
 
-    fun setSimplicityPostBarVisibility(contentMainBinding: ContentMainBinding, isVisible: Boolean) {
-        contentMainBinding.simplicityPostWrap.visibility = if (isVisible) View.VISIBLE else View.GONE
-    }
-
     fun stopTimelineStreams() {
         stopPublicTimelineStream()
         stopLocalTimelineStream()
@@ -349,17 +346,14 @@ class TimelineFragment: BaseFragment() {
 
     fun showPublicTimeline(loadNext: Boolean = false) {
         if (loadNext && maxId == -1L) return
+
         MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(maxId = if (loadNext) maxId else null, sinceId = if (!loadNext && sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
-                    toggleRefreshIndicatorState(false)
-                    reflectContents(it, loadNext)
-                }, { throwable ->
-                    throwable.printStackTrace()
-                    toggleRefreshIndicatorState(false)
-                })
+                    reflectStatuses(it, loadNext)
+                }, Throwable::printStackTrace)
     }
 
     fun startUserTimelineStream() {
@@ -389,13 +383,13 @@ class TimelineFragment: BaseFragment() {
 
     fun showUserTimeline(loadStream: Boolean = false, loadNext: Boolean = false) {
         if (loadNext && maxId == -1L) return
+
         MastodonClient(Common.resetAuthInfo() ?: return).getUserTimeline(maxId = if (loadNext) maxId else null, sinceId = if (!loadNext && sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
-                    toggleRefreshIndicatorState(false)
-                    reflectContents(it, loadNext)
+                    reflectStatuses(it, loadNext)
                     if (loadStream) startUserTimelineStream()
                 }, { throwable ->
                     throwable.printStackTrace()
@@ -430,17 +424,14 @@ class TimelineFragment: BaseFragment() {
 
     fun showLocalTimeline(loadNext: Boolean = false) {
         if (loadNext && maxId == -1L) return
+
         MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(true, maxId = if (loadNext) maxId else null, sinceId = if (!loadNext && sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
-                    toggleRefreshIndicatorState(false)
-                    reflectContents(it, loadNext)
-                }, { throwable ->
-                    throwable.printStackTrace()
-                    toggleRefreshIndicatorState(false)
-                })
+                    reflectStatuses(it, loadNext)
+                }, Throwable::printStackTrace)
     }
 
     fun stopNotificationTimelineStream() {

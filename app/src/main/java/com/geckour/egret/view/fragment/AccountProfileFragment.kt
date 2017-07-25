@@ -5,14 +5,17 @@ import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.v4.content.ContextCompat
+import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Account
 import com.geckour.egret.api.model.Relationship
+import com.geckour.egret.api.model.Status
 import com.geckour.egret.databinding.FragmentAccountProfileBinding
 import com.geckour.egret.util.Common
 import com.geckour.egret.view.activity.MainActivity
@@ -21,13 +24,13 @@ import com.squareup.picasso.Picasso
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import retrofit2.adapter.rxjava2.Result
 
 class AccountProfileFragment: BaseFragment() {
 
     companion object {
         val TAG: String = this::class.java.simpleName
         val ARGS_KEY_ACCOUNT = "account"
-        private val STATE_KEY_THEME_MODE = "theme mode"
 
         fun newInstance(account: Account): AccountProfileFragment {
             val fragment = AccountProfileFragment()
@@ -52,10 +55,15 @@ class AccountProfileFragment: BaseFragment() {
     lateinit private var account: Account
     lateinit private var relationship: Relationship
     lateinit private var binding: FragmentAccountProfileBinding
+    private var onTop = true
+    private var inTouch = false
     lateinit private var adapter: TimelineAdapter
     lateinit private var sharedPref: SharedPreferences
     private var sinceId: Long = -1
     private var maxId: Long = -1
+
+    private var maxId: Long = -1
+    private var sinceId: Long = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -169,21 +177,36 @@ class AccountProfileFragment: BaseFragment() {
                     }
                 }, Throwable::printStackTrace)
 
-        adapter = TimelineAdapter((activity as MainActivity).timelineListener, false)
-        binding.timeline.recyclerView.adapter = adapter
+        binding.timeline.recyclerView.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
+                    inTouch = true
+                }
 
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
+                    inTouch = false
+                }
+            }
+            false
+        }
         binding.timeline.recyclerView.addOnScrollListener(object: RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView?, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
                 val scrollY: Int = recyclerView?.computeVerticalScrollOffset() ?: -1
-                val y = scrollY + (recyclerView?.height ?: -1)
-                val h = recyclerView?.computeVerticalScrollRange() ?: -1
-                if (y == h) {
-                    showToots(true)
+                onTop = scrollY == 0 || onTop && !(inTouch && scrollY > 0)
+
+                if (!onTop) {
+                    val y = scrollY + (recyclerView?.height ?: -1)
+                    val h = recyclerView?.computeVerticalScrollRange() ?: -1
+                    if (y == h) {
+                        showToots(true)
+                    }
                 }
             }
         })
+        adapter = TimelineAdapter((activity as MainActivity).timelineListener)
+        binding.timeline.recyclerView.adapter = adapter
 
         binding.timeline.swipeRefreshLayout.apply {
             setColorSchemeResources(R.color.colorAccent)
@@ -191,44 +214,49 @@ class AccountProfileFragment: BaseFragment() {
                 showToots()
             }
         }
+
+        showToots()
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-
-        showToots()
     }
 
     override fun onResume() {
         super.onResume()
 
         reflectSettings()
+        refreshBarTitle()
     }
 
     fun showToots(loadNext: Boolean = false) {
         if (loadNext && maxId == -1L) return
 
-        toggleRefreshIndicatorState(true)
         Common.resetAuthInfo()?.let {
             MastodonClient(it).getAccountAllToots(account.id, if (loadNext) maxId else null, if (!loadNext && sinceId != -1L) sinceId else null)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .compose(bindToLifecycle())
                     .subscribe({ result ->
-                        if (loadNext) adapter.addAllContentsAtLast(result.response().body().map { status -> Common.getTimelineContent(status) })
-                        else adapter.addAllContents(result.response().body().map { status -> Common.getTimelineContent(status) })
-                        maxId = result.response().headers().get("Link")?.replace(getRegexExtractMaxId(), "$1")?.let { if (it.isEmpty()) "-1" else it }?.toLong() ?: -1L
-                        sinceId = result.response().headers().get("Link")?.replace(getRegexExtractSinceId(), "$1")?.let { if (it.isEmpty()) "-1" else it }?.toLong() ?: -1L
-                        toggleRefreshIndicatorState(false)
-                    }, { throwable ->
-                        throwable.printStackTrace()
-                        toggleRefreshIndicatorState(false)
-                    })
+                        reflectStatuses(result, loadNext)
+                    }, Throwable::printStackTrace)
         }
     }
 
     fun getRegexExtractSinceId() = Regex(".*since_id=(\\d+?)>.*")
     fun getRegexExtractMaxId() = Regex(".*max_id=(\\d+?)>.*")
+
+    fun reflectStatuses(result: Result<List<Status>>, next: Boolean) {
+        result.response()?.let {
+            if (next) adapter.addAllContentsAtLast(it.body().map { Common.getTimelineContent(it) })
+            else adapter.addAllContents(it.body().map { Common.getTimelineContent(it) })
+
+            maxId = it.headers().get("Link")?.replace(getRegexExtractMaxId(), "$1")?.toLong() ?: -1L
+            sinceId = it.headers().get("Link")?.replace(getRegexExtractSinceId(), "$1")?.toLong() ?: -1L
+
+            toggleRefreshIndicatorState(false)
+        }
+    }
 
     fun setFollowButtonState(state: Boolean) {
         if (state) {
@@ -241,19 +269,15 @@ class AccountProfileFragment: BaseFragment() {
     }
 
     fun setBlockButtonState(state: Boolean) {
-        if (state) {
-            binding.block.setColorFilter(ContextCompat.getColor(activity, R.color.accent))
-        } else {
-            binding.block.setColorFilter(ContextCompat.getColor(activity, R.color.icon_tint_dark))
-        }
+        binding.block.setColorFilter(
+                ContextCompat.getColor(activity,
+                        if (state) R.color.accent else R.color.icon_tint_dark))
     }
 
     fun setMuteButtonState(state: Boolean) {
-        if (state) {
-            binding.mute.setColorFilter(ContextCompat.getColor(activity, R.color.accent))
-        } else {
-            binding.mute.setColorFilter(ContextCompat.getColor(activity, R.color.icon_tint_dark))
-        }
+        binding.mute.setColorFilter(
+                ContextCompat.getColor(activity,
+                        if (state) R.color.accent else R.color.icon_tint_dark))
     }
 
     fun reflectSettings() {
@@ -262,7 +286,11 @@ class AccountProfileFragment: BaseFragment() {
         binding.note.movementMethod = movementMethod
     }
 
-    fun toggleRefreshIndicatorState(show: Boolean) = Common.toggleRefreshIndicatorState(binding.timeline.swipeRefreshLayout, show)
+    fun refreshBarTitle() {
+        (activity as MainActivity).supportActionBar?.title = "${account.displayName}'s profile"
+    }
 
-    fun toggleRefreshIndicatorActivity(show: Boolean) = Common.toggleRefreshIndicatorActivity(binding.timeline.swipeRefreshLayout, show)
+    fun toggleRefreshIndicatorState(show: Boolean) {
+        binding.timeline.swipeRefreshLayout.isRefreshing = show
+    }
 }
