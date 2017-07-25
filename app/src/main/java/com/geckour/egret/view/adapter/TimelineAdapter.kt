@@ -103,6 +103,7 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
                             if (timelineBinding.status.rebloggedStatusContent?.reblogged ?: timelineBinding.status.reblogged) R.color.colorAccent else R.color.icon_tint_dark))
 
             timelineBinding.opt.setOnClickListener { showPopup(ContentType.Status, it) }
+            timelineBinding.clearSpoiler.setOnClickListener { toggleBodySpoiler(ContentType.Status, timelineBinding.status.rebloggedStatusContent ?: timelineBinding.status, timelineBinding.bodyAdditional.visibility != View.VISIBLE) }
             timelineBinding.icon.setOnClickListener { listener.showProfile(timelineBinding.status.rebloggedStatusContent?.accountId ?: timelineBinding.status.accountId) }
             timelineBinding.reply.setOnClickListener { listener.onReply(timelineBinding.status.rebloggedStatusContent ?: timelineBinding.status) }
             timelineBinding.fav.setOnClickListener { listener.onFavStatus(timelineBinding.status, timelineBinding.fav) }
@@ -118,6 +119,7 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
             notificationBinding.notification = content
 
             notificationBinding.opt.setOnClickListener { showPopup(ContentType.Notification, it) }
+            notificationBinding.notification.status?.let { status -> notificationBinding.clearSpoiler.setOnClickListener { toggleBodySpoiler(ContentType.Notification, status.rebloggedStatusContent ?: status, notificationBinding.bodyAdditional.visibility != View.VISIBLE) } }
             notificationBinding.notification.status?.let { status -> notificationBinding.icon.setOnClickListener { listener.showProfile(status.rebloggedStatusContent?.accountId ?: status.accountId) } }
             notificationBinding.notification.status?.let { status -> notificationBinding.reply.setOnClickListener { listener.onReply(status.rebloggedStatusContent ?: status) } }
             notificationBinding.notification.status?.let { status -> notificationBinding.fav.setOnClickListener { listener.onFavStatus(status, notificationBinding.fav) } }
@@ -265,6 +267,26 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
                             .forEach {
                                 it.apply { visibility = if (show) View.VISIBLE else View.GONE }
                             }
+                }
+            }
+        }
+
+        fun toggleBodySpoiler(type: ContentType, content: TimelineContent.TimelineStatus, show: Boolean) {
+            when(type) {
+                ContentType.Status -> {
+                    timelineBinding.clearSpoiler.setText(if (show) R.string.button_read_more else R.string.button_enable_spoiler)
+                    timelineBinding.body.text = if (show) content.spoilerText else content.body
+                    timelineBinding.bodyAdditional.visibility = if (show) View.GONE else View.VISIBLE
+                    timelineBinding.bodyAdditional.text = if (show) content.body else null
+                }
+
+                ContentType.Notification -> {
+                    notificationBinding.notification.status?.let {
+                        notificationBinding.clearSpoiler.setText(if (show) R.string.button_read_more else R.string.button_enable_spoiler)
+                        notificationBinding.body.text = if (show) it.spoilerText else it.body
+                        notificationBinding.bodyAdditional.visibility = if (show) View.GONE else View.VISIBLE
+                        notificationBinding.bodyAdditional.text = if (show) it.body else null
+                    }
                 }
             }
         }
