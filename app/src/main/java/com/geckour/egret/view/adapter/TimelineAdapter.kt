@@ -42,9 +42,9 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
 
         val onReply: (content: TimelineContent.TimelineStatus) -> Any
 
-        val onFavStatus: (statusId: Long, view: ImageView) -> Any
+        val onFavStatus: (content: TimelineContent.TimelineStatus, view: ImageView) -> Any
 
-        val onBoostStatus: (statusId: Long, view: ImageView) -> Any
+        val onBoostStatus: (content: TimelineContent.TimelineStatus, view: ImageView) -> Any
 
         val onClickMedia: (urls: List<String>, position: Int) -> Any
     }
@@ -105,8 +105,8 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
             timelineBinding.opt.setOnClickListener { showPopup(ContentType.Status, it) }
             timelineBinding.icon.setOnClickListener { listener.showProfile(timelineBinding.status.rebloggedStatusContent?.accountId ?: timelineBinding.status.accountId) }
             timelineBinding.reply.setOnClickListener { listener.onReply(timelineBinding.status.rebloggedStatusContent ?: timelineBinding.status) }
-            timelineBinding.fav.setOnClickListener { listener.onFavStatus(timelineBinding.status.rebloggedStatusContent?.id ?: timelineBinding.status.id, timelineBinding.fav) }
-            timelineBinding.boost.setOnClickListener { listener.onBoostStatus(timelineBinding.status.rebloggedStatusContent?.id ?: timelineBinding.status.id, timelineBinding.boost) }
+            timelineBinding.fav.setOnClickListener { listener.onFavStatus(timelineBinding.status, timelineBinding.fav) }
+            timelineBinding.boost.setOnClickListener { listener.onBoostStatus(timelineBinding.status, timelineBinding.boost) }
             timelineBinding.body.movementMethod = Common.getMovementMethodFromPreference(timelineBinding.body.context)
 
             toggleStatus(ContentType.Status, true)
@@ -116,6 +116,13 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
             initVisibility(ContentType.Notification)
 
             notificationBinding.notification = content
+
+            notificationBinding.opt.setOnClickListener { showPopup(ContentType.Notification, it) }
+            notificationBinding.notification.status?.let { status -> notificationBinding.icon.setOnClickListener { listener.showProfile(status.rebloggedStatusContent?.accountId ?: status.accountId) } }
+            notificationBinding.notification.status?.let { status -> notificationBinding.reply.setOnClickListener { listener.onReply(status.rebloggedStatusContent ?: status) } }
+            notificationBinding.notification.status?.let { status -> notificationBinding.fav.setOnClickListener { listener.onFavStatus(status, notificationBinding.fav) } }
+            notificationBinding.notification.status?.let { status -> notificationBinding.boost.setOnClickListener { listener.onBoostStatus(status, notificationBinding.boost) } }
+            notificationBinding.body.movementMethod = Common.getMovementMethodFromPreference(notificationBinding.body.context)
 
             val type = content.type.let { Notification.NotificationType.valueOf(it) }
             bindAction(ContentType.Notification, type)
