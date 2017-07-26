@@ -6,6 +6,7 @@
     <data>
         <import type="android.view.View"/>
         <import type="android.text.Html" />
+        <import type="android.text.TextUtils" />
         <variable
             name="status"
             type="com.geckour.egret.view.adapter.model.TimelineContent.TimelineStatus" />
@@ -149,7 +150,7 @@
             android:bufferType="spannable"
             android:clickable="true"
             android:ellipsize="none"
-            android:text="@{(status.rebloggedStatusContent == null) ? (status.sensitive ? status.spoilerText : status.body) : (status.rebloggedStatusContent.sensitive ? status.rebloggedStatusContent.spoilerText : status.rebloggedStatusContent.body)}"
+            android:text="@{(status.rebloggedStatusContent == null) ? (TextUtils.isEmpty(status.spoilerText) ? status.body : status.spoilerText) : (TextUtils.isEmpty(status.rebloggedStatusContent.spoilerText) ? status.rebloggedStatusContent.body : status.rebloggedStatusContent.spoilerText)}"
             android:textColor="?attr/colorGray"
             android:textSize="12sp"
             app:layout_constraintLeft_toLeftOf="@+id/name_weak"
@@ -164,6 +165,7 @@
             android:bufferType="spannable"
             android:clickable="true"
             android:ellipsize="none"
+            android:text="@{(status.rebloggedStatusContent == null) ? status.body : status.rebloggedStatusContent.body}"
             android:textColor="?attr/colorGray"
             android:textSize="12sp"
             android:visibility="gone"
@@ -176,6 +178,7 @@
             android:id="@+id/clear_spoiler"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:background="?attr/colorGray"
             android:clickable="true"
             android:paddingBottom="4dp"

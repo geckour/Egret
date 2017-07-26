@@ -6,6 +6,7 @@
     <data>
         <import type="android.view.View"/>
         <import type="android.text.Html" />
+        <import type="android.text.TextUtils" />
         <variable
             name="notification"
             type="com.geckour.egret.view.adapter.model.TimelineContent.TimelineNotification" />
@@ -149,7 +150,7 @@
             android:bufferType="spannable"
             android:clickable="true"
             android:ellipsize="none"
-            android:text="@{(notification.status == null) ? null : ((notification.status.rebloggedStatusContent == null) ? (notification.status.sensitive ? notification.status.spoilerText : notification.status.body) : (notification.status.rebloggedStatusContent.sensitive ? notification.status.rebloggedStatusContent.spoilerText : notification.status.rebloggedStatusContent.body))}"
+            android:text="@{(notification.status == null) ? null : ((notification.status.rebloggedStatusContent == null) ? (TextUtils.isEmpty(notification.status.spoilerText) ? notification.status.body : notification.status.spoilerText) : (TextUtils.isEmpty(notification.status.rebloggedStatusContent.spoilerText) ? notification.status.rebloggedStatusContent.body : notification.status.rebloggedStatusContent.spoilerText))}"
             android:textColor="?attr/colorGray"
             android:textSize="12sp"
             app:layout_constraintLeft_toLeftOf="@+id/name_weak"
@@ -164,6 +165,7 @@
             android:bufferType="spannable"
             android:clickable="true"
             android:ellipsize="none"
+            android:text="@{(notification.status == null) ? null : ((notification.status.rebloggedStatusContent == null) ? notification.status.body : notification.status.rebloggedStatusContent.body)}"
             android:textColor="?attr/colorGray"
             android:textSize="12sp"
             android:visibility="gone"
@@ -176,6 +178,7 @@
             android:id="@+id/clear_spoiler"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:background="?attr/colorGray"
             android:clickable="true"
             android:paddingBottom="4dp"
