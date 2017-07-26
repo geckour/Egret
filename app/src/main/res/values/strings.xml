@@ -65,6 +65,9 @@
     <string name="favourited_by">Favourited by</string>
     <string name="followed_by">Followed by</string>
 
+    <string name="button_read_more">Read more</string>
+    <string name="button_enable_spoiler">Hide</string>
+
     <string name="hint_new_toot">What\'s up?</string>
     <string name="hint_add_mute_keyword">Enter new keyword to mute</string>
     <string name="hint_add_mute_hash_tag">Enter new hash tag to mute</string>

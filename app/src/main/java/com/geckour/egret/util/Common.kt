@@ -95,6 +95,7 @@ class Common {
                                 status.media.map { it.previewImgUrl },
                                 status.media.map { it.url },
                                 status.sensitive,
+                                getSpannedWithoutExtraMarginFromHtml(status.spoilerText),
                                 status.tags.map { it.name },
                                 status.favourited,
                                 status.reblogged,
