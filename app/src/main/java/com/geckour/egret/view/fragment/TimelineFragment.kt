@@ -342,7 +342,7 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun stopPublicTimelineStream() {
-        if (getCategory() == Category.Public && !(publicStream?.isDisposed ?: true)) publicStream?.dispose()
+        if (!(publicStream?.isDisposed ?: true)) publicStream?.dispose()
     }
 
     fun showPublicTimeline(loadNext: Boolean = false) {
@@ -379,7 +379,7 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun stopUserTimelineStream() {
-        if (getCategory() == Category.User && !(userStream?.isDisposed ?: true)) userStream?.dispose()
+        if (!(userStream?.isDisposed ?: true)) userStream?.dispose()
     }
 
     fun showUserTimeline(loadStream: Boolean = false, loadNext: Boolean = false) {
@@ -420,7 +420,7 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun stopLocalTimelineStream() {
-        if (getCategory() == Category.Local && !(localStream?.isDisposed ?: true)) localStream?.dispose()
+        if (!(localStream?.isDisposed ?: true)) localStream?.dispose()
     }
 
     fun showLocalTimeline(loadNext: Boolean = false) {
@@ -469,7 +469,7 @@ class TimelineFragment: BaseFragment() {
                 .subscribe({
                     toggleRefreshIndicatorState(false)
                     reflectContents(it, loadNext)
-                    if (loadStream) startUserTimelineStream()
+                    if (loadStream) startNotificationTimelineStream()
                 }, { throwable ->
                     throwable.printStackTrace()
                     toggleRefreshIndicatorState(false)
