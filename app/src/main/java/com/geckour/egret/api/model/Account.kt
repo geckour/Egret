@@ -5,7 +5,7 @@ import java.io.Serializable
 import java.net.URL
 import java.util.*
 
-class Account(
+data class Account(
         val id: Long,
 
         var username: String,

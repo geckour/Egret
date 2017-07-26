@@ -111,4 +111,6 @@ class MastodonClient(baseUrl: String) {
             idFrom: Long? = null,
             limit: Long = 80
     ): Single<List<Account>> = service.getBlockedUsers(idTo, idFrom, limit)
+
+    fun search(query: String): Single<com.geckour.egret.api.model.Result> = service.search(query)
 }

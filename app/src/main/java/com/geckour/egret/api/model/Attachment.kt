@@ -2,7 +2,7 @@ package com.geckour.egret.api.model
 
 import com.google.gson.annotations.SerializedName
 
-class Attachment(
+data class Attachment(
         val id: Long,
 
         var type: String,

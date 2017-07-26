@@ -3,7 +3,7 @@ package com.geckour.egret.api.model
 import com.google.gson.annotations.SerializedName
 import java.util.*
 
-class Notification(
+data class Notification(
         val id: Long,
 
         var type: String,

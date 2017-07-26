@@ -2,7 +2,7 @@ package com.geckour.egret.api.model
 
 import com.google.gson.annotations.SerializedName
 
-class Relationship(
+data class Relationship(
         @SerializedName("id")
         val accountId: Long,
 
