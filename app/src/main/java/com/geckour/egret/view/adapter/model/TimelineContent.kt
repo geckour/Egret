@@ -9,13 +9,13 @@ data class TimelineContent(
         val notification: TimelineNotification? = null
 ) {
     data class TimelineStatus(
-            var id: Long,
-            var tootUrl: String,
-            var accountId: Long,
+            val id: Long,
+            val tootUrl: String,
+            val accountId: Long,
             var iconUrl: String,
             var nameStrong: String,
             var nameWeak: String,
-            var time: Date,
+            val time: Date,
             var body: Spanned,
             var mediaPreviewUrls: List<String>,
             var mediaUrls: List<String>,
@@ -32,12 +32,12 @@ data class TimelineContent(
 
     data class TimelineNotification(
             val id: Long,
-            var type: String,
-            var accountId: Long,
+            val type: String,
+            val accountId: Long,
             var iconUrl: String,
             var nameStrong: String,
             var nameWeak: String,
-            var time: Date,
-            var status: TimelineStatus?
+            val time: Date,
+            val status: TimelineStatus?
     )
 }

@@ -383,7 +383,7 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
 
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ViewHolder {
         if (viewType == ContentType.Status.ordinal) {
-            val binding = DataBindingUtil.inflate<ItemRecycleTimelineBinding>(LayoutInflater.from(parent?.context), R.layout.item_recycle_timeline, parent, false)
+            val binding = DataBindingUtil.inflate<ItemRecycleTimelineBinding>(LayoutInflater.from(parent?.context), R.layout.item_recycle_status, parent, false)
             return ViewHolder(binding)
         }
         if (viewType == ContentType.Notification.ordinal) {

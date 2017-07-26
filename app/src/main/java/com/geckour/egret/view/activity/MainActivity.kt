@@ -334,7 +334,6 @@ class MainActivity : BaseActivity() {
             }
 
             override fun onQueryTextSubmit(text: String?): Boolean {
-                //Snackbar.make(binding.root, "Not implemented", Snackbar.LENGTH_SHORT).show()
                 if (text != null) {
                     showSearchResult(text)
                     return true
