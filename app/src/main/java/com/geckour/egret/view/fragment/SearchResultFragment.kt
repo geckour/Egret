@@ -78,7 +78,7 @@ class SearchResultFragment: BaseFragment() {
     }
 
     fun showResult() {
-        adapter.addAllContent(result)
+        adapter.resetContentsByResult(result)
     }
 
     fun toggleRefreshIndicatorState(show: Boolean) = Common.toggleRefreshIndicatorState(binding.swipeRefreshLayout, show)
