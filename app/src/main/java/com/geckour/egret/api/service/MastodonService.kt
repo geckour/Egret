@@ -269,6 +269,15 @@ interface MastodonService {
             limit: Long
     ): Single<List<Account>>
 
+    @GET("api/v1/search")
+    fun search(
+            @Query("q")
+            query: String,
+
+            @Query("resolve")
+            resolve: Boolean = true
+    ): Single<com.geckour.egret.api.model.Result>
+
     companion object {
         fun events(source: BufferedSource): Observable<String> {
             return Observable.create { emitter ->

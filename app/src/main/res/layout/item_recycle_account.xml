@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+        <variable
+            name="account"
+            type="com.geckour.egret.view.adapter.model.SearchResultAccount" />
+    </data>
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginLeft="12dp"
+            android:layout_marginTop="12dp"
+            app:imageUrl="@{account.iconUrl}"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/nameStrong"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:text="@{account.nameStrong}"
+            android:textColor="?attr/colorGray"
+            android:textSize="16sp"
+            app:layout_constraintLeft_toRightOf="@+id/icon"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/icon"
+            tools:text="つよいなまえ" />
+
+        <TextView
+            android:id="@+id/nameWeak"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@{account.nameWeak}"
+            android:textSize="12sp"
+            app:layout_constraintLeft_toLeftOf="@+id/nameStrong"
+            app:layout_constraintRight_toRightOf="@+id/nameStrong"
+            app:layout_constraintTop_toBottomOf="@+id/nameStrong"
+            tools:text="よわいなまえ" />
+
+        <TextView
+            android:id="@+id/createdAt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/created_at"
+            android:textSize="12sp"
+            app:layout_constraintLeft_toLeftOf="@+id/nameStrong"
+            app:layout_constraintTop_toBottomOf="@+id/nameWeak" />
+
+        <TextView
+            android:id="@+id/createdAt_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:text="@{account.createdAt}"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@+id/createdAt"
+            app:layout_constraintLeft_toRightOf="@+id/createdAt"
+            app:layout_constraintRight_toRightOf="@+id/nameWeak"
+            app:layout_constraintTop_toTopOf="@+id/createdAt"
+            tools:text="00/00/00 00:00:00" />
+
+        <FrameLayout
+            android:id="@+id/divider"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:background="?attr/colorDivider"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/createdAt" />
+    </android.support.constraint.ConstraintLayout>
+</layout>

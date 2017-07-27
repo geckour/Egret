@@ -8,22 +8,17 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.preference.PreferenceManager
-import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.Snackbar
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.SearchView
-import android.support.v7.widget.Toolbar
 import android.text.Html
 import android.text.TextUtils
 import android.util.Log
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
-import com.geckour.egret.App
 import com.geckour.egret.App.Companion.STATE_KEY_CATEGORY
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
@@ -31,13 +26,11 @@ import com.geckour.egret.databinding.ActivityMainBinding
 import com.geckour.egret.model.MuteClient
 import com.geckour.egret.model.MuteInstance
 import com.geckour.egret.util.Common
-import com.geckour.egret.util.Common.Companion.getStoreContentsKey
 import com.geckour.egret.util.Common.Companion.hideSoftKeyBoard
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.adapter.TimelineAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
 import com.geckour.egret.view.fragment.*
-import com.geckour.egret.view.fragment.TimelineFragment.Companion.STATE_ARGS_KEY_CONTENTS
 import com.geckour.egret.view.fragment.TimelineFragment.Companion.STATE_ARGS_KEY_RESUME
 import com.mikepenz.materialdrawer.AccountHeader
 import com.mikepenz.materialdrawer.AccountHeaderBuilder
@@ -341,7 +334,10 @@ class MainActivity : BaseActivity() {
             }
 
             override fun onQueryTextSubmit(text: String?): Boolean {
-                Snackbar.make(binding.root, "Not implemented", Snackbar.LENGTH_SHORT).show()
+                if (text != null) {
+                    showSearchResult(text)
+                    return true
+                }
                 return false
             }
         })
@@ -357,6 +353,22 @@ class MainActivity : BaseActivity() {
         when (item.itemId) {}
 
         return super.onOptionsItemSelected(item)
+    }
+
+    fun showSearchResult(query: String) {
+        Common.resetAuthInfo()?.let {
+            MastodonClient(it).search(query)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .compose(bindToLifecycle())
+                    .subscribe({ result ->
+                        Log.d("showSearchResult", "result: $result")
+                        supportFragmentManager.beginTransaction()
+                                .replace(R.id.container, SearchResultFragment.newInstance(query = query, result = result), SearchResultFragment.TAG)
+                                .addToBackStack(SearchResultFragment.TAG)
+                                .commit()
+                    }, Throwable::printStackTrace)
+        }
     }
 
     fun commitAccountsIntoAccountHeader() {

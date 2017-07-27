@@ -28,6 +28,7 @@ import com.geckour.egret.model.AccessToken
 import com.geckour.egret.view.adapter.*
 import com.geckour.egret.view.adapter.model.NewTootIndentifyContent
 import com.geckour.egret.view.adapter.model.ProfileContent
+import com.geckour.egret.view.adapter.model.SearchResultAccount
 import com.geckour.egret.view.adapter.model.TimelineContent
 import com.geckour.egret.view.fragment.TimelineFragment
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -138,6 +139,15 @@ class Common {
                 account.id,
                 account.avatarUrl,
                 "@${account.username}@$domain"
+        )
+
+        fun getSearchResultAccountContent(account: Account): SearchResultAccount = SearchResultAccount(
+                account.id,
+                account.avatarUrl,
+                account.displayName,
+                "@${account.acct}",
+                account.isLocked,
+                account.createdAt
         )
 
         fun getReadableDateString(time: Long, full: Boolean = false): String {

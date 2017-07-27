@@ -1,6 +1,6 @@
 package com.geckour.egret.api.model
 
-class Tag(
+data class Tag(
         var name: String,
         var url: String
 )

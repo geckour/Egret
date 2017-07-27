@@ -2,7 +2,7 @@ package com.geckour.egret.api.model
 
 import com.google.gson.annotations.SerializedName
 
-class Mention(
+data class Mention(
         var url: String,
 
         var username: String,
