@@ -19,6 +19,7 @@ Android app for client of Mastodon.
 - (Un) Favourite / Boost the toot
 - Show images in the toot as inline / pop up viewer
 - NSFW / Spoiler text compatible
+- Search account / hash tag
 - and more in future...
 
 ## Contributor
