@@ -361,8 +361,12 @@ class MainActivity : BaseActivity() {
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .compose(bindToLifecycle())
-                    .subscribe({ results ->
-                        Log.d("showSearchResult", "results: $results") // TODO: 実装する
+                    .subscribe({ result ->
+                        Log.d("showSearchResult", "result: $result")
+                        supportFragmentManager.beginTransaction()
+                                .replace(R.id.container, SearchResultFragment.newInstance(query = query, result = result), SearchResultFragment.TAG)
+                                .addToBackStack(SearchResultFragment.TAG)
+                                .commit()
                     }, Throwable::printStackTrace)
         }
     }

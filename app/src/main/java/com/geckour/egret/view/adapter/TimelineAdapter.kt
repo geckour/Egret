@@ -11,7 +11,7 @@ import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Notification
 import com.geckour.egret.databinding.ItemRecycleNotificationBinding
-import com.geckour.egret.databinding.ItemRecycleTimelineBinding
+import com.geckour.egret.databinding.ItemRecycleStatusBinding
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.adapter.model.TimelineContent
@@ -50,10 +50,10 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
     }
 
     inner class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
-        lateinit private var timelineBinding: ItemRecycleTimelineBinding
+        lateinit private var timelineBinding: ItemRecycleStatusBinding
         lateinit private var notificationBinding: ItemRecycleNotificationBinding
 
-        constructor(binding: ItemRecycleTimelineBinding): this(binding.root) {
+        constructor(binding: ItemRecycleStatusBinding): this(binding.root) {
             timelineBinding = binding
         }
 
@@ -383,7 +383,7 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
 
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ViewHolder {
         if (viewType == ContentType.Status.ordinal) {
-            val binding = DataBindingUtil.inflate<ItemRecycleTimelineBinding>(LayoutInflater.from(parent?.context), R.layout.item_recycle_status, parent, false)
+            val binding = DataBindingUtil.inflate<ItemRecycleStatusBinding>(LayoutInflater.from(parent?.context), R.layout.item_recycle_status, parent, false)
             return ViewHolder(binding)
         }
         if (viewType == ContentType.Notification.ordinal) {
