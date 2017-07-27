@@ -321,7 +321,7 @@ class SearchResultAdapter(val listener: TimelineAdapter.Callbacks) : RecyclerVie
 
     fun getContent(index: Int): SearchResultContent = contents[index]
 
-    fun addAllContent(result: Result) {
+    fun addAllContentsByResult(result: Result) {
         result.accounts?.map { SearchResultContent(account = Common.getSearchResultAccountContent(it)) }?.let { addAllContents(it) }
         result.statuses?.map { SearchResultContent(status = Common.getTimelineContent(status = it).status!!) }?.let { addAllContents(it) }
         result.hashtags?.let { it.map { SearchResultContent(hashTag = it) }.let { addAllContents(it) } }
@@ -350,6 +350,11 @@ class SearchResultAdapter(val listener: TimelineAdapter.Callbacks) : RecyclerVie
     fun resetContents(contents: List<SearchResultContent>) {
         clearContents()
         addAllContents(contents)
+    }
+
+    fun resetContentsByResult(result: Result) {
+        clearContents()
+        addAllContentsByResult(result)
     }
 
     fun removeStatusContentByTootId(id: Long) {
