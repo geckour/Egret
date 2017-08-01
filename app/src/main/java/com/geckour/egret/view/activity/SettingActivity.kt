@@ -26,6 +26,7 @@ class SettingActivity: BaseActivity() {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         val toolbar = findViewById(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
+        binding.appBarMain.contentMain.fab.hide()
 
         supportFragmentManager.beginTransaction()
                 .replace(R.id.container, SettingMainFragment.newInstance(), SettingMainFragment.TAG)
