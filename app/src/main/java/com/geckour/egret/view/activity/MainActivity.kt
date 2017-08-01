@@ -550,8 +550,8 @@ class MainActivity : BaseActivity() {
                     } else {
                         attach(reqFragment)
                     }
+                    if (currentFragment != null) addToBackStack(category.name)
                 }
-                .addToBackStack(category.name)
                 .commit()
 
         currentCategory = category
