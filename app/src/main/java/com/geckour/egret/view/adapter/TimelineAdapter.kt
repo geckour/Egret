@@ -496,7 +496,7 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
         }
         OrmaProvider.db.selectFromMuteKeyword().forEach {
             if (it.isRegex) {
-                if (content.status?.body?.toString()?.matches(Regex(it.keyword, RegexOption.MULTILINE)) ?: false) return true
+                if (content.status?.body?.toString()?.matches(Regex(it.keyword)) ?: false) return true
             } else if (content.status?.body?.toString()?.contains(it.keyword) ?: false) return true
         }
         OrmaProvider.db.selectFromMuteInstance().forEach {
