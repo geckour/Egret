@@ -492,8 +492,26 @@ class TimelineFragment: BaseFragment() {
                 }
             }
 
-            maxId = it.headers().get("Link")?.replace(getRegexExtractMaxId(), "$1")?.toLong() ?: -1L
-            sinceId = it.headers().get("Link")?.replace(getRegexExtractSinceId(), "$1")?.toLong() ?: -1L
+            maxId = it.headers().get("Link")?.let {
+                if (it.contains("max_id")) {
+                    try {
+                        it.replace(getRegexExtractMaxId(), "$1").toLong()
+                    } catch (e: NumberFormatException) {
+                        e.printStackTrace()
+                        maxId
+                    }
+                } else maxId
+            } ?: -1L
+            sinceId = it.headers().get("Link")?.let {
+                if (it.contains("since_id")) {
+                    try {
+                        it.replace(getRegexExtractSinceId(), "$1").toLong()
+                    } catch (e: NumberFormatException) {
+                        e.printStackTrace()
+                        sinceId
+                    }
+                } else sinceId
+            } ?: -1L
 
             toggleRefreshIndicatorState(false)
         }
