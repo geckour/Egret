@@ -53,9 +53,11 @@ class MastodonClient(baseUrl: String) {
 
     fun getNotificationTimelineAsStream(): Observable<ResponseBody> = streamService.getUserTimelineAsStream()
 
+    fun getHashTagTimelineAsStream(hashTag: String): Observable<ResponseBody> = streamService.getHashTagTimelineAsStream(hashTag)
+
     fun getPublicTimeline(isLocal: Boolean = false, maxId: Long? = null, sinceId: Long? = null): Single<Result<List<Status>>> = service.getPublicTimeline(isLocal, maxId, sinceId)
 
-    fun getTagTimeline(hashTag: String, isLocal: Boolean = false, maxId: Long? = null, sinceId: Long? = null): Single<Result<List<Status>>> = service.getTagTimeline(hashTag, isLocal, maxId, sinceId)
+    fun getHashTagTimeline(hashTag: String, isLocal: Boolean = false, maxId: Long? = null, sinceId: Long? = null): Single<Result<List<Status>>> = service.getHashTagTimeline(hashTag, isLocal, maxId, sinceId)
 
     fun getUserTimeline(maxId: Long? = null, sinceId: Long? = null): Single<Result<List<Status>>> = service.getUserTimeline(maxId, sinceId)
 

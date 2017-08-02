@@ -234,6 +234,10 @@ class MainActivity : BaseActivity() {
                     .addToBackStack(ShowTootDetailFragment.TAG)
                     .commit()
         }
+
+        override val showHashTagTimeline = { hashTag: String ->
+            showTimelineFragment(TimelineFragment.Category.HashTag, hashTag = hashTag)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -370,7 +374,7 @@ class MainActivity : BaseActivity() {
                     .observeOn(AndroidSchedulers.mainThread())
                     .compose(bindToLifecycle())
                     .subscribe({ result ->
-                        Log.d("showSearchResult", "result: $result")
+                        Log.d("showSearchResult", "result.hashTags: ${result.hashTags}")
                         supportFragmentManager.beginTransaction()
                                 .replace(R.id.container, SearchResultFragment.newInstance(query = query, result = result), SearchResultFragment.TAG)
                                 .addToBackStack(SearchResultFragment.TAG)
@@ -540,7 +544,7 @@ class MainActivity : BaseActivity() {
                 .build()
     }
 
-    fun showTimelineFragment(category: TimelineFragment.Category = currentCategory, force: Boolean = false) {
+    fun showTimelineFragment(category: TimelineFragment.Category = currentCategory, force: Boolean = false, hashTag: String? = null) {
         val reqFragment = supportFragmentManager.findFragmentByTag(category.name)
         val currentFragment = supportFragmentManager.findFragmentByTag(currentCategory.name)
 
@@ -553,7 +557,7 @@ class MainActivity : BaseActivity() {
                 .apply {
                     if (currentFragment != null && currentFragment.tag != category.name) detach(currentFragment)
                     if (reqFragment == null) {
-                        val fragment = TimelineFragment.newInstance(category)
+                        val fragment = TimelineFragment.newInstance(category, hashTag)
                         replace(R.id.container, fragment, category.name)
                     } else {
                         attach(reqFragment)

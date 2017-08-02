@@ -76,6 +76,13 @@ interface MastodonService {
     @Streaming
     fun getUserTimelineAsStream(): Observable<ResponseBody>
 
+    @GET("api/v1/streaming/hashtag")
+    @Streaming
+    fun getHashTagTimelineAsStream(
+            @Query("tag")
+            hashTag: String
+    ): Observable<ResponseBody>
+
     @GET("api/v1/timelines/public")
     fun getPublicTimeline(
             @Query("local")
@@ -89,7 +96,7 @@ interface MastodonService {
     ): Single<Result<List<Status>>>
 
     @GET("api/v1/timelines/tag/{hashtag}")
-    fun getTagTimeline(
+    fun getHashTagTimeline(
             @Path("hashtag")
             hashTag: String,
 

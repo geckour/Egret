@@ -53,6 +53,8 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
         val onClickMedia: (urls: List<String>, position: Int) -> Any
 
         val showTootDetail: (statusId: Long) -> Any
+
+        val showHashTagTimeline: (hashTag: String) -> Any
     }
 
     inner class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
