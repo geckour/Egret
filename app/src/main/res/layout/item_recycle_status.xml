@@ -19,6 +19,20 @@
         android:clickable="true"
         android:orientation="horizontal">
 
+        <FrameLayout
+            android:id="@+id/treeLine_upper"
+            android:layout_width="2dp"
+            android:layout_height="0dp"
+            android:layout_marginBottom="4dp"
+            android:background="?attr/colorGray"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/icon"
+            app:layout_constraintLeft_toLeftOf="@+id/icon"
+            app:layout_constraintRight_toRightOf="@+id/icon"
+            app:layout_constraintTop_toTopOf="parent">
+
+        </FrameLayout>
+
         <ImageView
             android:id="@+id/indicate_action"
             android:layout_width="24dp"
@@ -28,7 +42,8 @@
             android:tint="@color/colorPrimary"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_repeat_black_24px" />
+            app:srcCompat="@drawable/ic_repeat_black_24px"
+            android:layout_marginStart="8dp" />
 
         <ImageView
             android:id="@+id/action_icon"
@@ -39,7 +54,8 @@
             app:layout_constraintBottom_toBottomOf="@+id/indicate_action"
             app:layout_constraintLeft_toRightOf="@+id/indicate_action"
             app:layout_constraintTop_toTopOf="@+id/indicate_action"
-            tools:src="@drawable/egret" />
+            tools:src="@drawable/egret"
+            android:layout_marginStart="8dp" />
 
         <TextView
             android:id="@+id/actionBy"
@@ -51,7 +67,7 @@
             app:layout_constraintBottom_toBottomOf="@+id/indicate_action"
             app:layout_constraintLeft_toRightOf="@+id/action_icon"
             app:layout_constraintTop_toTopOf="@+id/indicate_action"
-            tools:layout_editor_absoluteX="0dp" />
+            android:layout_marginStart="8dp" />
 
         <TextView
             android:id="@+id/action_name"
@@ -68,7 +84,9 @@
             app:layout_constraintLeft_toRightOf="@+id/actionBy"
             app:layout_constraintRight_toLeftOf="@+id/time"
             app:layout_constraintTop_toTopOf="@+id/indicate_action"
-            tools:text="ゆーざーねーむ" />
+            tools:text="ゆーざーねーむ"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="8dp" />
 
         <ImageView
             android:id="@+id/icon"
@@ -80,7 +98,8 @@
             android:clickable="true"
             app:imageUrl="@{(status.rebloggedStatusContent == null) ? status.iconUrl : status.rebloggedStatusContent.iconUrl}"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/indicate_action" />
+            app:layout_constraintTop_toBottomOf="@+id/indicate_action"
+            android:layout_marginStart="8dp" />
 
         <TextView
             android:id="@+id/name_strong"
@@ -98,7 +117,9 @@
             app:layout_constraintLeft_toRightOf="@+id/icon"
             app:layout_constraintRight_toLeftOf="@+id/time"
             app:layout_constraintTop_toTopOf="@+id/icon"
-            tools:text="つよいなまえ" />
+            tools:text="つよいなまえ"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp" />
 
         <TextView
             android:id="@+id/name_weak"
@@ -114,7 +135,8 @@
             app:layout_constraintLeft_toLeftOf="@+id/name_strong"
             app:layout_constraintRight_toLeftOf="@+id/time"
             app:layout_constraintTop_toBottomOf="@+id/name_strong"
-            tools:text="よわいなまえ" />
+            tools:text="よわいなまえ"
+            android:layout_marginEnd="8dp" />
 
         <ImageView
             android:id="@+id/opt"
@@ -128,7 +150,8 @@
             android:tint="@color/icon_tint_dark"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_more_vert_black_24px"/>
+            app:srcCompat="@drawable/ic_more_vert_black_24px"
+            android:layout_marginEnd="8dp" />
 
         <TextView
             android:id="@+id/time"
@@ -140,7 +163,8 @@
             app:layout_constraintBottom_toBottomOf="@+id/opt"
             app:layout_constraintRight_toLeftOf="@+id/opt"
             app:layout_constraintTop_toTopOf="@+id/opt"
-            tools:text="HH:MM" />
+            tools:text="HH:MM"
+            android:layout_marginEnd="7dp" />
 
         <TextView
             android:id="@+id/body"
@@ -157,7 +181,8 @@
             app:layout_constraintLeft_toLeftOf="@+id/name_weak"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/name_weak"
-            tools:text="これはトゥート本文です" />
+            tools:text="これはトゥート本文です"
+            android:layout_marginEnd="8dp" />
 
         <TextView
             android:id="@+id/body_additional"
@@ -171,7 +196,7 @@
             android:textSize="12sp"
             android:visibility="gone"
             app:layout_constraintLeft_toLeftOf="@+id/body"
-            app:layout_constraintRight_toRightOf="@id/body"
+            app:layout_constraintRight_toRightOf="@+id/body"
             app:layout_constraintTop_toBottomOf="@+id/body"
             tools:text="これは追加のトゥート本文です" />
 
@@ -206,7 +231,9 @@
             app:layout_constraintLeft_toLeftOf="@+id/body"
             app:layout_constraintRight_toLeftOf="@+id/media2"
             app:layout_constraintTop_toBottomOf="@+id/clear_spoiler"
-            app:srcCompat="@mipmap/ic_launcher" />
+            app:srcCompat="@mipmap/ic_launcher"
+            android:layout_marginStart="2dp"
+            android:layout_marginEnd="2dp" />
 
         <FrameLayout
             android:id="@+id/media_spoiler_wrap_1"
@@ -241,7 +268,9 @@
             app:layout_constraintLeft_toRightOf="@+id/media1"
             app:layout_constraintRight_toRightOf="@+id/body"
             app:layout_constraintTop_toTopOf="@+id/media1"
-            app:srcCompat="@mipmap/ic_launcher" />
+            app:srcCompat="@mipmap/ic_launcher"
+            android:layout_marginStart="2dp"
+            android:layout_marginEnd="2dp" />
 
         <FrameLayout
             android:id="@+id/media_spoiler_wrap_2"
@@ -276,7 +305,9 @@
             app:layout_constraintLeft_toLeftOf="@+id/body"
             app:layout_constraintRight_toLeftOf="@+id/media4"
             app:layout_constraintTop_toBottomOf="@+id/media1"
-            app:srcCompat="@mipmap/ic_launcher" />
+            app:srcCompat="@mipmap/ic_launcher"
+            android:layout_marginStart="2dp"
+            android:layout_marginEnd="2dp" />
 
         <FrameLayout
             android:id="@+id/media_spoiler_wrap_3"
@@ -312,7 +343,9 @@
             app:layout_constraintRight_toRightOf="@+id/body"
             app:layout_constraintTop_toTopOf="@+id/media3"
             app:layout_constraintVertical_bias="0.0"
-            app:srcCompat="@mipmap/ic_launcher" />
+            app:srcCompat="@mipmap/ic_launcher"
+            android:layout_marginStart="2dp"
+            android:layout_marginEnd="2dp" />
 
         <FrameLayout
             android:id="@+id/media_spoiler_wrap_4"
@@ -339,7 +372,6 @@
             android:id="@+id/reply"
             android:layout_width="20dp"
             android:layout_height="20dp"
-            android:layout_marginBottom="8dp"
             android:layout_marginTop="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
@@ -371,8 +403,8 @@
             app:layout_constraintBottom_toBottomOf="@+id/fav"
             app:layout_constraintLeft_toRightOf="@+id/fav"
             app:layout_constraintTop_toTopOf="@+id/fav"
-            tools:layout_editor_absoluteX="0dp"
-            tools:text="1" />
+            tools:text="1"
+            android:layout_marginStart="2dp" />
 
         <ImageView
             android:id="@+id/boost"
@@ -397,7 +429,8 @@
             app:layout_constraintBottom_toBottomOf="@+id/boost"
             app:layout_constraintLeft_toRightOf="@+id/boost"
             app:layout_constraintTop_toTopOf="@+id/boost"
-            tools:text="3" />
+            tools:text="3"
+            android:layout_marginStart="2dp" />
 
         <FrameLayout
             android:id="@+id/padding"
@@ -408,7 +441,24 @@
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="@+id/reply"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/reply">
+            app:layout_constraintTop_toTopOf="@+id/reply"
+            android:layout_marginEnd="8dp">
+
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/treeLine_lower"
+            android:layout_width="2dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="4dp"
+            android:background="?attr/colorGray"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="@+id/icon"
+            app:layout_constraintRight_toRightOf="@+id/icon"
+            app:layout_constraintTop_toBottomOf="@+id/icon"
+            tools:layout_editor_absoluteX="8dp"
+            tools:layout_editor_absoluteY="8dp">
 
         </FrameLayout>
 

@@ -38,14 +38,11 @@ class SearchResultFragment: BaseFragment() {
 
     lateinit private var binding: FragmentTimelineBinding
     private val adapter: SearchResultAdapter by lazy { SearchResultAdapter((activity as MainActivity).timelineListener) }
-    lateinit private var query: String
-    lateinit private var result: Result
+    private val query: String by lazy { arguments.getString(ARGS_KEY_QUERY) }
+    private val result: Result by lazy { arguments.getSerializable(ARGS_KEY_RESULT) as Result }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        query = arguments.getString(ARGS_KEY_QUERY)
-        result = arguments.getSerializable(ARGS_KEY_RESULT) as Result
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {

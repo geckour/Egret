@@ -9,8 +9,6 @@ import okhttp3.ResponseBody
 import okio.BufferedSource
 import retrofit2.adapter.rxjava2.Result
 import retrofit2.http.*
-import timber.log.Timber
-import java.io.File
 import java.io.IOException
 import java.net.SocketException
 
@@ -301,6 +299,12 @@ interface MastodonService {
             @Query("resolve")
             resolve: Boolean = true
     ): Single<com.geckour.egret.api.model.Result>
+
+    @GET("api/v1/statuses/{id}/context")
+    fun getContextOfStatus(
+            @Path("id")
+            statusId: Long
+    ): Single<Context>
 
     companion object {
         fun events(source: BufferedSource): Observable<String> {

@@ -82,7 +82,11 @@ class Common {
             return instanceInfo.instance
         }
 
-        fun getTimelineContent(status: Status? = null, notification: Notification? = null): TimelineContent =
+        fun getTimelineContent(
+                status: Status? = null,
+                notification: Notification? = null,
+                treeStatus: TimelineContent.TimelineStatus.TreeStatus = TimelineContent.TimelineStatus.TreeStatus.None
+        ): TimelineContent =
                 if (status != null) TimelineContent(
                         status = TimelineContent.TimelineStatus(
                                 status.id,
@@ -103,7 +107,8 @@ class Common {
                                 status.favCount,
                                 status.reblogCount,
                                 if (status.reblog != null) getTimelineContent(status.reblog!!).status else null,
-                                status.application?.name
+                                status.application?.name,
+                                treeStatus
                         )
                 )
                 else if (notification != null) TimelineContent(

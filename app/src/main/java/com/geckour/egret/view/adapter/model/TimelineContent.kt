@@ -27,8 +27,16 @@ data class TimelineContent(
             var favCount: Long,
             var reblogCount: Long,
             var rebloggedStatusContent: TimelineStatus?,
-            var app: String?
-    )
+            var app: String?,
+            var treeStatus: TreeStatus
+    ) {
+        enum class TreeStatus {
+            None,
+            Top,
+            Filling,
+            Bottom
+        }
+    }
 
     data class TimelineNotification(
             val id: Long,

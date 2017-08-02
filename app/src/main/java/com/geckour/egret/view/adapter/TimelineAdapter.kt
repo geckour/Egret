@@ -51,6 +51,8 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
         val onBoostStatus: (content: TimelineContent.TimelineStatus, view: ImageView) -> Any
 
         val onClickMedia: (urls: List<String>, position: Int) -> Any
+
+        val showTootDetail: (statusId: Long) -> Any
     }
 
     inner class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
@@ -107,6 +109,7 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
                             timelineBinding.boost.context,
                             if (timelineBinding.status.rebloggedStatusContent?.reblogged ?: timelineBinding.status.reblogged) R.color.colorAccent else R.color.icon_tint_dark))
 
+            timelineBinding.root.setOnClickListener { listener.showTootDetail(timelineBinding.status.id) }
             timelineBinding.opt.setOnClickListener { showPopup(ContentType.Status, it) }
             timelineBinding.clearSpoiler.setOnClickListener { toggleBodySpoiler(ContentType.Status, timelineBinding.bodyAdditional.visibility == View.VISIBLE) }
             timelineBinding.icon.setOnClickListener { listener.showProfile(timelineBinding.status.rebloggedStatusContent?.accountId ?: timelineBinding.status.accountId) }
@@ -116,6 +119,8 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
             timelineBinding.body.movementMethod = Common.getMovementMethodFromPreference(timelineBinding.body.context)
 
             toggleStatus(ContentType.Status, true)
+
+            changeTreeStatus()
         }
 
         fun bindData(content: TimelineContent.TimelineNotification) {
@@ -127,10 +132,12 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
 
             notificationBinding.opt.setOnClickListener { showPopup(ContentType.Notification, it) }
             notificationBinding.clearSpoiler.setOnClickListener { toggleBodySpoiler(ContentType.Notification, notificationBinding.bodyAdditional.visibility == View.VISIBLE) }
-            notificationBinding.notification.status?.let { status -> notificationBinding.icon.setOnClickListener { listener.showProfile(status.rebloggedStatusContent?.accountId ?: status.accountId) } }
-            notificationBinding.notification.status?.let { status -> notificationBinding.reply.setOnClickListener { listener.onReply(status.rebloggedStatusContent ?: status) } }
-            notificationBinding.notification.status?.let { status -> notificationBinding.fav.setOnClickListener { listener.onFavStatus(status, notificationBinding.fav) } }
-            notificationBinding.notification.status?.let { status -> notificationBinding.boost.setOnClickListener { listener.onBoostStatus(status, notificationBinding.boost) } }
+            notificationBinding.notification.status?.let { status ->
+                notificationBinding.icon.setOnClickListener { listener.showProfile(status.rebloggedStatusContent?.accountId ?: status.accountId) }
+                notificationBinding.reply.setOnClickListener { listener.onReply(status.rebloggedStatusContent ?: status) }
+                notificationBinding.fav.setOnClickListener { listener.onFavStatus(status, notificationBinding.fav) }
+                notificationBinding.boost.setOnClickListener { listener.onBoostStatus(status, notificationBinding.boost) }
+            }
             notificationBinding.body.movementMethod = Common.getMovementMethodFromPreference(notificationBinding.body.context)
 
             val type = content.type.let { Notification.NotificationType.valueOf(it) }
@@ -399,6 +406,27 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
                 setOnClickListener { listener.onClickMedia(urls, position) }
             }
             Picasso.with(view.context).load(previewUrls[position]).into(view)
+        }
+
+        fun changeTreeStatus() {
+            when (timelineBinding.status.treeStatus) {
+                TimelineContent.TimelineStatus.TreeStatus.None -> {
+                    timelineBinding.treeLineUpper.visibility = View.GONE
+                    timelineBinding.treeLineLower.visibility = View.GONE
+                }
+                TimelineContent.TimelineStatus.TreeStatus.Top -> {
+                    timelineBinding.treeLineUpper.visibility = View.GONE
+                    timelineBinding.treeLineLower.visibility = View.VISIBLE
+                }
+                TimelineContent.TimelineStatus.TreeStatus.Filling -> {
+                    timelineBinding.treeLineUpper.visibility = View.VISIBLE
+                    timelineBinding.treeLineLower.visibility = View.VISIBLE
+                }
+                TimelineContent.TimelineStatus.TreeStatus.Bottom -> {
+                    timelineBinding.treeLineUpper.visibility = View.VISIBLE
+                    timelineBinding.treeLineLower.visibility = View.GONE
+                }
+            }
         }
     }
 

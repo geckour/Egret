@@ -226,6 +226,14 @@ class MainActivity : BaseActivity() {
                     .addToBackStack(ShowImagesDialogFragment.TAG)
                     .commit()
         }
+
+        override val showTootDetail = { statusId: Long ->
+            val fragment = ShowTootDetailFragment.newInstance(statusId)
+            supportFragmentManager.beginTransaction()
+                    .replace(R.id.container, fragment, ShowTootDetailFragment.TAG)
+                    .addToBackStack(ShowTootDetailFragment.TAG)
+                    .commit()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
