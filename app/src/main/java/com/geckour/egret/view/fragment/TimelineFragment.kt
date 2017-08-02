@@ -53,13 +53,15 @@ class TimelineFragment: BaseFragment() {
     companion object {
         val TAG: String = this::class.java.simpleName
         val ARGS_KEY_CATEGORY = "category"
+        val ARGS_KEY_HASH_TAG = "hashTag"
         val STATE_ARGS_KEY_CONTENTS = "contents"
         val STATE_ARGS_KEY_RESUME = "resume"
         val REQUEST_CODE_GRANT_ACCESS_WIFI = 100
 
-        fun newInstance(category: Category): TimelineFragment = TimelineFragment().apply {
+        fun newInstance(category: Category, hashTag: String? = null): TimelineFragment = TimelineFragment().apply {
             arguments = Bundle().apply {
                 putString(ARGS_KEY_CATEGORY, category.name)
+                hashTag?.let { putString(ARGS_KEY_HASH_TAG, hashTag) }
             }
         }
 
@@ -71,12 +73,12 @@ class TimelineFragment: BaseFragment() {
     lateinit private var sharedPref: SharedPreferences
     private var onTop = true
     private var inTouch = false
-    private var isFirst = true
 
     private var publicStream: Disposable? = null
     private var localStream: Disposable? = null
     private var userStream: Disposable? = null
     private var notificationStream: Disposable? = null
+    private var hashTagStream: Disposable? = null
 
     private var waitingContent = false
     private var waitingNotification = false
@@ -131,7 +133,8 @@ class TimelineFragment: BaseFragment() {
                             Category.Public ->showPublicTimeline(true)
                             Category.Local -> showLocalTimeline(true)
                             Category.User -> showUserTimeline(loadNext = true)
-                            Category.HashTag -> showNotificationTimeline(loadNext = true)
+                            Category.Notification -> showNotificationTimeline(loadNext = true)
+                            Category.HashTag -> getHashTag()?.let { showHashTagTimeline(it, loadNext = true) }
                         }
                     }
                 }
@@ -158,7 +161,10 @@ class TimelineFragment: BaseFragment() {
         stopTimelineStreams()
         val json = gson.toJson(adapter.getContents())
         sharedPref.edit()
-                .putString(getStoreContentsKey(getCategory()), json)
+                .apply {
+                    putString(getStoreContentsKey(getCategory()), json)
+                    getHashTag()?.let { putString(ARGS_KEY_HASH_TAG, it) }
+                }
                 .apply()
     }
 
@@ -184,13 +190,18 @@ class TimelineFragment: BaseFragment() {
                     Category.Notification -> MainActivity.NAV_ITEM_TL_NOTIFICATION
                     else -> -1
                 })
-
-        isFirst = false
     }
 
-    fun getCategory(): Category = if (arguments != null && arguments.containsKey(ARGS_KEY_CATEGORY)) Category.valueOf(arguments.getString(ARGS_KEY_CATEGORY, "Unknown")) else Category.Unknown
+    fun getCategory(): Category =
+            if (arguments != null && arguments.containsKey(ARGS_KEY_CATEGORY)) Category.valueOf(arguments.getString(ARGS_KEY_CATEGORY, "Unknown"))
+            else Category.Unknown
 
-    fun shouldResume(): Boolean = sharedPref.contains(STATE_ARGS_KEY_RESUME) && sharedPref.getBoolean(STATE_ARGS_KEY_RESUME, true) && !isFirst
+    fun getHashTag(): String? =
+            if (arguments != null && arguments.containsKey(ARGS_KEY_HASH_TAG)) arguments.getString(ARGS_KEY_HASH_TAG)
+            else if (sharedPref.contains(ARGS_KEY_HASH_TAG)) sharedPref.getString(ARGS_KEY_HASH_TAG, "")
+            else null
+
+    fun shouldResume(): Boolean = sharedPref.contains(STATE_ARGS_KEY_RESUME) && sharedPref.getBoolean(STATE_ARGS_KEY_RESUME, true)
 
     fun existsNoRunningStream() = listOf(publicStream, localStream, userStream).none { !(it?.isDisposed ?: true) }
 
@@ -198,18 +209,23 @@ class TimelineFragment: BaseFragment() {
         val instanceId = Common.getCurrentAccessToken()?.instanceId
         val domain = if (instanceId == null) "not logged in" else OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance
         val category = getCategory()
-        (activity as MainActivity).supportActionBar?.title = "$category TL - $domain"
+        (activity as MainActivity).supportActionBar?.title =
+                when (category) {
+                    Category.HashTag -> "$category TL${getHashTag()?.let { ": #$it" } ?: ""} - $domain"
+
+                    else -> "$category TL - $domain"
+                }
     }
 
     fun restoreTimeline() {
-        val key = getStoreContentsKey(getCategory())
-        if (sharedPref.contains(key)) {
+        val storeContentskey = getStoreContentsKey(getCategory())
+        if (sharedPref.contains(storeContentskey)) {
             adapter.clearContents()
             val type = object: TypeToken<List<TimelineContent>>() {}
-            val contents: List<TimelineContent> = gson.fromJson(sharedPref.getString(key, ""), type.type)
+            val contents: List<TimelineContent> = gson.fromJson(sharedPref.getString(storeContentskey, ""), type.type)
             adapter.addAllContents(contents)
 
-            showTimelineByCategory(getCategory(), true)
+            showTimelineByCategory(getCategory(), contents.isNotEmpty())
         } else {
             showTimelineByCategory(getCategory())
         }
@@ -246,7 +262,7 @@ class TimelineFragment: BaseFragment() {
                     Category.Public -> startPublicTimelineStream()
                     Category.Local -> startLocalTimelineStream()
                     Category.User -> startUserTimelineStream()
-                    Category.HashTag -> {}
+                    Category.HashTag -> startHashTagTimelineStream()
                     Category.Notification -> startUserTimelineStream()
                 }
             } else {
@@ -254,7 +270,7 @@ class TimelineFragment: BaseFragment() {
                     Category.Public -> startPublicTimelineStream()
                     Category.Local -> startLocalTimelineStream()
                     Category.User -> showUserTimeline(true)
-                    Category.HashTag -> {}
+                    Category.HashTag -> getHashTag()?.let { showHashTagTimeline(it, true) }
                     Category.Notification -> showNotificationTimeline(true)
                 }
             }
@@ -263,7 +279,7 @@ class TimelineFragment: BaseFragment() {
                 Category.Public -> showPublicTimeline()
                 Category.Local -> showLocalTimeline()
                 Category.User -> showUserTimeline()
-                Category.HashTag -> {}
+                Category.HashTag -> getHashTag()?.let { showHashTagTimeline(it) }
                 Category.Notification -> showNotificationTimeline()
             }
         }
@@ -316,6 +332,7 @@ class TimelineFragment: BaseFragment() {
         stopLocalTimelineStream()
         stopUserTimelineStream()
         stopNotificationTimelineStream()
+        stopHashTagTimelineStream()
     }
 
     fun startPublicTimelineStream() {
@@ -358,6 +375,7 @@ class TimelineFragment: BaseFragment() {
     fun startUserTimelineStream() {
         userStream?.dispose()
         userStream = null
+
         Common.resetAuthInfo()?.let {
             userStream =
                     MastodonClient(it).getUserTimelineAsStream()
@@ -399,6 +417,7 @@ class TimelineFragment: BaseFragment() {
     fun startLocalTimelineStream() {
         localStream?.dispose()
         localStream = null
+
         Common.resetAuthInfo()?.let {
             localStream =
                     MastodonClient(it).getLocalTimelineAsStream()
@@ -436,6 +455,7 @@ class TimelineFragment: BaseFragment() {
     fun startNotificationTimelineStream() {
         notificationStream?.dispose()
         notificationStream = null
+
         Common.resetAuthInfo()?.let {
             notificationStream =
                     MastodonClient(it).getNotificationTimelineAsStream()
@@ -475,16 +495,62 @@ class TimelineFragment: BaseFragment() {
                 })
     }
 
+    fun startHashTagTimelineStream() {
+        hashTagStream?.dispose()
+        hashTagStream = null
+
+        getHashTag()?.let { hashTag ->
+            Common.resetAuthInfo()?.let {
+                MastodonClient(it).getHashTagTimelineAsStream(hashTag)
+                        .flatMap { responseBody -> MastodonService.events(responseBody.source()) }
+                        .subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .compose(bindToLifecycle())
+                        .subscribe({
+                            toggleRefreshIndicatorState(false)
+                            parseTimelineStream(it)
+                        }, { throwable ->
+                            throwable.printStackTrace()
+                            hashTagStream?.dispose()
+                            toggleRefreshIndicatorState(false)
+                        })
+            }
+        }
+    }
+
+    fun stopHashTagTimelineStream() {
+        if (getCategory() == Category.HashTag && !(hashTagStream?.isDisposed ?: true)) hashTagStream?.dispose()
+    }
+
+    fun showHashTagTimeline(hashTag: String, loadStream: Boolean = false, loadNext: Boolean = false) {
+        if (loadNext && maxId == -1L) return
+
+        MastodonClient(Common.resetAuthInfo() ?: return).getHashTagTimeline(hashTag, maxId = if (loadNext) maxId else null, sinceId = if (!loadNext && sinceId != -1L) sinceId else null)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe({
+                    toggleRefreshIndicatorState(false)
+                    reflectContents(it, loadNext)
+                    if (loadStream) startHashTagTimelineStream()
+                }, { throwable ->
+                    throwable.printStackTrace()
+                    toggleRefreshIndicatorState(false)
+                })
+    }
+
     fun <V>reflectContents(result: Result<List<V>>, next: Boolean) {
         result.response()?.let {
             it.body()?.let {
-                if (it.first() is Status) {
-                    if (next) adapter.addAllContentsAtLast(it.map { Common.getTimelineContent(status = it as Status)})
-                    else adapter.addAllContents(it.map { Common.getTimelineContent(status = it as Status) })
-                }
-                if (it.first() is Notification) {
-                    if (next) adapter.addAllContentsAtLast(it.map { Common.getTimelineContent(notification = it as Notification)})
-                    else adapter.addAllContents(it.map { Common.getTimelineContent(notification = it as Notification) })
+                if (it.isNotEmpty()) {
+                    if (it.first() is Status) {
+                        if (next) adapter.addAllContentsAtLast(it.map { Common.getTimelineContent(status = it as Status) })
+                        else adapter.addAllContents(it.map { Common.getTimelineContent(status = it as Status) })
+                    }
+                    if (it.first() is Notification) {
+                        if (next) adapter.addAllContentsAtLast(it.map { Common.getTimelineContent(notification = it as Notification) })
+                        else adapter.addAllContents(it.map { Common.getTimelineContent(notification = it as Notification) })
+                    }
                 }
             }
 

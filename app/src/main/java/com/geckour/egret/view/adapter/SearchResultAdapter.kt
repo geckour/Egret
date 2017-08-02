@@ -85,6 +85,7 @@ class SearchResultAdapter(val listener: TimelineAdapter.Callbacks) : RecyclerVie
                             statusBinding.boost.context,
                             if (statusBinding.status.rebloggedStatusContent?.reblogged ?: statusBinding.status.reblogged) R.color.colorAccent else R.color.icon_tint_dark))
 
+            statusBinding.root.setOnClickListener { listener.showTootDetail(statusBinding.status.id) }
             statusBinding.opt.setOnClickListener { showPopup(SearchResultFragment.Category.Status, it) }
             statusBinding.clearSpoiler.setOnClickListener { toggleBodySpoiler(statusBinding.status.rebloggedStatusContent ?: statusBinding.status, statusBinding.bodyAdditional.visibility == View.VISIBLE) }
             statusBinding.icon.setOnClickListener { listener.showProfile(statusBinding.status.rebloggedStatusContent?.accountId ?: statusBinding.status.accountId) }
@@ -109,6 +110,7 @@ class SearchResultAdapter(val listener: TimelineAdapter.Callbacks) : RecyclerVie
             initVisibility(SearchResultFragment.Category.HashTag)
 
             hashTagBinding.hashtag.text = "#$hashTag"
+            hashTagBinding.root.setOnClickListener { listener.showHashTagTimeline(hashTag) }
         }
 
         fun initVisibility(type: SearchResultFragment.Category) {
