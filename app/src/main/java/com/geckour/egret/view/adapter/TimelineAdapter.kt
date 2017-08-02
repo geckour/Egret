@@ -22,6 +22,10 @@ import java.util.*
 
 class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : RecyclerView.Adapter<TimelineAdapter.ViewHolder>() {
 
+    companion object {
+        val DEFAULT_ITEMS_LIMIT = 100
+    }
+
     enum class ContentType {
         Status,
         Notification
@@ -518,9 +522,5 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
             this.contents.removeAll { this.contents.indexOf(it) > limit - 1 }
             notifyItemRangeRemoved(limit, it - limit)
         }
-    }
-
-    companion object {
-        val DEFAULT_ITEMS_LIMIT = 100
     }
 }

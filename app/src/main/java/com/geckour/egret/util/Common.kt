@@ -315,5 +315,31 @@ class Common {
         fun toggleRefreshIndicatorActivity(indicator: SwipeRefreshLayout, activity: Boolean) {
             indicator.isEnabled = activity
         }
+
+        fun getRegexExtractSinceId() = Regex(".*since_id=(\\d+?)>.*")
+
+        fun getRegexExtractMaxId() = Regex(".*max_id=(\\d+?)>.*")
+
+        fun getSinceIdFromLinkString(link: String?): Long = link?.let {
+            if (link.contains("max_id")) {
+                try {
+                    link.replace(getRegexExtractSinceId(), "$1").toLong()
+                } catch (e: NumberFormatException) {
+                    e.printStackTrace()
+                    -1L
+                }
+            } else -1L
+        } ?: -1L
+
+        fun getMaxIdFromLinkString(link: String?): Long = link?.let {
+            if (link.contains("max_id")) {
+                try {
+                    link.replace(getRegexExtractMaxId(), "$1").toLong()
+                } catch (e: NumberFormatException) {
+                    e.printStackTrace()
+                    -1L
+                }
+            } else -1L
+        } ?: -1L
     }
 }

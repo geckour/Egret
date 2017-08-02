@@ -24,6 +24,8 @@ import com.geckour.egret.api.service.MastodonService
 import com.geckour.egret.databinding.ContentMainBinding
 import com.geckour.egret.databinding.FragmentTimelineBinding
 import com.geckour.egret.util.Common
+import com.geckour.egret.util.Common.Companion.getMaxIdFromLinkString
+import com.geckour.egret.util.Common.Companion.getSinceIdFromLinkString
 import com.geckour.egret.util.Common.Companion.getStoreContentsKey
 import com.geckour.egret.util.Common.Companion.hideSoftKeyBoard
 import com.geckour.egret.util.Common.Companion.setSimplicityPostBarVisibility
@@ -55,13 +57,10 @@ class TimelineFragment: BaseFragment() {
         val STATE_ARGS_KEY_RESUME = "resume"
         val REQUEST_CODE_GRANT_ACCESS_WIFI = 100
 
-        fun newInstance(category: Category): TimelineFragment {
-            val fragment = TimelineFragment()
-            val args = Bundle()
-            args.putString(ARGS_KEY_CATEGORY, category.name)
-            fragment.arguments = args
-
-            return fragment
+        fun newInstance(category: Category): TimelineFragment = TimelineFragment().apply {
+            arguments = Bundle().apply {
+                putString(ARGS_KEY_CATEGORY, category.name)
+            }
         }
 
         fun getCategoryById(rawValue: Int): Category = Category.values()[rawValue]
@@ -462,6 +461,7 @@ class TimelineFragment: BaseFragment() {
 
     fun showNotificationTimeline(loadStream: Boolean = false, loadNext: Boolean = false) {
         if (loadNext && maxId == -1L) return
+
         MastodonClient(Common.resetAuthInfo() ?: return).getNotificationTimeline(maxId = if (loadNext) maxId else null, sinceId = if (!loadNext && sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -476,9 +476,6 @@ class TimelineFragment: BaseFragment() {
                 })
     }
 
-    fun getRegexExtractSinceId() = Regex(".*since_id=(\\d+?)>.*")
-    fun getRegexExtractMaxId() = Regex(".*max_id=(\\d+?)>.*")
-
     fun <V>reflectContents(result: Result<List<V>>, next: Boolean) {
         result.response()?.let {
             it.body()?.let {
@@ -492,26 +489,10 @@ class TimelineFragment: BaseFragment() {
                 }
             }
 
-            maxId = it.headers().get("Link")?.let {
-                if (it.contains("max_id")) {
-                    try {
-                        it.replace(getRegexExtractMaxId(), "$1").toLong()
-                    } catch (e: NumberFormatException) {
-                        e.printStackTrace()
-                        maxId
-                    }
-                } else maxId
-            } ?: -1L
-            sinceId = it.headers().get("Link")?.let {
-                if (it.contains("since_id")) {
-                    try {
-                        it.replace(getRegexExtractSinceId(), "$1").toLong()
-                    } catch (e: NumberFormatException) {
-                        e.printStackTrace()
-                        sinceId
-                    }
-                } else sinceId
-            } ?: -1L
+            it.headers().get("Link")?.let {
+                maxId = getMaxIdFromLinkString(it)
+                sinceId = getSinceIdFromLinkString(it)
+            }
 
             toggleRefreshIndicatorState(false)
         }

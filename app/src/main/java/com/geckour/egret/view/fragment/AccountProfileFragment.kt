@@ -32,13 +32,10 @@ class AccountProfileFragment: BaseFragment() {
         val TAG: String = this::class.java.simpleName
         val ARGS_KEY_ACCOUNT = "account"
 
-        fun newInstance(account: Account): AccountProfileFragment {
-            val fragment = AccountProfileFragment()
-            val args = Bundle()
-            args.putSerializable(ARGS_KEY_ACCOUNT, account)
-            fragment.arguments = args
-
-            return fragment
+        fun newInstance(account: Account): AccountProfileFragment = AccountProfileFragment().apply {
+            arguments = Bundle().apply {
+                putSerializable(ARGS_KEY_ACCOUNT, account)
+            }
         }
 
         fun newObservableInstance(accountId: Long): Observable<AccountProfileFragment> {

@@ -27,15 +27,12 @@ class SearchResultFragment: BaseFragment() {
         private val ARGS_KEY_QUERY = "query"
         private val ARGS_KEY_RESULT = "result"
 
-        fun newInstance(category: Category = Category.All, query: String, result: Result): SearchResultFragment {
-            val fragment = SearchResultFragment()
-            val args = Bundle()
-            args.putInt(ARGS_KEY_CATEGORY, category.ordinal)
-            args.putString(ARGS_KEY_QUERY, query)
-            args.putSerializable(ARGS_KEY_RESULT, result)
-            fragment.arguments = args
-
-            return fragment
+        fun newInstance(category: Category = Category.All, query: String, result: Result): SearchResultFragment = SearchResultFragment().apply {
+            arguments = Bundle().apply {
+                putInt(ARGS_KEY_CATEGORY, category.ordinal)
+                putString(ARGS_KEY_QUERY, query)
+                putSerializable(ARGS_KEY_RESULT, result)
+            }
         }
     }
 
