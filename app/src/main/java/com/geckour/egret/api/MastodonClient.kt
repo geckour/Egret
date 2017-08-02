@@ -121,4 +121,6 @@ class MastodonClient(baseUrl: String) {
     ): Single<Result<List<Account>>> = service.getBlockedUsersWithHeaders(maxId, sinceId)
 
     fun search(query: String): Single<com.geckour.egret.api.model.Result> = service.search(query)
+
+    fun getContextOfStatus(statusId: Long): Single<Context> = service.getContextOfStatus(statusId)
 }
