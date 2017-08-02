@@ -27,7 +27,7 @@ import timber.log.Timber
 class AccountManageFragment: BaseFragment() {
 
     lateinit private var binding: FragmentManageAccountBinding
-    lateinit private var adapter: ManageAccountAdapter
+    private val adapter: ManageAccountAdapter by lazy { ManageAccountAdapter() }
     private val preItems: ArrayList<AccountContent> = ArrayList()
 
     companion object {
@@ -53,7 +53,6 @@ class AccountManageFragment: BaseFragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = ManageAccountAdapter()
         val helper = Common.getSwipeToDismissTouchHelperForManageAccount(adapter)
         helper.attachToRecyclerView(binding.recyclerView)
         binding.recyclerView.addItemDecoration(helper)

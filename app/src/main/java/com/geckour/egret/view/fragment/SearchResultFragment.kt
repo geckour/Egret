@@ -37,7 +37,7 @@ class SearchResultFragment: BaseFragment() {
     }
 
     lateinit private var binding: FragmentTimelineBinding
-    lateinit private var adapter: SearchResultAdapter
+    private val adapter: SearchResultAdapter by lazy { SearchResultAdapter((activity as MainActivity).timelineListener) }
     lateinit private var query: String
     lateinit private var result: Result
 
@@ -56,7 +56,6 @@ class SearchResultFragment: BaseFragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = SearchResultAdapter((activity as MainActivity).timelineListener)
         binding.recyclerView.adapter = adapter
 
         binding.swipeRefreshLayout.apply {

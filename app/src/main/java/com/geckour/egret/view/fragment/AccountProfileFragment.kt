@@ -54,7 +54,7 @@ class AccountProfileFragment: BaseFragment() {
     lateinit private var binding: FragmentAccountProfileBinding
     private var onTop = true
     private var inTouch = false
-    lateinit private var adapter: TimelineAdapter
+    private val adapter: TimelineAdapter by lazy { TimelineAdapter((activity as MainActivity).timelineListener) }
     lateinit private var sharedPref: SharedPreferences
 
     private var maxId: Long = -1
@@ -200,7 +200,6 @@ class AccountProfileFragment: BaseFragment() {
                 }
             }
         })
-        adapter = TimelineAdapter((activity as MainActivity).timelineListener)
         binding.timeline.recyclerView.adapter = adapter
 
         binding.timeline.swipeRefreshLayout.apply {

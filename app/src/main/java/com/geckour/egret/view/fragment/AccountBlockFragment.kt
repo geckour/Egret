@@ -22,7 +22,7 @@ import timber.log.Timber
 class AccountBlockFragment: BaseFragment() {
 
     lateinit private var binding: FragmentBlockAccountBinding
-    lateinit private var adapter: BlockAccountAdapter
+    private val adapter: BlockAccountAdapter by lazy { BlockAccountAdapter() }
     private val preItems: ArrayList<Account> = ArrayList()
 
     private var onTop = true
@@ -49,7 +49,6 @@ class AccountBlockFragment: BaseFragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = BlockAccountAdapter()
         val helper = Common.getSwipeToDismissTouchHelperForBlockAccount(adapter)
         helper.attachToRecyclerView(binding.recyclerView)
         binding.recyclerView.addItemDecoration(helper)

@@ -22,7 +22,7 @@ import timber.log.Timber
 class KeywordMuteFragment: BaseFragment() {
 
     lateinit private var binding: FragmentMuteKeywordBinding
-    lateinit private var adapter: MuteKeywordAdapter
+    private val adapter: MuteKeywordAdapter by lazy { MuteKeywordAdapter() }
     private val preItems: ArrayList<MuteKeyword> = ArrayList()
 
     companion object {
@@ -66,7 +66,6 @@ class KeywordMuteFragment: BaseFragment() {
         binding.editTextAddMuteKeyword.requestFocus()
         val keyword = binding.editTextAddMuteKeyword.text.toString()
         binding.editTextAddMuteKeyword.setSelection(keyword.length)
-        adapter = MuteKeywordAdapter()
         val helper = Common.getSwipeToDismissTouchHelperForMuteKeyword(adapter)
         helper.attachToRecyclerView(binding.recyclerView)
         binding.recyclerView.addItemDecoration(helper)

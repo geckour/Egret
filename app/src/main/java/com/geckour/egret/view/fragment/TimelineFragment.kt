@@ -67,7 +67,7 @@ class TimelineFragment: BaseFragment() {
     }
 
     lateinit private var binding: FragmentTimelineBinding
-    lateinit private var adapter: TimelineAdapter
+    private val adapter: TimelineAdapter by lazy { TimelineAdapter((activity as MainActivity).timelineListener) }
     lateinit private var sharedPref: SharedPreferences
     private var onTop = true
     private var inTouch = false
@@ -137,7 +137,6 @@ class TimelineFragment: BaseFragment() {
                 }
             }
         })
-        adapter = TimelineAdapter((activity as MainActivity).timelineListener)
         binding.recyclerView.adapter = adapter
 
         binding.swipeRefreshLayout.apply {

@@ -22,7 +22,7 @@ import timber.log.Timber
 class InstanceMuteFragment: BaseFragment() {
 
     lateinit private var binding: FragmentMuteInstanceBinding
-    lateinit private var adapter: MuteInstanceAdapter
+    private val adapter: MuteInstanceAdapter by lazy { MuteInstanceAdapter() }
     private val preItems: ArrayList<MuteInstance> = ArrayList()
 
     companion object {
@@ -64,7 +64,6 @@ class InstanceMuteFragment: BaseFragment() {
         binding.editTextAddMuteInstance.requestFocus()
         val instance = binding.editTextAddMuteInstance.text.toString()
         binding.editTextAddMuteInstance.setSelection(instance.length)
-        adapter = MuteInstanceAdapter()
         val helper = Common.getSwipeToDismissTouchHelperForMuteInstance(adapter)
         helper.attachToRecyclerView(binding.recyclerView)
         binding.recyclerView.addItemDecoration(helper)

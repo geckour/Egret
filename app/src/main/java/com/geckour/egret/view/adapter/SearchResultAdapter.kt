@@ -45,6 +45,8 @@ class SearchResultAdapter(val listener: TimelineAdapter.Callbacks) : RecyclerVie
         }
 
         fun bindData(content: TimelineContent.TimelineStatus) {
+            initVisibility(SearchResultFragment.Category.Status)
+
             statusBinding.status = content
 
             statusBinding.body.visibility = View.VISIBLE
@@ -95,26 +97,29 @@ class SearchResultAdapter(val listener: TimelineAdapter.Callbacks) : RecyclerVie
         }
 
         fun bindData(content: SearchResultAccount) {
+            initVisibility(SearchResultFragment.Category.Account)
+
+            (accountBinding.root as ViewGroup).apply {
+                for (i in 0..childCount - 1) getChildAt(i).setOnClickListener { listener.showProfile(accountBinding.account.id) }
+            }
             accountBinding.account = content
         }
 
         fun bindData(hashTag: String) {
+            initVisibility(SearchResultFragment.Category.HashTag)
+
             hashTagBinding.hashtag.text = "#$hashTag"
         }
 
         fun initVisibility(type: SearchResultFragment.Category) {
-            toggleAction(false)
-            toggleStatus(false)
-
             when (type) {
                 SearchResultFragment.Category.All -> {
                 }
 
                 SearchResultFragment.Category.Status -> {
-                    statusBinding.body.apply {
-                        text = null
-                        visibility = View.GONE
-                    }
+                    toggleAction(false)
+                    toggleStatus(false)
+                    statusBinding.body.text = null
 
                     listOf(statusBinding.media1, statusBinding.media2, statusBinding.media3, statusBinding.media4)
                             .forEach {

@@ -22,7 +22,7 @@ import timber.log.Timber
 class AccountMuteFragment: BaseFragment() {
 
     lateinit private var binding: FragmentMuteAccountBinding
-    lateinit private var adapter: MuteAccountAdapter
+    private val adapter: MuteAccountAdapter by lazy { MuteAccountAdapter() }
     private val preItems: ArrayList<Account> = ArrayList()
 
     private var onTop = true
@@ -49,7 +49,6 @@ class AccountMuteFragment: BaseFragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = MuteAccountAdapter()
         val helper = Common.getSwipeToDismissTouchHelperForMuteAccount(adapter)
         helper.attachToRecyclerView(binding.recyclerView)
         binding.recyclerView.addItemDecoration(helper)

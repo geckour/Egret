@@ -25,7 +25,7 @@ import timber.log.Timber
 class HashTagMuteFragment: BaseFragment() {
 
     lateinit private var binding: FragmentMuteHashTagBinding
-    lateinit private var adapter: MuteHashTagAdapter
+    private val adapter: MuteHashTagAdapter by lazy { MuteHashTagAdapter() }
     private val preItems: ArrayList<MuteHashTag> = ArrayList()
     private val argItems: ArrayList<String> = ArrayList()
 
@@ -72,7 +72,6 @@ class HashTagMuteFragment: BaseFragment() {
         binding.editTextAddMuteHashTag.requestFocus()
         val hashTag = binding.editTextAddMuteHashTag.text.toString()
         binding.editTextAddMuteHashTag.setSelection(hashTag.length)
-        adapter = MuteHashTagAdapter()
         val helper = Common.getSwipeToDismissTouchHelperForMuteHashTag(adapter)
         helper.attachToRecyclerView(binding.recyclerView)
         binding.recyclerView.addItemDecoration(helper)

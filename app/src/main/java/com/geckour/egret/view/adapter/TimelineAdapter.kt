@@ -146,10 +146,7 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
 
             when(type) {
                 ContentType.Status -> {
-                    timelineBinding.body.apply {
-                        text = null
-                        visibility = View.GONE
-                    }
+                    timelineBinding.body.text = null
 
                     listOf(timelineBinding.media1, timelineBinding.media2, timelineBinding.media3, timelineBinding.media4)
                             .forEach {
