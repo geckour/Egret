@@ -248,26 +248,50 @@ interface MastodonService {
     @GET("api/v1/mutes")
     fun getMutedUsers(
             @Query("max_id")
-            idTo: Long?,
+            maxId: Long?,
 
             @Query("since_id")
-            idFrom: Long?,
+            sinceId: Long?,
 
             @Query("limit")
-            limit: Long
+            limit: Long = 80
     ): Single<List<Account>>
+
+    @GET("api/v1/mutes")
+    fun getMutedUsersWithHeaders(
+            @Query("max_id")
+            maxId: Long?,
+
+            @Query("since_id")
+            sinceId: Long?,
+
+            @Query("limit")
+            limit: Long = 80
+    ): Single<Result<List<Account>>>
 
     @GET("api/v1/blocks")
     fun getBlockedUsers(
             @Query("max_id")
-            idTo: Long?,
+            maxId: Long?,
 
             @Query("since_id")
-            idFrom: Long?,
+            sinceId: Long?,
 
             @Query("limit")
-            limit: Long
+            limit: Long = 80
     ): Single<List<Account>>
+
+    @GET("api/v1/blocks")
+    fun getBlockedUsersWithHeaders(
+            @Query("max_id")
+            maxId: Long?,
+
+            @Query("since_id")
+            sinceId: Long?,
+
+            @Query("limit")
+            limit: Long = 80
+    ): Single<Result<List<Account>>>
 
     @GET("api/v1/search")
     fun search(

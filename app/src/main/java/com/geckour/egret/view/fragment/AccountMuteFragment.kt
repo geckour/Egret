@@ -3,8 +3,9 @@ package com.geckour.egret.view.fragment
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
-import android.support.design.widget.Snackbar
+import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import com.geckour.egret.R
@@ -24,14 +25,15 @@ class AccountMuteFragment: BaseFragment() {
     lateinit private var adapter: MuteAccountAdapter
     private val preItems: ArrayList<Account> = ArrayList()
 
+    private var onTop = true
+    private var inTouch = false
+    private var maxId: Long = -1
+    private var sinceId: Long = -1
+
     companion object {
         val TAG: String = this::class.java.simpleName
 
-        fun newInstance(): AccountMuteFragment {
-            val fragment = AccountMuteFragment()
-
-            return fragment
-        }
+        fun newInstance(): AccountMuteFragment = AccountMuteFragment().apply {  }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,12 +54,46 @@ class AccountMuteFragment: BaseFragment() {
         helper.attachToRecyclerView(binding.recyclerView)
         binding.recyclerView.addItemDecoration(helper)
         binding.recyclerView.adapter = adapter
+        binding.recyclerView.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
+                    inTouch = true
+                }
+
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
+                    inTouch = false
+                }
+            }
+            false
+        }
+        binding.recyclerView.addOnScrollListener(object: RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView?, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                val scrollY: Int = recyclerView?.computeVerticalScrollOffset() ?: -1
+                onTop = scrollY == 0 || onTop && !(inTouch && scrollY > 0)
+
+                if (!onTop) {
+                    val y = scrollY + (recyclerView?.height ?: -1)
+                    val h = recyclerView?.computeVerticalScrollRange() ?: -1
+                    if (y == h) {
+                        bindAccounts(true)
+                    }
+                }
+            }
+        })
+        binding.swipeRefreshLayout.apply {
+            setColorSchemeResources(R.color.colorAccent)
+            setOnRefreshListener {
+                bindAccounts()
+            }
+        }
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        bindSavedAccounts()
+        bindAccounts()
     }
 
     override fun onResume() {
@@ -72,18 +108,28 @@ class AccountMuteFragment: BaseFragment() {
         removeAccounts(adapter.getItems())
     }
 
-    fun bindSavedAccounts() {
-        adapter.clearItems()
-        preItems.clear()
+    fun bindAccounts(loadNext: Boolean = false) {
         Common.resetAuthInfo()?.let { domain ->
-            MastodonClient(domain).getMutedUsers()
+            MastodonClient(domain).getMutedUsersWithHeaders(maxId = if (loadNext) maxId else null, sinceId = if (!loadNext && sinceId != -1L) sinceId else null)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .compose(bindToLifecycle())
                     .subscribe({
-                        adapter.addAllItems(it)
-                        preItems.addAll(it)
-                    }, Throwable::printStackTrace)
+                        it.response()?.let {
+                            adapter.addAllItems(it.body())
+                            preItems.addAll(it.body())
+
+                            it.headers().get("Link")?.let {
+                                maxId = Common.getMaxIdFromLinkString(it)
+                                sinceId = Common.getSinceIdFromLinkString(it)
+                            }
+
+                            toggleRefreshIndicatorState(false)
+                        }
+                    }, { throwable ->
+                        throwable.printStackTrace()
+                        toggleRefreshIndicatorState(false)
+                    })
         }
     }
 
@@ -100,4 +146,6 @@ class AccountMuteFragment: BaseFragment() {
             // Snackbar.make(binding.root, "hoge", Snackbar.LENGTH_SHORT).show()
         }
     }
+
+    fun toggleRefreshIndicatorState(show: Boolean) = Common.toggleRefreshIndicatorState(binding.swipeRefreshLayout, show)
 }

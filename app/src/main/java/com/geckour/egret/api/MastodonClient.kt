@@ -101,16 +101,24 @@ class MastodonClient(baseUrl: String) {
     fun postNewMedia(body: MultipartBody.Part): Single<Attachment> = service.postNewMedia(body)
 
     fun getMutedUsers(
-            idTo: Long? = null,
-            idFrom: Long? = null,
-            limit: Long = 80
-    ): Single<List<Account>> = service.getMutedUsers(idTo, idFrom, limit)
+            maxId: Long? = null,
+            sinceId: Long? = null
+    ): Single<List<Account>> = service.getMutedUsers(maxId, sinceId)
+
+    fun getMutedUsersWithHeaders(
+            maxId: Long? = null,
+            sinceId: Long? = null
+    ): Single<Result<List<Account>>> = service.getMutedUsersWithHeaders(maxId, sinceId)
 
     fun getBlockedUsers(
-            idTo: Long? = null,
-            idFrom: Long? = null,
-            limit: Long = 80
-    ): Single<List<Account>> = service.getBlockedUsers(idTo, idFrom, limit)
+            maxId: Long? = null,
+            sinceId: Long? = null
+    ): Single<List<Account>> = service.getBlockedUsers(maxId, sinceId)
+
+    fun getBlockedUsersWithHeaders(
+            maxId: Long? = null,
+            sinceId: Long? = null
+    ): Single<Result<List<Account>>> = service.getBlockedUsersWithHeaders(maxId, sinceId)
 
     fun search(query: String): Single<com.geckour.egret.api.model.Result> = service.search(query)
 }

@@ -324,7 +324,7 @@ class SearchResultAdapter(val listener: TimelineAdapter.Callbacks) : RecyclerVie
     fun addAllContentsByResult(result: Result) {
         result.accounts?.map { SearchResultContent(account = Common.getSearchResultAccountContent(it)) }?.let { addAllContents(it) }
         result.statuses?.map { SearchResultContent(status = Common.getTimelineContent(status = it).status!!) }?.let { addAllContents(it) }
-        result.hashtags?.let { it.map { SearchResultContent(hashTag = it) }.let { addAllContents(it) } }
+        result.hashTags?.let { it.map { SearchResultContent(hashTag = it) }.let { addAllContents(it) } }
     }
 
     fun addContent(content: SearchResultContent) {
