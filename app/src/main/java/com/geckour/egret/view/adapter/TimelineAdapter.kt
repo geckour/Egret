@@ -111,7 +111,7 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
                             timelineBinding.boost.context,
                             if (timelineBinding.status.rebloggedStatusContent?.reblogged ?: timelineBinding.status.reblogged) R.color.colorAccent else R.color.icon_tint_dark))
 
-            timelineBinding.root.setOnClickListener { listener.showTootDetail(timelineBinding.status.id) }
+            listOf(timelineBinding.root, timelineBinding.body).forEach { it.setOnClickListener { listener.showTootDetail(timelineBinding.status.id) } }
             timelineBinding.opt.setOnClickListener { showPopup(ContentType.Status, it) }
             timelineBinding.clearSpoiler.setOnClickListener { toggleBodySpoiler(ContentType.Status, timelineBinding.bodyAdditional.visibility == View.VISIBLE) }
             timelineBinding.icon.setOnClickListener { listener.showProfile(timelineBinding.status.rebloggedStatusContent?.accountId ?: timelineBinding.status.accountId) }
@@ -466,6 +466,14 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
         content.takeIf { !shouldMute(it) }?.let {
             this.contents.add(0, it)
             notifyItemInserted(0)
+            removeItemsWhenOverLimit(limit)
+        }
+    }
+
+    fun addContentAtLast(content: TimelineContent, limit: Int = DEFAULT_ITEMS_LIMIT) {
+        content.takeIf { !shouldMute(it) }?.let {
+            this.contents.add(it)
+            notifyItemInserted(this.contents.lastIndex)
             removeItemsWhenOverLimit(limit)
         }
     }

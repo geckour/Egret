@@ -43,13 +43,14 @@ class ShowTootDetailFragment : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.recyclerView.adapter = adapter
+        toggleRefreshIndicatorActivity(false)
     }
 
     override fun onResume() {
         super.onResume()
 
         refreshBarTitle()
-        showContext()
+        if (adapter.itemCount == 0) showContext()
     }
 
     fun refreshBarTitle() {
@@ -72,20 +73,27 @@ class ShowTootDetailFragment : BaseFragment() {
         }
     }
 
-    fun processStatusContext(rootStatus: Status, statusContext: Context) {
-        if (statusContext.ancestors.isEmpty() && statusContext.descendants.isEmpty()) {
-            adapter.addContent(Common.getTimelineContent(status = rootStatus))
-        } else {
-            val contents: ArrayList<TimelineContent> = ArrayList()
+    fun processStatusContext(root: Status, reactions: Context) {
+        val rootTimelineContent = Common.getTimelineContent(status = root, treeStatus = when {
+            reactions.ancestors.isEmpty() -> TimelineContent.TimelineStatus.TreeStatus.Top
+            reactions.descendants.isEmpty() -> TimelineContent.TimelineStatus.TreeStatus.Bottom
+            else -> TimelineContent.TimelineStatus.TreeStatus.Filling
+        })
 
-            contents.addAll(statusContext.ancestors.map { Common.getTimelineContent(status = it, treeStatus = TimelineContent.TimelineStatus.TreeStatus.Filling) })
-            contents.add(Common.getTimelineContent(status = rootStatus, treeStatus = TimelineContent.TimelineStatus.TreeStatus.Filling))
-            contents.addAll(statusContext.descendants.map { Common.getTimelineContent(status = it, treeStatus = TimelineContent.TimelineStatus.TreeStatus.Filling) })
+        val contents: ArrayList<TimelineContent> = ArrayList()
 
-            contents.first().status?.treeStatus = TimelineContent.TimelineStatus.TreeStatus.Top
-            contents.last().status?.treeStatus = TimelineContent.TimelineStatus.TreeStatus.Bottom
-
-            adapter.addAllContents(contents)
+        contents.addAll(reactions.ancestors.mapIndexed { i, status -> Common.getTimelineContent(status, treeStatus = if (i == 0) TimelineContent.TimelineStatus.TreeStatus.Top else TimelineContent.TimelineStatus.TreeStatus.Filling) })
+        reactions.descendants.forEachIndexed { i, status ->
+            if (status.inReplyToId == root.id) {
+                if (contents.isNotEmpty() && contents.size != reactions.ancestors.size) contents.last().status?.treeStatus = TimelineContent.TimelineStatus.TreeStatus.Bottom
+                contents.add(rootTimelineContent)
+            }
+            contents.add(Common.getTimelineContent(status, treeStatus = if (i == reactions.descendants.lastIndex) TimelineContent.TimelineStatus.TreeStatus.Bottom else TimelineContent.TimelineStatus.TreeStatus.Filling))
         }
+        if (reactions.descendants.isEmpty()) contents.add(rootTimelineContent)
+
+        adapter.addAllContents(contents)
     }
+
+    fun toggleRefreshIndicatorActivity(show: Boolean) = Common.toggleRefreshIndicatorActivity(binding.swipeRefreshLayout, show)
 }
