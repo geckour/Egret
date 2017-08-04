@@ -61,6 +61,8 @@ class SearchResultFragment: BaseFragment() {
                 toggleRefreshIndicatorState(false)
             }
         }
+
+        (activity as MainActivity).resetSelectionNavItem(-1)
     }
 
     override fun onResume() {

@@ -70,7 +70,7 @@ class TimelineFragment: BaseFragment() {
 
     lateinit private var binding: FragmentTimelineBinding
     private val adapter: TimelineAdapter by lazy { TimelineAdapter((activity as MainActivity).timelineListener) }
-    lateinit private var sharedPref: SharedPreferences
+    private val sharedPref: SharedPreferences by lazy { PreferenceManager.getDefaultSharedPreferences(activity) }
     private var onTop = true
     private var inTouch = false
 
@@ -89,8 +89,6 @@ class TimelineFragment: BaseFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        sharedPref = PreferenceManager.getDefaultSharedPreferences(activity)
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -159,11 +157,15 @@ class TimelineFragment: BaseFragment() {
         super.onPause()
 
         stopTimelineStreams()
-        val json = gson.toJson(adapter.getContents())
+
         sharedPref.edit()
                 .apply {
-                    putString(getStoreContentsKey(getCategory()), json)
-                    getHashTag()?.let { putString(ARGS_KEY_HASH_TAG, it) }
+                    if (getCategory() != Category.HashTag) {
+                        val json = gson.toJson(adapter.getContents())
+                        putString(getStoreContentsKey(getCategory()), json)
+                    }else {
+                        getHashTag()?.let { putString(ARGS_KEY_HASH_TAG, it) }
+                    }
                 }
                 .apply()
     }
@@ -176,20 +178,9 @@ class TimelineFragment: BaseFragment() {
 
         setSimplicityPostBarVisibility((activity as MainActivity).binding.appBarMain.contentMain, Common.isModeShowTootBar(activity))
 
-        if (shouldResume()) restoreTimeline()
-        else {
-            sharedPref.edit().putBoolean(STATE_ARGS_KEY_RESUME, true).apply()
-            showTimelineByCategory(getCategory())
-        }
+        restoreTimeline()
 
-        (activity as MainActivity).resetSelectionNavItem(
-                when (getCategory()) {
-                    Category.Public -> MainActivity.NAV_ITEM_TL_PUBLIC
-                    Category.Local -> MainActivity.NAV_ITEM_TL_LOCAL
-                    Category.User -> MainActivity.NAV_ITEM_TL_USER
-                    Category.Notification -> MainActivity.NAV_ITEM_TL_NOTIFICATION
-                    else -> -1
-                })
+        reflectCategorySelection()
     }
 
     fun getCategory(): Category =
@@ -200,8 +191,6 @@ class TimelineFragment: BaseFragment() {
             if (arguments != null && arguments.containsKey(ARGS_KEY_HASH_TAG)) arguments.getString(ARGS_KEY_HASH_TAG)
             else if (sharedPref.contains(ARGS_KEY_HASH_TAG)) sharedPref.getString(ARGS_KEY_HASH_TAG, "")
             else null
-
-    fun shouldResume(): Boolean = sharedPref.contains(STATE_ARGS_KEY_RESUME) && sharedPref.getBoolean(STATE_ARGS_KEY_RESUME, true)
 
     fun existsNoRunningStream() = listOf(publicStream, localStream, userStream).none { !(it?.isDisposed ?: true) }
 
@@ -230,6 +219,17 @@ class TimelineFragment: BaseFragment() {
             showTimelineByCategory(getCategory())
         }
         sharedPref.edit().remove(STATE_ARGS_KEY_CONTENTS).apply()
+    }
+
+    fun reflectCategorySelection() {
+        (activity as MainActivity).resetSelectionNavItem(
+                when (getCategory()) {
+                    Category.Public -> MainActivity.NAV_ITEM_TL_PUBLIC
+                    Category.Local -> MainActivity.NAV_ITEM_TL_LOCAL
+                    Category.User -> MainActivity.NAV_ITEM_TL_USER
+                    Category.Notification -> MainActivity.NAV_ITEM_TL_NOTIFICATION
+                    else -> -1
+                })
     }
 
     fun toggleRefreshIndicatorState(show: Boolean) = Common.toggleRefreshIndicatorState(binding.swipeRefreshLayout, show)
