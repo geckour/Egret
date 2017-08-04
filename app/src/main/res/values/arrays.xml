@@ -19,4 +19,11 @@
         <item>1</item>
         <item>2</item>
     </string-array>
+
+    <string-array name="spinner_toot_visibility">
+        <item>@string/array_item_toot_visibility_public</item>
+        <item>@string/array_item_toot_visibility_unlisted</item>
+        <item>@string/array_item_toot_visibility_private</item>
+        <item>@string/array_item_toot_visibility_direct</item>
+    </string-array>
 </resources>
