@@ -75,6 +75,7 @@ class ShowTootDetailFragment : BaseFragment() {
 
     fun processStatusContext(root: Status, reactions: Context) {
         val rootTimelineContent = Common.getTimelineContent(status = root, treeStatus = when {
+            reactions.ancestors.isEmpty() && reactions.descendants.isEmpty() -> TimelineContent.TimelineStatus.TreeStatus.None
             reactions.ancestors.isEmpty() -> TimelineContent.TimelineStatus.TreeStatus.Top
             reactions.descendants.isEmpty() -> TimelineContent.TimelineStatus.TreeStatus.Bottom
             else -> TimelineContent.TimelineStatus.TreeStatus.Filling

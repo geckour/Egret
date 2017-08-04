@@ -562,7 +562,7 @@ class MainActivity : BaseActivity() {
                     } else {
                         attach(reqFragment)
                     }
-                    if (currentFragment != null) addToBackStack(category.name)
+                    if (supportFragmentManager.backStackEntryCount > 0 && currentFragment != null) addToBackStack(category.name)
                 }
                 .commit()
 
@@ -570,7 +570,13 @@ class MainActivity : BaseActivity() {
     }
 
     fun resetSelectionNavItem(identifier: Long) {
-        if (identifier > -1 && drawer.currentSelection != identifier) drawer.setSelection(identifier)
+        if (identifier < 0) drawer.apply {
+            getDrawerItem(drawer.currentSelection)?.let {
+                it.withSetSelected(false)
+                updateItem(it)
+            }
+        }
+        else if (drawer.currentSelection != identifier) drawer.setSelection(identifier)
     }
 
     fun showCreateNewTootFragment() {

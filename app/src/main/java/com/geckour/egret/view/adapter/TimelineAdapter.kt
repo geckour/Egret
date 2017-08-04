@@ -122,7 +122,7 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
 
             toggleStatus(ContentType.Status, true)
 
-            changeTreeStatus()
+            reflectTreeStatus()
         }
 
         fun bindData(content: TimelineContent.TimelineNotification) {
@@ -410,7 +410,7 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
             Picasso.with(view.context).load(previewUrls[position]).into(view)
         }
 
-        fun changeTreeStatus() {
+        fun reflectTreeStatus() {
             when (timelineBinding.status.treeStatus) {
                 TimelineContent.TimelineStatus.TreeStatus.None -> {
                     timelineBinding.treeLineUpper.visibility = View.GONE

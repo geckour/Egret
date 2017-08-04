@@ -50,12 +50,11 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp"
             app:imageUrl="@{(status.rebloggedStatusContent == null) ? null : status.iconUrl}"
             app:layout_constraintBottom_toBottomOf="@+id/indicate_action"
             app:layout_constraintLeft_toRightOf="@+id/indicate_action"
-            app:layout_constraintTop_toTopOf="@+id/indicate_action"
-            tools:src="@drawable/egret"
-            android:layout_marginStart="8dp" />
+            app:layout_constraintTop_toTopOf="@+id/indicate_action"/>
 
         <TextView
             android:id="@+id/actionBy"
@@ -223,17 +222,16 @@
             android:id="@+id/media1"
             android:layout_width="0dp"
             android:layout_height="80dp"
+            android:layout_marginEnd="2dp"
             android:layout_marginLeft="2dp"
             android:layout_marginRight="2dp"
+            android:layout_marginStart="2dp"
             android:layout_marginTop="8dp"
             android:scaleType="centerCrop"
             android:visibility="visible"
             app:layout_constraintLeft_toLeftOf="@+id/body"
             app:layout_constraintRight_toLeftOf="@+id/media2"
-            app:layout_constraintTop_toBottomOf="@+id/clear_spoiler"
-            app:srcCompat="@mipmap/ic_launcher"
-            android:layout_marginStart="2dp"
-            android:layout_marginEnd="2dp" />
+            app:layout_constraintTop_toBottomOf="@+id/clear_spoiler"/>
 
         <FrameLayout
             android:id="@+id/media_spoiler_wrap_1"
@@ -260,17 +258,16 @@
             android:id="@+id/media2"
             android:layout_width="0dp"
             android:layout_height="80dp"
+            android:layout_marginEnd="2dp"
             android:layout_marginLeft="2dp"
             android:layout_marginRight="2dp"
+            android:layout_marginStart="2dp"
             android:scaleType="centerCrop"
             android:visibility="visible"
             app:layout_constraintBottom_toBottomOf="@+id/media1"
             app:layout_constraintLeft_toRightOf="@+id/media1"
             app:layout_constraintRight_toRightOf="@+id/body"
-            app:layout_constraintTop_toTopOf="@+id/media1"
-            app:srcCompat="@mipmap/ic_launcher"
-            android:layout_marginStart="2dp"
-            android:layout_marginEnd="2dp" />
+            app:layout_constraintTop_toTopOf="@+id/media1"/>
 
         <FrameLayout
             android:id="@+id/media_spoiler_wrap_2"
@@ -297,17 +294,16 @@
             android:id="@+id/media3"
             android:layout_width="0dp"
             android:layout_height="80dp"
+            android:layout_marginEnd="2dp"
             android:layout_marginLeft="2dp"
             android:layout_marginRight="2dp"
+            android:layout_marginStart="2dp"
             android:layout_marginTop="4dp"
             android:scaleType="centerCrop"
             android:visibility="visible"
             app:layout_constraintLeft_toLeftOf="@+id/body"
             app:layout_constraintRight_toLeftOf="@+id/media4"
-            app:layout_constraintTop_toBottomOf="@+id/media1"
-            app:srcCompat="@mipmap/ic_launcher"
-            android:layout_marginStart="2dp"
-            android:layout_marginEnd="2dp" />
+            app:layout_constraintTop_toBottomOf="@+id/media1"/>
 
         <FrameLayout
             android:id="@+id/media_spoiler_wrap_3"
@@ -334,18 +330,17 @@
             android:id="@+id/media4"
             android:layout_width="0dp"
             android:layout_height="80dp"
+            android:layout_marginEnd="2dp"
             android:layout_marginLeft="2dp"
             android:layout_marginRight="2dp"
+            android:layout_marginStart="2dp"
             android:scaleType="centerCrop"
             android:visibility="visible"
             app:layout_constraintBottom_toBottomOf="@+id/media3"
             app:layout_constraintLeft_toRightOf="@+id/media3"
             app:layout_constraintRight_toRightOf="@+id/body"
             app:layout_constraintTop_toTopOf="@+id/media3"
-            app:layout_constraintVertical_bias="0.0"
-            app:srcCompat="@mipmap/ic_launcher"
-            android:layout_marginStart="2dp"
-            android:layout_marginEnd="2dp" />
+            app:layout_constraintVertical_bias="0.0"/>
 
         <FrameLayout
             android:id="@+id/media_spoiler_wrap_4"
