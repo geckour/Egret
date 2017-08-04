@@ -72,6 +72,10 @@
     <string name="button_enable_spoiler">Hide</string>
 
     <string name="hint_new_toot">What\'s up?</string>
+    <string name="hint_alert_new_toot">Write down warning here</string>
+    <string name="hint_switch_body_spoiler">CW</string>
+    <string name="hint_switch_media_spoiler">NSFW</string>
+    <string name="hint_spinner_visibility">Visibility</string>
     <string name="hint_add_mute_keyword">Enter new keyword to mute</string>
     <string name="hint_add_mute_hash_tag">Enter new hash tag to mute</string>
     <string name="hint_add_mute_instance">Enter new instance name to mute</string>
@@ -85,6 +89,11 @@
     <string name="array_item_mute_hash_tag">Mute HASH TAG: %1$s</string>
     <string name="array_item_mute_instance">Mute INSTANCE: %1$s</string>
     <string name="array_item_mute_client">Mute APP: %1$s</string>
+
+    <string name="array_item_toot_visibility_public">Public</string>
+    <string name="array_item_toot_visibility_private">Private</string>
+    <string name="array_item_toot_visibility_unlisted">Unlisted</string>
+    <string name="array_item_toot_visibility_direct">Direct</string>
 
     <string name="spoiler_media">Click to show this media</string>
 

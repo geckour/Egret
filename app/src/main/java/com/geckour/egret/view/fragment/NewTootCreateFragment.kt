@@ -18,10 +18,12 @@ import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.ImageView
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
+import com.geckour.egret.api.service.MastodonService
 import com.geckour.egret.databinding.FragmentCreateNewTootBinding
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
@@ -147,6 +149,17 @@ class NewTootCreateFragment : BaseFragment() {
             }
         }
 
+        binding.switchCw.setOnCheckedChangeListener { _, isChecked ->
+            binding.tootAlertBody.visibility = if (isChecked) View.VISIBLE else View.GONE
+            binding.dividerBody.visibility = if (isChecked) View.VISIBLE else View.GONE
+        }
+
+        binding.spinnerVisibility.adapter =
+                ArrayAdapter.createFromResource(activity, R.array.spinner_toot_visibility, android.R.layout.simple_spinner_item)
+                        .apply {
+                            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                        }
+
         binding.buttonToot.setOnClickListener {
             binding.buttonToot.isEnabled = false
 
@@ -188,9 +201,18 @@ class NewTootCreateFragment : BaseFragment() {
         }
         MastodonClient(Common.resetAuthInfo() ?: return)
                 .postNewToot(
-                        body,
-                        if (binding.replyTo.visibility == View.VISIBLE) arguments.getLong(ARGS_KEY_REPLY_TO_STATUS_ID) else null,
-                        if (mediaIds.size > 0) mediaIds else null)
+                        body = body,
+                        inReplyToId = if (binding.replyTo.visibility == View.VISIBLE) arguments.getLong(ARGS_KEY_REPLY_TO_STATUS_ID) else null,
+                        mediaIds = if (mediaIds.size > 0) mediaIds else null,
+                        isSensitive = binding.switchNsfw.isChecked,
+                        spoilerText = if (binding.switchCw.isChecked) binding.tootAlertBody.text.toString() else null,
+                        visibility = when (binding.spinnerVisibility.selectedItemPosition) {
+                            0 -> MastodonService.Visibility.public
+                            1 -> MastodonService.Visibility.unlisted
+                            2 -> MastodonService.Visibility.private
+                            3 -> MastodonService.Visibility.direct
+                            else -> null
+                        })
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe( { onPostSuccess() }, Throwable::printStackTrace)

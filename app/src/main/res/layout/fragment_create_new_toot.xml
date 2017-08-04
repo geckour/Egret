@@ -24,41 +24,64 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/wrap_postUser"/>
 
-        <LinearLayout
-            android:id="@+id/wrap_postUser"
+        <com.mikhaellopez.circularimageview.CircularImageView
+            android:id="@+id/icon"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginLeft="12dp"
+            android:layout_marginTop="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            app:civ_border_width="0dp"
+            app:civ_shadow_radius="0"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/username"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="8dp"
+            android:ellipsize="end"
+            android:minLines="1"
+            android:singleLine="true"
+            android:text="@{content.username}"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="@+id/icon"
+            app:layout_constraintLeft_toRightOf="@+id/icon"
+            app:layout_constraintTop_toTopOf="@+id/icon"
+            tools:text="\@username\@domain" />
+
+        <EditText
+            android:id="@+id/toot_alert_body"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="12dp"
-            android:layout_marginRight="12dp"
-            android:layout_marginTop="16dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            app:layout_constraintHorizontal_bias="0.0"
+            android:layout_marginBottom="8dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="8dp"
+            android:background="@android:color/transparent"
+            android:gravity="start"
+            android:hint="@string/hint_alert_new_toot"
+            android:textAlignment="gravity"
+            android:visibility="gone"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toBottomOf="@+id/icon" />
 
-            <com.mikhaellopez.circularimageview.CircularImageView
-                android:id="@+id/icon"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                app:civ_border_width="0dp"
-                app:civ_shadow_radius="0" />
+        <FrameLayout
+            android:id="@+id/divider_body"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_marginTop="3.5dp"
+            android:background="?attr/colorDivider"
+            android:visibility="gone"
+            app:layout_constraintLeft_toLeftOf="@+id/toot_alert_body"
+            app:layout_constraintRight_toRightOf="@+id/toot_alert_body"
+            app:layout_constraintTop_toBottomOf="@+id/toot_alert_body">
 
-            <TextView
-                android:id="@+id/username"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="4dp"
-                android:ellipsize="end"
-                android:minLines="1"
-                android:singleLine="true"
-                android:text="@{content.username}"
-                android:textSize="16sp"
-                tools:text="\@username\@domain" />
-        </LinearLayout>
+        </FrameLayout>
 
         <EditText
             android:id="@+id/toot_body"
@@ -73,11 +96,9 @@
             android:hint="@string/hint_new_toot"
             android:textAlignment="gravity"
             app:layout_constraintBottom_toTopOf="@+id/media_wrap"
-            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/replyTo"
-            app:layout_constraintVertical_bias="0.0" />
+            app:layout_constraintTop_toBottomOf="@+id/toot_alert_body" />
 
         <LinearLayout
             android:id="@+id/media_wrap"
@@ -86,9 +107,10 @@
             android:gravity="fill_horizontal"
             android:orientation="horizontal"
             android:paddingRight="6dp"
-            app:layout_constraintBottom_toTopOf="@+id/constraintLayout"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent">
+            app:layout_constraintRight_toRightOf="parent"
+            android:layout_marginBottom="0dp"
+            app:layout_constraintBottom_toTopOf="@+id/wrap_footer">
 
             <android.support.constraint.ConstraintLayout
                 android:id="@+id/media_wrap_1"
@@ -168,13 +190,16 @@
         </LinearLayout>
 
         <android.support.constraint.ConstraintLayout
-            android:id="@+id/constraintLayout"
+            android:id="@+id/wrap_footer"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:background="?attr/colorBgSolid"
             android:elevation="5dp"
+            android:paddingBottom="8dp"
+            android:paddingLeft="12dp"
+            android:paddingRight="8dp"
+            android:paddingTop="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent">
 
@@ -182,13 +207,12 @@
                 android:id="@+id/gallery"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:layout_marginLeft="12dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:tint="@color/icon_tint_dark"
-                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintBottom_toBottomOf="@+id/button_toot"
                 app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/button_toot"
                 app:srcCompat="@drawable/ic_menu_gallery" />
 
             <ImageView
@@ -204,20 +228,62 @@
                 app:layout_constraintTop_toTopOf="@+id/gallery"
                 app:srcCompat="@drawable/ic_menu_camera" />
 
+            <TextView
+                android:id="@+id/hint_spinner_visibility"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="2dp"
+                android:layout_marginLeft="8dp"
+                android:text="@string/hint_spinner_visibility"
+                android:textColor="@color/icon_tint_dark"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toTopOf="@+id/spinner_visibility"
+                app:layout_constraintLeft_toLeftOf="@+id/spinner_visibility"
+                app:layout_constraintTop_toTopOf="@+id/button_toot"
+                app:layout_constraintVertical_chainStyle="packed" />
+
+            <Spinner
+                android:id="@+id/spinner_visibility"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="12dp"
+                android:layout_marginRight="12dp"
+                android:layout_marginTop="2dp"
+                app:layout_constraintBottom_toBottomOf="@+id/button_toot"
+                app:layout_constraintLeft_toRightOf="@+id/camera"
+                app:layout_constraintRight_toLeftOf="@+id/switch_nsfw" />
+
+            <Switch
+                android:id="@+id/switch_cw"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="@string/hint_switch_body_spoiler"
+                android:textColor="@color/icon_tint_dark"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toTopOf="@+id/switch_nsfw"
+                app:layout_constraintRight_toRightOf="@+id/switch_nsfw" />
+
+            <Switch
+                android:id="@+id/switch_nsfw"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginRight="4dp"
+                android:text="@string/hint_switch_media_spoiler"
+                android:textColor="@color/icon_tint_dark"
+                android:textStyle="bold"
+                app:layout_constraintRight_toLeftOf="@+id/button_toot" />
+
             <Button
                 android:id="@+id/button_toot"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:layout_marginRight="8dp"
-                android:layout_marginTop="4dp"
                 android:background="@drawable/button_custom_material"
                 android:text="@string/button_create_toot"
-                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintBottom_toBottomOf="@+id/switch_nsfw"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
+                app:layout_constraintTop_toTopOf="@+id/switch_cw" />
         </android.support.constraint.ConstraintLayout>
-
     </android.support.constraint.ConstraintLayout>
 </layout>

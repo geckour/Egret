@@ -14,11 +14,11 @@ import java.net.SocketException
 
 interface MastodonService {
 
-    enum class Visibility(val rawValue: Int) {
-        `public`(0),
-        unlisted(1),
-        `private`(2),
-        direct(3)
+    enum class Visibility {
+        `public`,
+        unlisted,
+        `private`,
+        direct
     }
 
     @FormUrlEncoded
