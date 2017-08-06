@@ -44,6 +44,7 @@
     
     <string name="message_necessity_wifi_grant">To control streaming by such status, grant authority of accessing Wi-Fi status to app.</string>
     <string name="message_necessity_read_storage_grant">To pick medias, grant authority of reading storage to app.</string>
+    <string name="message_necessity_write_storage_grant">To capture image, grant authority of writing storage to app.</string>
 
     <string name="splash_content">Egret</string>
 
