@@ -3,6 +3,8 @@ package com.geckour.egret.view.fragment
 import android.Manifest
 import android.app.Activity
 import android.content.ClipData
+import android.content.ContentUris
+import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.databinding.DataBindingUtil
@@ -44,8 +46,9 @@ class NewTootCreateFragment : BaseFragment() {
 
     lateinit var binding: FragmentCreateNewTootBinding
     private val postMediaReqs: ArrayList<Disposable> = ArrayList()
-    private var postMediaCount: Int = 0
+    private var mediaCount: Int = 0
     private val mediaIds: ArrayList<Long> = ArrayList()
+    private var capturedImageUri: Uri? = null
 
     companion object {
         val TAG: String = this::class.java.simpleName
@@ -54,7 +57,9 @@ class NewTootCreateFragment : BaseFragment() {
         private val ARGS_KEY_REPLY_TO_STATUS_ID = "replyToStatusId"
         private val ARGS_KEY_REPLY_TO_ACCOUNT_NAME = "replyToAccountName"
         private val REQUEST_CODE_PICK_MEDIA = 1
-        private val REQUEST_CODE_GRANT_READ_STORAGE = 2
+        private val REQUEST_CODE_CAPTURE_IMAGE = 2
+        private val REQUEST_CODE_GRANT_READ_STORAGE = 3
+        private val REQUEST_CODE_GRANT_WRITE_STORAGE = 4
 
         fun newInstance(
                 currentTokenId: Long,
@@ -114,6 +119,7 @@ class NewTootCreateFragment : BaseFragment() {
         Common.showSoftKeyBoardOnFocusEditText(binding.tootBody)
 
         binding.gallery.setOnClickListener { pickMedia() }
+        binding.camera.setOnClickListener { captureImage() }
 
         binding.tootBody.setOnKeyListener { v, keyCode, event ->
             when (event.action) {
@@ -191,6 +197,12 @@ class NewTootCreateFragment : BaseFragment() {
                     data?.let { bindMedia(it) }
                 }
             }
+
+            REQUEST_CODE_CAPTURE_IMAGE -> {
+                if (resultCode == Activity.RESULT_OK) {
+                    capturedImageUri?.let { bindImage(it) }
+                }
+            }
         }
     }
 
@@ -223,10 +235,28 @@ class NewTootCreateFragment : BaseFragment() {
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), REQUEST_CODE_GRANT_READ_STORAGE)
         } else {
-            val intent = Intent(Intent.ACTION_GET_CONTENT)
-            intent.type = "image/* video/*"
-            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                type = "image/* video/*"
+                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+            }
             startActivityForResult(intent, REQUEST_CODE_PICK_MEDIA)
+        }
+    }
+
+    fun captureImage() {
+        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), REQUEST_CODE_GRANT_WRITE_STORAGE)
+        } else {
+            val values = ContentValues()
+            values.put(MediaStore.Images.Media.TITLE, "${System.currentTimeMillis()}.jpg")
+            capturedImageUri = activity.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+
+            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                putExtra(MediaStore.EXTRA_OUTPUT, capturedImageUri)
+            }
+
+            startActivityForResult(intent, REQUEST_CODE_CAPTURE_IMAGE)
         }
     }
 
@@ -241,6 +271,16 @@ class NewTootCreateFragment : BaseFragment() {
                     Snackbar.make(binding.root, R.string.message_necessity_read_storage_grant, Snackbar.LENGTH_SHORT)
                 }
             }
+
+
+            REQUEST_CODE_GRANT_WRITE_STORAGE -> {
+                if (grantResults.isNotEmpty() &&
+                        grantResults.filter { it != PackageManager.PERMISSION_GRANTED }.isEmpty()) {
+                    captureImage()
+                } else {
+                    Snackbar.make(binding.root, R.string.message_necessity_write_storage_grant, Snackbar.LENGTH_SHORT)
+                }
+            }
         }
     }
 
@@ -252,20 +292,20 @@ class NewTootCreateFragment : BaseFragment() {
                         .observeOn(AndroidSchedulers.mainThread())
                         .compose(bindToLifecycle())
                         .subscribe({ (path, uri) ->
-                            if (++postMediaCount < 5) {
+                            if (++mediaCount < 5) {
                                 postMedia(domain, path, uri)
                             } else {
                                 Snackbar.make(binding.root, R.string.error_too_many_media, Snackbar.LENGTH_SHORT).show()
                             }
                         }, Throwable::printStackTrace)
             }
-            if (data.data != null && ++postMediaCount < 5) {
+            if (data.data != null && ++mediaCount < 5) {
                 getMediaPathFromUriAsSingle(data.data)
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
                         .compose(bindToLifecycle())
                         .subscribe({
-                            if (++postMediaCount < 5) {
+                            if (++mediaCount < 5) {
                                 postMedia(domain, it, data.data)
                             } else {
                                 Snackbar.make(binding.root, R.string.error_too_many_media, Snackbar.LENGTH_SHORT).show()
@@ -273,6 +313,22 @@ class NewTootCreateFragment : BaseFragment() {
                         }, Throwable::printStackTrace)
             }
         }
+    }
+
+    fun bindImage(uri: Uri) {
+        getImagePathFromUriAsSingle(uri)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe({ path ->
+                    if (++mediaCount < 5) {
+                        Common.resetAuthInfo()?.let {
+                            postImage(it, path, uri)
+                        }
+                    } else {
+                        Snackbar.make(binding.root, R.string.error_too_many_media, Snackbar.LENGTH_SHORT).show()
+                    }
+                }, Throwable::printStackTrace)
     }
 
     fun postMedia(domain: String, path: String, uri: Uri) {
@@ -292,7 +348,30 @@ class NewTootCreateFragment : BaseFragment() {
                             indicateMedia(uri)
                         }, { throwable ->
                             throwable.printStackTrace()
-                            postMediaCount--
+                            mediaCount--
+                            Snackbar.make(binding.root, R.string.error_unable_upload_media, Snackbar.LENGTH_SHORT).show()
+                        })
+        )
+    }
+
+    fun postImage(domain: String, path: String, uri: Uri) {
+        val file = File(path)
+        val body = MultipartBody.Part.createFormData(
+                "file",
+                file.name,
+                RequestBody.create(MediaType.parse("jpeg"), file))
+
+        postMediaReqs.add(
+                MastodonClient(domain).postNewMedia(body)
+                        .subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .compose(bindToLifecycle())
+                        .subscribe({
+                            mediaIds.add(it.id)
+                            indicateImage(uri)
+                        }, { throwable ->
+                            throwable.printStackTrace()
+                            mediaCount--
                             Snackbar.make(binding.root, R.string.error_unable_upload_media, Snackbar.LENGTH_SHORT).show()
                         })
         )
@@ -309,13 +388,41 @@ class NewTootCreateFragment : BaseFragment() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
-                    val mediaViews: ArrayList<ImageView> = ArrayList()
-                    mediaViews.add(binding.media1)
-                    mediaViews.add(binding.media2)
-                    mediaViews.add(binding.media3)
-                    mediaViews.add(binding.media4)
+                    val mediaViews: List<ImageView> = listOf(
+                            binding.media1,
+                            binding.media2,
+                            binding.media3,
+                            binding.media4
+                    )
 
                     mediaViews.filter { it.drawable == null }.firstOrNull()?.setImageBitmap(it)
+                }, Throwable::printStackTrace)
+    }
+
+    fun indicateImage(uri: Uri) {
+        Single.just(
+                MediaStore.Images.Thumbnails.getThumbnail(
+                        activity.contentResolver,
+                        ContentUris.parseId(uri),
+                        MediaStore.Images.Thumbnails.MINI_KIND,
+                        null))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe({
+                    val mediaViews: List<ImageView> = listOf(
+                            binding.media1,
+                            binding.media2,
+                            binding.media3,
+                            binding.media4
+                    )
+
+                    mediaViews.filter { it.drawable == null }.firstOrNull()?.setImageBitmap(it)
+
+                    capturedImageUri?.let {
+                        activity.contentResolver.delete(capturedImageUri, null, null)
+                        capturedImageUri = null
+                    }
                 }, Throwable::printStackTrace)
     }
 
@@ -331,16 +438,14 @@ class NewTootCreateFragment : BaseFragment() {
                             arrayOf(it), null)
                     cursor.moveToFirst()
 
-                    val path = cursor.getString(cursor.getColumnIndexOrThrow(projection))
-                    cursor.close()
-
-                    path
+                    cursor.getString(cursor.getColumnIndexOrThrow(projection)).apply { cursor.close() }
                 }
     }
 
     fun getMediaPathsFromClipDataAsObservable(clip: ClipData): Observable<Pair<String, Uri>> {
         val docIds: ArrayList<Pair<String, Uri>> = ArrayList()
         val projection = MediaStore.Images.Media.DATA
+
         (0..clip.itemCount - 1).mapTo(docIds) {
             val uri = clip.getItemAt(it).uri
             Pair(DocumentsContract.getDocumentId(uri).split(":").last(), uri)
@@ -356,9 +461,18 @@ class NewTootCreateFragment : BaseFragment() {
                     cursor.moveToFirst()
 
                     val path = cursor.getString(cursor.getColumnIndexOrThrow(projection))
-                    cursor.close()
 
-                    Pair(path, it.second)
+                    Pair(path, it.second).apply { cursor.close() }
+                }
+    }
+
+    fun getImagePathFromUriAsSingle(uri: Uri): Single<String> {
+        return Single.just(MediaStore.Images.Media.DATA)
+                .map { projection ->
+                    val cursor = activity.contentResolver.query(uri, arrayOf(projection), null, null, null)
+                    cursor.moveToFirst()
+
+                    cursor.getString(cursor.getColumnIndexOrThrow(projection)).apply { cursor.close() }
                 }
     }
 
