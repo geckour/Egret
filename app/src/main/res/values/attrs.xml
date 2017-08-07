@@ -15,5 +15,6 @@
         <attr name="colorGray" format="color"/>
         <attr name="colorGrayInverse" format="color"/>
         <attr name="colorBgSolid" format="color"/>
+        <attr name="colorThin" format="color" />
     </declare-styleable>
 </resources>
