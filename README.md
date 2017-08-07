@@ -18,8 +18,8 @@ Android app for client of Mastodon.
 - Post reply to the toot (characters and images)
 - (Un) Favourite / Boost the toot
 - Show images in the toot as inline / pop up viewer
-- NSFW / Spoiler text compatible
-- Search account / hash tag
+- NSFW / CW compatible
+- Search accounts / hashtags
 - and more in future...
 
 ## Contributor
