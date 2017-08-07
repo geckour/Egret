@@ -10,6 +10,7 @@
         <item name="colorGray">@color/material_gray_dark</item>
         <item name="colorGrayInverse">@color/material_gray_light</item>
         <item name="colorBgSolid">@android:color/white</item>
+        <item name="colorThin">@color/white_overlay</item>
         <item name="material_drawer_background">@color/material_drawer_background</item>
         <item name="material_drawer_primary_text">@color/material_drawer_primary_text</item>
         <item name="material_drawer_secondary_text">@color/material_drawer_secondary_text</item>
@@ -35,6 +36,7 @@
         <item name="colorGray">@color/material_gray_light</item>
         <item name="colorGrayInverse">@color/material_gray_dark</item>
         <item name="colorBgSolid">@android:color/black</item>
+        <item name="colorThin">@color/black_overlay</item>
         <item name="material_drawer_background">@color/material_drawer_dark_background</item>
         <item name="material_drawer_primary_text">@color/material_drawer_dark_primary_text</item>
         <item name="material_drawer_secondary_text">@color/material_drawer_dark_secondary_text</item>
