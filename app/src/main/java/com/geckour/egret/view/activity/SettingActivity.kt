@@ -22,7 +22,7 @@ class SettingActivity: BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setTheme(if (isModeDark()) R.style.AppThemeDark_NoActionBar else R.style.AppTheme_NoActionBar)
+        setTheme(if (isModeDark()) R.style.AppTheme_Dark_NoActionBar else R.style.AppTheme_NoActionBar)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         val toolbar = findViewById(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)

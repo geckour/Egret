@@ -243,7 +243,7 @@ class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setTheme(if (isModeDark()) R.style.AppThemeDark_NoActionBar else R.style.AppTheme_NoActionBar)
+        setTheme(if (isModeDark()) R.style.AppTheme_Dark_NoActionBar else R.style.AppTheme_NoActionBar)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
         setSupportActionBar(binding.appBarMain.toolbar)
