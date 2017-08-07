@@ -419,10 +419,7 @@ class NewTootCreateFragment : BaseFragment() {
 
                     mediaViews.filter { it.drawable == null }.firstOrNull()?.setImageBitmap(it)
 
-                    capturedImageUri?.let {
-                        activity.contentResolver.delete(capturedImageUri, null, null)
-                        capturedImageUri = null
-                    }
+                    deleteTempImage()
                 }, Throwable::printStackTrace)
     }
 
@@ -474,6 +471,21 @@ class NewTootCreateFragment : BaseFragment() {
 
                     cursor.getString(cursor.getColumnIndexOrThrow(projection)).apply { cursor.close() }
                 }
+    }
+
+    fun deleteTempImage() {
+        capturedImageUri?.let {
+            getImagePathFromUriAsSingle(it)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .compose(bindToLifecycle())
+                    .subscribe({ path ->
+                        File(path).apply { if (this.exists()) this.delete() }
+                        activity.contentResolver.delete(it, null, null)
+
+                        capturedImageUri = null
+                    })
+        }
     }
 
     fun onPostSuccess() {
