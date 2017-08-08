@@ -21,6 +21,8 @@ import android.widget.PopupMenu
 import com.geckour.egret.R
 import com.geckour.egret.databinding.FragmentImageSliderBinding
 import com.geckour.egret.databinding.PageFullscreenImageBinding
+import com.geckour.egret.util.Common
+import com.geckour.egret.view.activity.MainActivity
 import com.squareup.picasso.Picasso
 import com.trello.rxlifecycle2.components.support.RxAppCompatDialogFragment
 import io.reactivex.Single
@@ -32,6 +34,7 @@ import java.io.FileOutputStream
 class ShowImagesDialogFragment: RxAppCompatDialogFragment() {
 
     lateinit private var binding: FragmentImageSliderBinding
+    lateinit private var adapter: ViewPagerAdapter
     private var position = 0
 
     companion object {
@@ -63,7 +66,7 @@ class ShowImagesDialogFragment: RxAppCompatDialogFragment() {
 
         binding.opt.setOnClickListener { showPopup(it) }
         arguments.getStringArrayList(ARGS_KEY_IMAGE_PATHS)?.let {
-            val adapter = ViewPagerAdapter(it)
+            adapter = ViewPagerAdapter(it)
             binding.viewPager.adapter = adapter
             setCurrentItem(position)
         }
@@ -122,7 +125,13 @@ class ShowImagesDialogFragment: RxAppCompatDialogFragment() {
                                 if (!this.exists()) this.mkdir()
 
                                 val dir = this.absolutePath
-                                val fileName = getFileName(dir, path)
+                                val fileName = try {
+                                    getFileName(dir, path)
+                                } catch (e: IndexOutOfBoundsException) {
+                                    e.printStackTrace()
+                                    Snackbar.make(binding.root, R.string.error_saving_image, Snackbar.LENGTH_SHORT).show()
+                                    return@subscribe
+                                }
                                 val filePath = "$dir/$fileName"
                                 FileOutputStream(filePath).apply {
                                     it.compress(if (getExtensionName(path) == "png") Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG, 100, this)
@@ -150,7 +159,7 @@ class ShowImagesDialogFragment: RxAppCompatDialogFragment() {
     fun getFileName(dir: String, imagePath: String): String {
         var i = -1
         while (true) {
-            if (i >= 999) throw IndexOutOfBoundsException("Numbered same named files exist over the bound.")
+            if (i > 999) throw IndexOutOfBoundsException("Numbered same named files exist over the bound.")
 
             val fileName = generateFileName(imagePath, i)
             File("$dir/$fileName").apply {
@@ -168,7 +177,9 @@ class ShowImagesDialogFragment: RxAppCompatDialogFragment() {
     inner class ViewPagerAdapter(private val imagePaths: List<String>) : PagerAdapter() {
 
         val binding: ArrayList<PageFullscreenImageBinding> = ArrayList()
+        private val lastPoint = PointF(-1F, -1F)
         private val lastPoints = Pair(PointF(-1F, -1F), PointF(-1F, -1F))
+        private var dismiss: Boolean = false
 
         override fun instantiateItem(container: ViewGroup?, position: Int): Any {
             if (binding.isEmpty()) {
@@ -189,15 +200,60 @@ class ShowImagesDialogFragment: RxAppCompatDialogFragment() {
             if (`object` is View) container?.removeView(`object`)
         }
 
-        fun onTouchImage(event: MotionEvent, position: Int): Boolean {
-            if (event.pointerCount == 2) {
-                onScale(binding[position].image, event)
+        fun onTouchImage(event: MotionEvent, position: Int): Boolean =
+                when (event.pointerCount) {
+                    1 -> onDrag(binding[position].image, event)
+
+                    2 -> {
+                        onScale(binding[position].image, event)
+                    }
+
+                    else -> true
+                }
+
+        fun onDrag(view: View, event: MotionEvent): Boolean {
+            when (event.action) {
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
+                    lastPoint.set(event.x, event.y)
+                    return true
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    this@ShowImagesDialogFragment.binding.viewPager.requestDisallowInterceptTouchEvent(true)
+                    if (view.scaleX > 1f || view.scaleY > 1f) {
+                        view.translationX = view.translationX + (event.x - lastPoint.x)
+                        view.translationY = view.translationY + (event.y - lastPoint.y)
+
+                        return true.apply { lastPoint.set(event.x, event.y) }
+                    } else if (Math.abs(event.x - lastPoint.x) < Common.dp(activity, 20f)) {
+                        view.translationY = view.translationY + (event.y - lastPoint.y)
+                        dismiss = true
+
+                        return true.apply { lastPoint.set(event.x, event.y) }
+                    }
+
+                    this@ShowImagesDialogFragment.binding.viewPager.requestDisallowInterceptTouchEvent(false)
+                    lastPoint.set(event.x, event.y)
+                }
+
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP, MotionEvent.ACTION_CANCEL -> {
+                    this@ShowImagesDialogFragment.binding.viewPager.requestDisallowInterceptTouchEvent(false)
+                    if (view.scaleX <= 1f || view.scaleY <= 1f) {
+                        if (dismiss && Math.abs(view.translationY) > Common.dp(activity, 90f)) {
+                            dismiss = false
+                            (activity as MainActivity).supportFragmentManager.popBackStack()
+                            return true
+                        }
+                    }
+
+                    dismiss = false
+                }
             }
 
-            return true
+            return false
         }
 
-        fun onScale(view: View, event: MotionEvent) {
+        fun onScale(view: View, event: MotionEvent): Boolean {
             when (event.action) {
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP, MotionEvent.ACTION_CANCEL -> {
                     if (view.scaleX < 1f || view.scaleY < 1f) {
@@ -210,6 +266,8 @@ class ShowImagesDialogFragment: RxAppCompatDialogFragment() {
                 }
 
                 else -> {
+                    if (event.pointerCount < 2) return false
+
                     val currentPoints = Pair(PointF(event.getX(0), event.getY(0)), PointF(event.getX(1), event.getY(1)))
                     if (lastPoints.first.x < 0f) lastPoints.first.set(currentPoints.first)
                     if (lastPoints.second.x < 0f) lastPoints.second.set(currentPoints.second)
@@ -218,13 +276,15 @@ class ShowImagesDialogFragment: RxAppCompatDialogFragment() {
                     val distance = getDistance(lastPoints, currentPoints)
                     view.scaleX = view.scaleX.times(scale)
                     view.scaleY = view.scaleY.times(scale)
-                    view.translationX = view.translationX.plus(distance.x)
-                    view.translationY = view.translationY.plus(distance.y)
+                    view.translationX.apply { plus(distance.x) }
+                    view.translationY.apply { plus(distance.y) }
 
                     lastPoints.first.set(currentPoints.first)
                     lastPoints.second.set(currentPoints.second)
                 }
             }
+
+            return true
         }
 
         fun getScale(lastPoints: Pair<PointF, PointF>, currentPoints: Pair<PointF, PointF>): Float {

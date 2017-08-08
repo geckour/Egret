@@ -14,6 +14,8 @@ import android.text.Spanned
 import android.text.format.DateFormat
 import android.text.method.LinkMovementMethod
 import android.text.method.MovementMethod
+import android.util.DisplayMetrics
+import android.util.TypedValue
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
@@ -349,5 +351,7 @@ class Common {
                 }
             } else -1L
         } ?: -1L
+
+        fun dp(context: Context, pixel: Float): Float = pixel * context.resources.displayMetrics.density
     }
 }
