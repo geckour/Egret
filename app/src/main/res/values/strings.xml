@@ -13,6 +13,7 @@
     <string name="action_mute">Mute…</string>
     <string name="action_block">Block this account</string>
     <string name="action_delete">Delete this toot</string>
+    <string name="action_save_image">Save this pic</string>
     <string name="title_activity_login">Sign in</string>
     <string name="title_activity_setting">Settings</string>
     <string name="title_fragment_mute_keyword">Mute keywords</string>
@@ -41,10 +42,13 @@
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
     </string>
+
+    <string name="message_complete_saving_image">Completed to save the image.</string>
     
     <string name="message_necessity_wifi_grant">To control streaming by such status, grant authority of accessing Wi-Fi status to app.</string>
     <string name="message_necessity_read_storage_grant">To pick medias, grant authority of reading storage to app.</string>
-    <string name="message_necessity_write_storage_grant">To capture image, grant authority of writing storage to app.</string>
+    <string name="message_necessity_write_storage_grant_capture">To capture image, grant authority of writing storage to app.</string>
+    <string name="message_necessity_write_storage_grant_save">To save image, grant authority of writing storage to app.</string>
 
     <string name="splash_content">Egret</string>
 
