@@ -157,6 +157,7 @@ class TimelineFragment: BaseFragment() {
         super.onPause()
 
         stopTimelineStreams()
+        forceStopRefreshing()
 
         sharedPref.edit()
                 .apply {
@@ -235,6 +236,12 @@ class TimelineFragment: BaseFragment() {
     fun toggleRefreshIndicatorState(show: Boolean) = Common.toggleRefreshIndicatorState(binding.swipeRefreshLayout, show)
 
     fun toggleRefreshIndicatorActivity(show: Boolean) = Common.toggleRefreshIndicatorActivity(binding.swipeRefreshLayout, show)
+
+    fun forceStopRefreshing() {
+        toggleRefreshIndicatorState(false)
+        binding.swipeRefreshLayout.destroyDrawingCache()
+        binding.swipeRefreshLayout.clearAnimation()
+    }
 
     fun showTimelineByCategory(category: Category, hasContents: Boolean = false) {
         val prefStream = sharedPref.getString("manage_stream", "1")
