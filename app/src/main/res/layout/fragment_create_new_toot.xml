@@ -13,17 +13,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <TextView
-            android:id="@+id/replyTo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="16dp"
-            android:layout_marginTop="16dp"
-            android:text=""
-            android:visibility="gone"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/wrap_postUser"/>
-
         <com.mikhaellopez.circularimageview.CircularImageView
             android:id="@+id/icon"
             android:layout_width="30dp"
@@ -53,6 +42,17 @@
             app:layout_constraintTop_toTopOf="@+id/icon"
             tools:text="\@username\@domain" />
 
+        <TextView
+            android:id="@+id/replyTo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            android:text=""
+            android:visibility="gone"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/icon"/>
+
         <EditText
             android:id="@+id/toot_alert_body"
             android:layout_width="0dp"
@@ -68,7 +68,7 @@
             android:visibility="gone"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/icon" />
+            app:layout_constraintTop_toBottomOf="@+id/replyTo" />
 
         <FrameLayout
             android:id="@+id/divider_body"

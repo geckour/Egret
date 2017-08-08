@@ -268,17 +268,16 @@ class NewTootCreateFragment : BaseFragment() {
                         grantResults.filter { it != PackageManager.PERMISSION_GRANTED }.isEmpty()) {
                     pickMedia()
                 } else {
-                    Snackbar.make(binding.root, R.string.message_necessity_read_storage_grant, Snackbar.LENGTH_SHORT)
+                    Snackbar.make(binding.root, R.string.message_necessity_read_storage_grant, Snackbar.LENGTH_SHORT).show()
                 }
             }
-
 
             REQUEST_CODE_GRANT_WRITE_STORAGE -> {
                 if (grantResults.isNotEmpty() &&
                         grantResults.filter { it != PackageManager.PERMISSION_GRANTED }.isEmpty()) {
                     captureImage()
                 } else {
-                    Snackbar.make(binding.root, R.string.message_necessity_write_storage_grant, Snackbar.LENGTH_SHORT)
+                    Snackbar.make(binding.root, R.string.message_necessity_write_storage_grant_capture, Snackbar.LENGTH_SHORT).show()
                 }
             }
         }
