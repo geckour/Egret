@@ -271,7 +271,7 @@ class MainActivity : BaseActivity() {
         }
 
         currentCategory =
-                if (sharedPref.contains(STATE_KEY_CATEGORY)) TimelineFragment.Category.values()[sharedPref.getInt(STATE_KEY_CATEGORY, TimelineFragment.Category.Public.rawValue)]
+                if (sharedPref.contains(STATE_KEY_CATEGORY)) TimelineFragment.Category.values()[sharedPref.getInt(STATE_KEY_CATEGORY, TimelineFragment.Category.Public.ordinal)]
                 else TimelineFragment.Category.Public
 
         binding.appBarMain.contentMain.apply {

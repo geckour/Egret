@@ -296,6 +296,9 @@ class Common {
 
         fun getStoreContentsKey(category: TimelineFragment.Category) = "${TimelineFragment.STATE_ARGS_KEY_CONTENTS}:${category.name}"
 
+        fun getStoreSinceIdKey(category: TimelineFragment.Category) = "${TimelineFragment.STATE_ARGS_KEY_SINCE_ID}:${category.name}"
+
+        fun getStoreMaxIdKey(category: TimelineFragment.Category) = "${TimelineFragment.STATE_ARGS_KEY_MAX_ID}:${category.name}"
 
         fun showSoftKeyBoardOnFocusEditText(et: EditText, hideOnUnFocus: Boolean = true) {
             et.setOnFocusChangeListener { view, hasFocus ->

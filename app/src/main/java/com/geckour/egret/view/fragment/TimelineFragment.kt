@@ -27,6 +27,8 @@ import com.geckour.egret.util.Common
 import com.geckour.egret.util.Common.Companion.getMaxIdFromLinkString
 import com.geckour.egret.util.Common.Companion.getSinceIdFromLinkString
 import com.geckour.egret.util.Common.Companion.getStoreContentsKey
+import com.geckour.egret.util.Common.Companion.getStoreMaxIdKey
+import com.geckour.egret.util.Common.Companion.getStoreSinceIdKey
 import com.geckour.egret.util.Common.Companion.hideSoftKeyBoard
 import com.geckour.egret.util.Common.Companion.setSimplicityPostBarVisibility
 import com.geckour.egret.util.OrmaProvider
@@ -41,13 +43,13 @@ import retrofit2.adapter.rxjava2.Result
 
 class TimelineFragment: BaseFragment() {
 
-    enum class Category(val rawValue: Int) {
-        Public(0),
-        Local(1),
-        User(2),
-        HashTag(3),
-        Notification(4),
-        Unknown(5)
+    enum class Category {
+        Public,
+        Local,
+        User,
+        HashTag,
+        Notification,
+        Unknown
     }
 
     companion object {
@@ -55,6 +57,8 @@ class TimelineFragment: BaseFragment() {
         val ARGS_KEY_CATEGORY = "category"
         val ARGS_KEY_HASH_TAG = "hashTag"
         val STATE_ARGS_KEY_CONTENTS = "contents"
+        val STATE_ARGS_KEY_SINCE_ID = "sinceId"
+        val STATE_ARGS_KEY_MAX_ID = "maxId"
         val STATE_ARGS_KEY_RESUME = "resume"
         val REQUEST_CODE_GRANT_ACCESS_WIFI = 100
 
@@ -101,7 +105,7 @@ class TimelineFragment: BaseFragment() {
 
         val category = getCategory()
         sharedPref.edit()
-                .putInt(STATE_KEY_CATEGORY, category.rawValue)
+                .putInt(STATE_KEY_CATEGORY, category.ordinal)
                 .apply()
 
         binding.recyclerView.setOnTouchListener { _, event ->
@@ -164,6 +168,8 @@ class TimelineFragment: BaseFragment() {
                     if (getCategory() != Category.HashTag) {
                         val json = gson.toJson(adapter.getContents())
                         putString(getStoreContentsKey(getCategory()), json)
+                        putLong(getStoreSinceIdKey(getCategory()), sinceId)
+                        putLong(getStoreMaxIdKey(getCategory()), maxId)
                     }else {
                         getHashTag()?.let { putString(ARGS_KEY_HASH_TAG, it) }
                     }
@@ -208,18 +214,28 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun restoreTimeline() {
-        val storeContentskey = getStoreContentsKey(getCategory())
-        if (sharedPref.contains(storeContentskey)) {
+        val storeContentsKey = getStoreContentsKey(getCategory())
+        if (sharedPref.contains(storeContentsKey)) {
             adapter.clearContents()
             val type = object: TypeToken<List<TimelineContent>>() {}
-            val contents: List<TimelineContent> = gson.fromJson(sharedPref.getString(storeContentskey, ""), type.type)
+            val contents: List<TimelineContent> = gson.fromJson(sharedPref.getString(storeContentsKey, ""), type.type)
             adapter.addAllContents(contents)
-
-            showTimelineByCategory(getCategory(), contents.isNotEmpty())
-        } else {
-            showTimelineByCategory(getCategory())
         }
-        sharedPref.edit().remove(STATE_ARGS_KEY_CONTENTS).apply()
+        val storeSinceIdKey = getStoreSinceIdKey(getCategory())
+        if (sharedPref.contains(storeSinceIdKey)) {
+            this.sinceId = sharedPref.getLong(storeSinceIdKey, -1L)
+        }
+        val storeMaxIdKey = getStoreMaxIdKey(getCategory())
+        if (sharedPref.contains(storeMaxIdKey)) {
+            this.sinceId = sharedPref.getLong(storeMaxIdKey, -1L)
+        }
+        showTimelineByCategory(getCategory())
+
+        sharedPref.edit()
+                .remove(storeContentsKey)
+                .remove(storeSinceIdKey)
+                .remove(storeMaxIdKey)
+                .apply()
     }
 
     fun reflectCategorySelection() {
@@ -243,7 +259,7 @@ class TimelineFragment: BaseFragment() {
         binding.swipeRefreshLayout.clearAnimation()
     }
 
-    fun showTimelineByCategory(category: Category, hasContents: Boolean = false) {
+    fun showTimelineByCategory(category: Category) {
         val prefStream = sharedPref.getString("manage_stream", "1")
 
         if (prefStream == "1") {
@@ -264,22 +280,12 @@ class TimelineFragment: BaseFragment() {
                 (prefStream == "1" &&
                         activeNetworkInfo != null &&
                         activeNetworkInfo.type == ConnectivityManager.TYPE_WIFI)) {
-            if (hasContents) {
-                when (category) {
-                    Category.Public -> startPublicTimelineStream()
-                    Category.Local -> startLocalTimelineStream()
-                    Category.User -> startUserTimelineStream()
-                    Category.HashTag -> startHashTagTimelineStream()
-                    Category.Notification -> startUserTimelineStream()
-                }
-            } else {
-                when (category) {
-                    Category.Public -> startPublicTimelineStream()
-                    Category.Local -> startLocalTimelineStream()
-                    Category.User -> showUserTimeline(true)
-                    Category.HashTag -> getHashTag()?.let { showHashTagTimeline(it, true) }
-                    Category.Notification -> showNotificationTimeline(true)
-                }
+            when (category) {
+                Category.Public -> showPublicTimeline(true)
+                Category.Local -> showLocalTimeline(true)
+                Category.User -> showUserTimeline(true)
+                Category.HashTag -> getHashTag()?.let { showHashTagTimeline(it, true) }
+                Category.Notification -> showNotificationTimeline(true)
             }
         } else {
             when (category) {
@@ -367,7 +373,7 @@ class TimelineFragment: BaseFragment() {
         if (!(publicStream?.isDisposed ?: true)) publicStream?.dispose()
     }
 
-    fun showPublicTimeline(loadNext: Boolean = false) {
+    fun showPublicTimeline(loadStream: Boolean = false, loadNext: Boolean = false) {
         if (loadNext && maxId == -1L) return
 
         MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(maxId = if (loadNext) maxId else null, sinceId = if (!loadNext && sinceId != -1L) sinceId else null)
@@ -376,7 +382,11 @@ class TimelineFragment: BaseFragment() {
                 .compose(bindToLifecycle())
                 .subscribe({
                     reflectContents(it, loadNext)
-                }, Throwable::printStackTrace)
+                    if (loadStream) startPublicTimelineStream()
+                }, { throwable ->
+                    throwable.printStackTrace()
+                    toggleRefreshIndicatorState(false)
+                })
     }
 
     fun startUserTimelineStream() {
@@ -447,7 +457,7 @@ class TimelineFragment: BaseFragment() {
         if (!(localStream?.isDisposed ?: true)) localStream?.dispose()
     }
 
-    fun showLocalTimeline(loadNext: Boolean = false) {
+    fun showLocalTimeline(loadStream: Boolean = false, loadNext: Boolean = false) {
         if (loadNext && maxId == -1L) return
 
         MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(true, maxId = if (loadNext) maxId else null, sinceId = if (!loadNext && sinceId != -1L) sinceId else null)
@@ -456,7 +466,11 @@ class TimelineFragment: BaseFragment() {
                 .compose(bindToLifecycle())
                 .subscribe({
                     reflectContents(it, loadNext)
-                }, Throwable::printStackTrace)
+                    if (loadStream) startLocalTimelineStream()
+                }, { throwable ->
+                    throwable.printStackTrace()
+                    toggleRefreshIndicatorState(false)
+                })
     }
 
     fun startNotificationTimelineStream() {
@@ -493,7 +507,6 @@ class TimelineFragment: BaseFragment() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
-                    toggleRefreshIndicatorState(false)
                     reflectContents(it, loadNext)
                     if (loadStream) startNotificationTimelineStream()
                 }, { throwable ->
@@ -537,7 +550,6 @@ class TimelineFragment: BaseFragment() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
-                    toggleRefreshIndicatorState(false)
                     reflectContents(it, loadNext)
                     if (loadStream) startHashTagTimelineStream()
                 }, { throwable ->
