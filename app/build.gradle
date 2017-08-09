@@ -84,11 +84,10 @@ dependencies {
     compile 'com.squareup.okhttp3:okhttp:3.6.0'
     compile 'com.squareup.okhttp3:logging-interceptor:3.6.0'
 
-    // Picasso: Image processing
-    compile 'com.squareup.picasso:picasso:2.5.2'
-
-    // GIF animation support
-    compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.7'
+    // Glide: Image processing
+    compile 'com.github.bumptech.glide:glide:4.0.0'
+    kapt 'com.github.bumptech.glide:compiler:4.0.0'
+    compile 'jp.co.cyberagent.android.gpuimage:gpuimage-library:1.4.1'
 
     // Timber: Logging
     compile 'com.jakewharton.timber:timber:4.5.1'
@@ -107,5 +106,6 @@ dependencies {
     compile 'uk.co.chrisjenx:calligraphy:2.2.0'
 }
 repositories {
+    jcenter()
     mavenCentral()
 }

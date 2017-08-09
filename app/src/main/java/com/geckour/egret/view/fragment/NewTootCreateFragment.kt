@@ -23,6 +23,7 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.ImageView
+import com.bumptech.glide.Glide
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.service.MastodonService
@@ -30,7 +31,6 @@ import com.geckour.egret.databinding.FragmentCreateNewTootBinding
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.MainActivity
-import com.squareup.picasso.Picasso
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -113,7 +113,7 @@ class NewTootCreateFragment : BaseFragment() {
                 .subscribe( { account ->
                     val content = Common.getNewTootIdentifyContent(domain, token, account)
                     binding.content = content
-                    Picasso.with(binding.icon.context).load(content.avatarUrl).into(binding.icon)
+                    Glide.with(binding.icon.context).load(content.avatarUrl).into(binding.icon)
                 }, Throwable::printStackTrace)
 
         Common.showSoftKeyBoardOnFocusEditText(binding.tootBody)

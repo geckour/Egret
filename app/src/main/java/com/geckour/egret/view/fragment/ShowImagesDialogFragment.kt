@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.databinding.DataBindingUtil
 import android.graphics.Bitmap
 import android.graphics.PointF
+import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
@@ -18,12 +19,12 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
+import com.bumptech.glide.Glide
 import com.geckour.egret.R
 import com.geckour.egret.databinding.FragmentImageSliderBinding
 import com.geckour.egret.databinding.PageFullscreenImageBinding
 import com.geckour.egret.util.Common
 import com.geckour.egret.view.activity.MainActivity
-import com.squareup.picasso.Picasso
 import com.trello.rxlifecycle2.components.support.RxAppCompatDialogFragment
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -116,7 +117,7 @@ class ShowImagesDialogFragment: RxAppCompatDialogFragment() {
         } else {
             getImagePath(position)?.let { path ->
                 Single.just(path)
-                        .map { Picasso.with(activity).load(path).get() }
+                        .map { Glide.with(activity).load(path).submit().get() }
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
                         .compose(bindToLifecycle())
@@ -134,7 +135,7 @@ class ShowImagesDialogFragment: RxAppCompatDialogFragment() {
                                 }
                                 val filePath = "$dir/$fileName"
                                 FileOutputStream(filePath).apply {
-                                    it.compress(if (getExtensionName(path) == "png") Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG, 100, this)
+                                    (it as BitmapDrawable).bitmap.compress(if (getExtensionName(path) == "png") Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG, 100, this)
                                     this.flush()
                                     this.close()
                                 }
@@ -185,7 +186,7 @@ class ShowImagesDialogFragment: RxAppCompatDialogFragment() {
             if (binding.isEmpty()) {
                 imagePaths.forEach { binding.add(DataBindingUtil.inflate(LayoutInflater.from(activity), R.layout.page_fullscreen_image, container, false)) }
             }
-            Picasso.with(activity).load(imagePaths[position]).into(binding[position].image)
+            Glide.with(activity).load(imagePaths[position]).into(binding[position].image)
             binding[position].cover.setOnTouchListener { _, event -> onTouchImage(event, position) } // 直接ImageViewにonTouchListenerを仕込むと挙動がおかしくなるので別Viewに仕込んでいる
             container?.addView(binding[position].root)
 

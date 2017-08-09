@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.*
 import android.widget.ImageView
 import android.widget.PopupMenu
+import com.bumptech.glide.Glide
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Notification
@@ -18,7 +19,6 @@ import com.geckour.egret.view.adapter.model.SearchResultAccount
 import com.geckour.egret.view.adapter.model.SearchResultContent
 import com.geckour.egret.view.adapter.model.TimelineContent
 import com.geckour.egret.view.fragment.SearchResultFragment
-import com.squareup.picasso.Picasso
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlin.collections.ArrayList
@@ -286,7 +286,7 @@ class SearchResultAdapter(val listener: TimelineAdapter.Callbacks) : RecyclerVie
                 visibility = View.VISIBLE
                 setOnClickListener { listener.onClickMedia(urls, position) }
             }
-            Picasso.with(view.context).load(previewUrls[position]).into(view)
+            Glide.with(view.context).load(previewUrls[position]).into(view)
         }
     }
 

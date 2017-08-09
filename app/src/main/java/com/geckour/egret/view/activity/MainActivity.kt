@@ -19,6 +19,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
 import android.widget.ImageView
+import com.bumptech.glide.Glide
 import com.geckour.egret.App.Companion.STATE_KEY_CATEGORY
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
@@ -39,7 +40,6 @@ import com.mikepenz.materialdrawer.DrawerBuilder
 import com.mikepenz.materialdrawer.model.DividerDrawerItem
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem
-import com.squareup.picasso.Picasso
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -393,22 +393,22 @@ class MainActivity : BaseActivity() {
                             .toObservable()
                 }
                 .flatMap { (token, account) ->
-                    (if (account.avatarUrl.startsWith("http")) Picasso.with(this).load(account.avatarUrl).get() else null)
+                    (if (account.avatarUrl.startsWith("http")) Glide.with(this).load(account.avatarUrl).submit().get() else null)
                             .let {
                                 Observable.just(it)
-                                        .map { bitmap -> Pair(Pair(token, account), bitmap) }
+                                        .map { drawable -> Pair(Pair(token, account), drawable) }
                             }
                 }
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
-                .subscribe({ (pair, bitmap) ->
+                .subscribe({ (pair, drawable) ->
                     val domain = OrmaProvider.db.selectFromInstanceAuthInfo().idEq(pair.first.instanceId).last().instance
                     val item = ProfileDrawerItem()
                             .withName(pair.second.displayName)
                             .withEmail("@${pair.second.username}@$domain")
                             .withIdentifier(pair.second.id)
-                    bitmap?.let { item.withIcon(it) }
+                            .withIcon(drawable)
                     accountHeader.addProfiles(item)
                 }, Throwable::printStackTrace, {
                     val currentAccessToken = Common.getCurrentAccessToken()
