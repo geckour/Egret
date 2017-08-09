@@ -23,3 +23,16 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Retrofit
+-dontwarn okio.**
+-dontwarn javax.annotation.**
+-dontwarn retrofit2.Platform$Java8
+
+# Moshi
+-dontwarn okio.**
+-dontwarn javax.annotation.Nullable
+-dontwarn javax.annotation.ParametersAreNonnullByDefault
+-keepclasseswithmembers class * {
+    @com.squareup.moshi.* <methods>;
+}
