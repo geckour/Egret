@@ -1,6 +1,7 @@
 package com.geckour.egret
 
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -13,7 +14,8 @@ import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Notification
 import com.geckour.egret.api.service.MastodonService
 import com.geckour.egret.util.Common
-import io.reactivex.Single
+import com.geckour.egret.view.activity.MainActivity
+import com.geckour.egret.view.fragment.TimelineFragment
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 
@@ -57,8 +59,14 @@ class NotificationService: Service() {
                             setLargeIcon(bitmap)
                             setContentTitle("${notificationItem.type} by ${notificationItem.account.displayName}")
                             notificationItem.status?.let { setContentText(Common.getSpannedWithoutExtraMarginFromHtml(it.content)) }
+
+                            val intent = MainActivity.getIntent(applicationContext, TimelineFragment.Category.Notification)
+                            setContentIntent(PendingIntent.getActivity(applicationContext, MainActivity.REQUEST_CODE_NOTIFICATION, intent, PendingIntent.FLAG_UPDATE_CURRENT))
                         }
                         .build()
+                        .apply {
+                            flags = android.app.Notification.FLAG_AUTO_CANCEL
+                        }
                 (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(notificationItem.id.toInt(), notification)
             }
         } else {

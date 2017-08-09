@@ -56,15 +56,19 @@ class MainActivity : BaseActivity() {
 
     companion object {
         const val STATE_KEY_THEME_MODE = "stateKeyThemeMode"
+        const val ARGS_KEY_CATEGORY = "argsKeyCategory"
         const val NAV_ITEM_LOGIN: Long = 0
         const val NAV_ITEM_TL_PUBLIC: Long = 1
         const val NAV_ITEM_TL_LOCAL: Long = 2
         const val NAV_ITEM_TL_USER: Long = 3
         const val NAV_ITEM_TL_NOTIFICATION: Long = 4
         const val NAV_ITEM_SETTINGS: Long = 5
+        const val REQUEST_CODE_NOTIFICATION = 0
 
-        fun getIntent(context: Context): Intent {
+        fun getIntent(context: Context, category: TimelineFragment.Category? = null): Intent {
             val intent = Intent(context, MainActivity::class.java)
+            category?.let { intent.putExtra(ARGS_KEY_CATEGORY, it) }
+
             return intent
         }
     }
@@ -271,7 +275,8 @@ class MainActivity : BaseActivity() {
         }
 
         currentCategory =
-                if (sharedPref.contains(STATE_KEY_CATEGORY)) TimelineFragment.Category.values()[sharedPref.getInt(STATE_KEY_CATEGORY, TimelineFragment.Category.Public.ordinal)]
+                if (intent.extras?.containsKey(ARGS_KEY_CATEGORY) ?: false) intent.extras[ARGS_KEY_CATEGORY] as TimelineFragment.Category
+                else if (sharedPref.contains(STATE_KEY_CATEGORY)) TimelineFragment.Category.values()[sharedPref.getInt(STATE_KEY_CATEGORY, TimelineFragment.Category.Public.ordinal)]
                 else TimelineFragment.Category.Public
 
         binding.appBarMain.contentMain.apply {
