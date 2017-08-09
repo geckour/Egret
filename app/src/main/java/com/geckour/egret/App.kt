@@ -1,6 +1,7 @@
 package com.geckour.egret
 
 import android.app.Application
+import android.content.Intent
 import android.text.Spanned
 import com.facebook.stetho.Stetho
 import com.geckour.egret.util.OkHttpProvider
@@ -16,7 +17,6 @@ import timber.log.Timber
 class App: Application() {
 
     companion object {
-        val DEFAULT_SHARED_PREFERENCES = "defaultSharedPreferences"
         val STATE_KEY_CATEGORY = "timelineCategory"
         val gson: Gson = GsonBuilder().apply {
             registerTypeAdapter(Spanned::class.java, SpannedTypeAdapter())
@@ -33,5 +33,8 @@ class App: Application() {
 
         OkHttpProvider.init()
         OrmaProvider.init(this)
+
+        val intent = Intent(this, NotificationService::class.java)
+        startService(intent)
     }
 }
