@@ -27,8 +27,6 @@ import com.geckour.egret.util.Common
 import com.geckour.egret.util.Common.Companion.getMaxIdFromLinkString
 import com.geckour.egret.util.Common.Companion.getSinceIdFromLinkString
 import com.geckour.egret.util.Common.Companion.getStoreContentsKey
-import com.geckour.egret.util.Common.Companion.getStoreMaxIdKey
-import com.geckour.egret.util.Common.Companion.getStoreSinceIdKey
 import com.geckour.egret.util.Common.Companion.hideSoftKeyBoard
 import com.geckour.egret.util.Common.Companion.setSimplicityPostBarVisibility
 import com.geckour.egret.util.OrmaProvider
@@ -57,8 +55,6 @@ class TimelineFragment: BaseFragment() {
         val ARGS_KEY_CATEGORY = "category"
         val ARGS_KEY_HASH_TAG = "hashTag"
         val STATE_ARGS_KEY_CONTENTS = "contents"
-        val STATE_ARGS_KEY_SINCE_ID = "sinceId"
-        val STATE_ARGS_KEY_MAX_ID = "maxId"
         val STATE_ARGS_KEY_RESUME = "resume"
         val REQUEST_CODE_GRANT_ACCESS_WIFI = 100
 
@@ -134,9 +130,9 @@ class TimelineFragment: BaseFragment() {
                         when (getCategory()) {
                             Category.Public ->showPublicTimeline(true)
                             Category.Local -> showLocalTimeline(true)
-                            Category.User -> showUserTimeline(loadNext = true)
-                            Category.Notification -> showNotificationTimeline(loadNext = true)
-                            Category.HashTag -> getHashTag()?.let { showHashTagTimeline(it, loadNext = true) }
+                            Category.User -> showUserTimeline(loadPrev = true)
+                            Category.Notification -> showNotificationTimeline(loadPrev = true)
+                            Category.HashTag -> getHashTag()?.let { showHashTagTimeline(it, loadPrev = true) }
                         }
                     }
                 }
@@ -168,8 +164,6 @@ class TimelineFragment: BaseFragment() {
                     if (getCategory() != Category.HashTag) {
                         val json = gson.toJson(adapter.getContents())
                         putString(getStoreContentsKey(getCategory()), json)
-                        putLong(getStoreSinceIdKey(getCategory()), sinceId)
-                        putLong(getStoreMaxIdKey(getCategory()), maxId)
                     }else {
                         getHashTag()?.let { putString(ARGS_KEY_HASH_TAG, it) }
                     }
@@ -221,20 +215,19 @@ class TimelineFragment: BaseFragment() {
             val contents: List<TimelineContent> = gson.fromJson(sharedPref.getString(storeContentsKey, ""), type.type)
             adapter.addAllContents(contents)
         }
-        val storeSinceIdKey = getStoreSinceIdKey(getCategory())
-        if (sharedPref.contains(storeSinceIdKey)) {
-            this.sinceId = sharedPref.getLong(storeSinceIdKey, -1L)
+
+        if (getCategory() == Category.Notification) {
+            adapter.getFirstContent()?.notification?.id?.let { sinceId = it }
+            adapter.getLastContent()?.notification?.id?.let { maxId = it }
+        } else {
+            adapter.getFirstContent()?.status?.id?.let { sinceId = it }
+            adapter.getLastContent()?.status?.id?.let { maxId = it }
         }
-        val storeMaxIdKey = getStoreMaxIdKey(getCategory())
-        if (sharedPref.contains(storeMaxIdKey)) {
-            this.sinceId = sharedPref.getLong(storeMaxIdKey, -1L)
-        }
+
         showTimelineByCategory(getCategory())
 
         sharedPref.edit()
                 .remove(storeContentsKey)
-                .remove(storeSinceIdKey)
-                .remove(storeMaxIdKey)
                 .apply()
     }
 
@@ -373,15 +366,15 @@ class TimelineFragment: BaseFragment() {
         if (!(publicStream?.isDisposed ?: true)) publicStream?.dispose()
     }
 
-    fun showPublicTimeline(loadStream: Boolean = false, loadNext: Boolean = false) {
-        if (loadNext && maxId == -1L) return
+    fun showPublicTimeline(loadStream: Boolean = false, loadPrev: Boolean = false) {
+        if (loadPrev && maxId == -1L) return
 
-        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(maxId = if (loadNext) maxId else null, sinceId = if (!loadNext && sinceId != -1L) sinceId else null)
+        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(maxId = if (loadPrev) maxId else null, sinceId = if (!loadPrev && sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
-                    reflectContents(it, loadNext)
+                    reflectContents(it, loadPrev)
                     if (loadStream) startPublicTimelineStream()
                 }, { throwable ->
                     throwable.printStackTrace()
@@ -415,15 +408,15 @@ class TimelineFragment: BaseFragment() {
         if (!(userStream?.isDisposed ?: true)) userStream?.dispose()
     }
 
-    fun showUserTimeline(loadStream: Boolean = false, loadNext: Boolean = false) {
-        if (loadNext && maxId == -1L) return
+    fun showUserTimeline(loadStream: Boolean = false, loadPrev: Boolean = false) {
+        if (loadPrev && maxId == -1L) return
 
-        MastodonClient(Common.resetAuthInfo() ?: return).getUserTimeline(maxId = if (loadNext) maxId else null, sinceId = if (!loadNext && sinceId != -1L) sinceId else null)
+        MastodonClient(Common.resetAuthInfo() ?: return).getUserTimeline(maxId = if (loadPrev) maxId else null, sinceId = if (!loadPrev && sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
-                    reflectContents(it, loadNext)
+                    reflectContents(it, loadPrev)
                     if (loadStream) startUserTimelineStream()
                 }, { throwable ->
                     throwable.printStackTrace()
@@ -457,15 +450,15 @@ class TimelineFragment: BaseFragment() {
         if (!(localStream?.isDisposed ?: true)) localStream?.dispose()
     }
 
-    fun showLocalTimeline(loadStream: Boolean = false, loadNext: Boolean = false) {
-        if (loadNext && maxId == -1L) return
+    fun showLocalTimeline(loadStream: Boolean = false, loadPrev: Boolean = false) {
+        if (loadPrev && maxId == -1L) return
 
-        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(true, maxId = if (loadNext) maxId else null, sinceId = if (!loadNext && sinceId != -1L) sinceId else null)
+        MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(true, maxId = if (loadPrev) maxId else null, sinceId = if (!loadPrev && sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
-                    reflectContents(it, loadNext)
+                    reflectContents(it, loadPrev)
                     if (loadStream) startLocalTimelineStream()
                 }, { throwable ->
                     throwable.printStackTrace()
@@ -499,15 +492,15 @@ class TimelineFragment: BaseFragment() {
         if (getCategory() == Category.User && !(userStream?.isDisposed ?: true)) userStream?.dispose()
     }
 
-    fun showNotificationTimeline(loadStream: Boolean = false, loadNext: Boolean = false) {
-        if (loadNext && maxId == -1L) return
+    fun showNotificationTimeline(loadStream: Boolean = false, loadPrev: Boolean = false) {
+        if (loadPrev && maxId == -1L) return
 
-        MastodonClient(Common.resetAuthInfo() ?: return).getNotificationTimeline(maxId = if (loadNext) maxId else null, sinceId = if (!loadNext && sinceId != -1L) sinceId else null)
+        MastodonClient(Common.resetAuthInfo() ?: return).getNotificationTimeline(maxId = if (loadPrev) maxId else null, sinceId = if (!loadPrev && sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
-                    reflectContents(it, loadNext)
+                    reflectContents(it, loadPrev)
                     if (loadStream) startNotificationTimelineStream()
                 }, { throwable ->
                     throwable.printStackTrace()
@@ -542,15 +535,15 @@ class TimelineFragment: BaseFragment() {
         if (getCategory() == Category.HashTag && !(hashTagStream?.isDisposed ?: true)) hashTagStream?.dispose()
     }
 
-    fun showHashTagTimeline(hashTag: String, loadStream: Boolean = false, loadNext: Boolean = false) {
-        if (loadNext && maxId == -1L) return
+    fun showHashTagTimeline(hashTag: String, loadStream: Boolean = false, loadPrev: Boolean = false) {
+        if (loadPrev && maxId == -1L) return
 
-        MastodonClient(Common.resetAuthInfo() ?: return).getHashTagTimeline(hashTag, maxId = if (loadNext) maxId else null, sinceId = if (!loadNext && sinceId != -1L) sinceId else null)
+        MastodonClient(Common.resetAuthInfo() ?: return).getHashTagTimeline(hashTag, maxId = if (loadPrev) maxId else null, sinceId = if (!loadPrev && sinceId != -1L) sinceId else null)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
-                    reflectContents(it, loadNext)
+                    reflectContents(it, loadPrev)
                     if (loadStream) startHashTagTimelineStream()
                 }, { throwable ->
                     throwable.printStackTrace()
