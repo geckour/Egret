@@ -214,13 +214,11 @@ class ShowImagesDialogFragment: RxAppCompatDialogFragment() {
 
         fun onDrag(view: View, event: MotionEvent): Boolean {
             when (event.action) {
-                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
-                    lastPoint.set(event.x, event.y)
-                    return true
-                }
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> return true
 
                 MotionEvent.ACTION_MOVE -> {
                     this@ShowImagesDialogFragment.binding.viewPager.requestDisallowInterceptTouchEvent(true)
+                    if (lastPoint.x < 0 || lastPoint.y < 0) lastPoint.set(event.x, event.y)
                     if (view.scaleX > 1f || view.scaleY > 1f) {
                         view.translationX = view.translationX + (event.x - lastPoint.x)
                         view.translationY = view.translationY + (event.y - lastPoint.y)
@@ -233,8 +231,8 @@ class ShowImagesDialogFragment: RxAppCompatDialogFragment() {
                         return true.apply { lastPoint.set(event.x, event.y) }
                     }
 
-                    this@ShowImagesDialogFragment.binding.viewPager.requestDisallowInterceptTouchEvent(false)
                     lastPoint.set(event.x, event.y)
+                    this@ShowImagesDialogFragment.binding.viewPager.requestDisallowInterceptTouchEvent(false)
                 }
 
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP, MotionEvent.ACTION_CANCEL -> {
@@ -243,10 +241,14 @@ class ShowImagesDialogFragment: RxAppCompatDialogFragment() {
                         if (dismiss && Math.abs(view.translationY) > Common.dp(activity, 90f)) {
                             dismiss = false
                             (activity as MainActivity).supportFragmentManager.popBackStack()
-                            return true
+                        } else {
+                            view.translationX = 0f
+                            view.translationY = 0f
                         }
+                        return true
                     }
 
+                    resetPoint(lastPoint)
                     dismiss = false
                 }
             }
@@ -264,6 +266,7 @@ class ShowImagesDialogFragment: RxAppCompatDialogFragment() {
                         view.scaleY = 1f
                     }
                     resetPoints(lastPoints)
+                    resetPoint(lastPoint)
                 }
 
                 else -> {
@@ -274,7 +277,7 @@ class ShowImagesDialogFragment: RxAppCompatDialogFragment() {
                     if (lastPoints.second.x < 0f) lastPoints.second.set(currentPoints.second)
 
                     val scale = getScale(lastPoints, currentPoints)
-                    val distance = getDistance(lastPoints, currentPoints)
+                    val distance = getDistance(lastPoints, currentPoints) // FIXME: あやしい
                     view.scaleX = view.scaleX.times(scale)
                     view.scaleY = view.scaleY.times(scale)
                     view.translationX.apply { plus(distance.x) }
@@ -301,6 +304,10 @@ class ShowImagesDialogFragment: RxAppCompatDialogFragment() {
         fun getDiffPointOfPoints(points: Pair<PointF, PointF>): PointF = PointF(points.second.x - points.first.x, points.second.y - points.first.y)
 
         fun getMidPointOfPoints(points: Pair<PointF, PointF>): PointF = PointF((points.first.x + points.second.x) / 2, (points.first.y + points.second.y) / 2)
+
+        fun resetPoint(point: PointF) {
+            point.set(-1F, -1F)
+        }
 
         fun resetPoints(pair: Pair<PointF, PointF>) {
             pair.first.set(-1F, -1F)
