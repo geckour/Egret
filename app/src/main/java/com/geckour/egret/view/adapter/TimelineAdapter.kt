@@ -460,6 +460,10 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
 
     fun getContent(index: Int): TimelineContent = this.contents[index]
 
+    fun getFirstContent(): TimelineContent? = this.contents.firstOrNull()
+
+    fun getLastContent(): TimelineContent? = this.contents.lastOrNull()
+
     fun getContents(): List<TimelineContent> = this.contents
 
     fun addContent(content: TimelineContent, limit: Int = DEFAULT_ITEMS_LIMIT) {
