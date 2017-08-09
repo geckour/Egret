@@ -5,12 +5,12 @@ import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.v4.content.ContextCompat
-import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import com.bumptech.glide.Glide
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Account
@@ -20,7 +20,6 @@ import com.geckour.egret.databinding.FragmentAccountProfileBinding
 import com.geckour.egret.util.Common
 import com.geckour.egret.view.activity.MainActivity
 import com.geckour.egret.view.adapter.TimelineAdapter
-import com.squareup.picasso.Picasso
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -75,7 +74,7 @@ class AccountProfileFragment: BaseFragment() {
 
         binding.content = content
         binding.timeString = Common.getReadableDateString(content.createdAt, true)
-        Picasso.with(binding.header.context).load(content.headerUrl).into(binding.header)
+        Glide.with(binding.header.context).load(content.headerUrl).into(binding.header)
 
         return binding.root
     }

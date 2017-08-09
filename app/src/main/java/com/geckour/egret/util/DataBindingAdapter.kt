@@ -5,7 +5,9 @@ import android.util.Patterns
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
-import com.squareup.picasso.Picasso
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
+import jp.wasabeef.glide.transformations.RoundedCornersTransformation
 import java.util.*
 
 class DataBindingAdapter {
@@ -14,7 +16,7 @@ class DataBindingAdapter {
         @BindingAdapter("bind:imageUrl")
         fun loadImage(view: ImageView, url: String?) {
             if (url != null && Patterns.WEB_URL.matcher(url).matches()) {
-                Picasso.with(view.context).load(url).transform(RoundedCornerTransformation(8f, 0f)).into(view)
+                Glide.with(view.context).load(url).apply(RequestOptions.bitmapTransform(RoundedCornersTransformation(view.context, 8, 0))).into(view)
             }
         }
 
