@@ -15,6 +15,13 @@
 
         <PreferenceScreen android:key="manage_restrictions"
             android:title="@string/pref_manage_restrictions" />
+
+        <SwitchPreference android:key="manage_notify_real_time"
+            android:title="@string/pref_manage_notify_real_time"
+            android:switchTextOn="@string/pref_manage_notify_real_time_text_on"
+            android:switchTextOff="@string/pref_manage_notify_real_time_text_off"
+            android:summaryOn="@string/pref_manage_notify_real_time_summary_on"
+            android:summaryOff="@string/pref_manage_notify_real_time_summary_off" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/pref_category_others">

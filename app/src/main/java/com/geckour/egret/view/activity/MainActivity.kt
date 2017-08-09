@@ -51,7 +51,7 @@ class MainActivity : BaseActivity() {
     lateinit var binding: ActivityMainBinding
     lateinit var drawer: Drawer
     lateinit private var accountHeader: AccountHeader
-    lateinit private var sharedPref: SharedPreferences
+    private val sharedPref: SharedPreferences by lazy { PreferenceManager.getDefaultSharedPreferences(this) }
     lateinit private var currentCategory: TimelineFragment.Category
 
     companion object {
@@ -249,7 +249,6 @@ class MainActivity : BaseActivity() {
 
         setTheme(if (isModeDark()) R.style.AppTheme_Dark_NoActionBar else R.style.AppTheme_NoActionBar)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
-        sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
         setSupportActionBar(binding.appBarMain.toolbar)
 
         // NavDrawer内のアカウント情報表示部

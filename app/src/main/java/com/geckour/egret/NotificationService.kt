@@ -5,8 +5,10 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.drawable.BitmapDrawable
 import android.os.IBinder
+import android.preference.PreferenceManager
 import android.support.v4.app.NotificationCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.gif.GifDrawable
@@ -24,13 +26,22 @@ class NotificationService: Service() {
     private var notificationStream: Disposable? = null
     private var waitingNotification: Boolean = false
     private val notifications: ArrayList<Notification> = ArrayList()
+    private val sharedPref: SharedPreferences by lazy { PreferenceManager.getDefaultSharedPreferences(applicationContext) }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
 
-        startNotificationStream()
+        if (sharedPref.getBoolean("manage_notify_real_time", false)) startNotificationStream()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        notificationStream?.let {
+            if (!it.isDisposed) it.dispose()
+        }
     }
 
     private fun startNotificationStream() {

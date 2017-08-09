@@ -1,9 +1,11 @@
 package com.geckour.egret.view.fragment
 
 import android.os.Bundle
+import android.support.v14.preference.SwitchPreference
 import android.support.v4.app.Fragment
 import android.support.v7.preference.PreferenceFragmentCompat
 import android.support.v7.preference.PreferenceScreen
+import com.geckour.egret.App
 import com.geckour.egret.R
 import com.geckour.egret.view.activity.SettingActivity
 
@@ -32,6 +34,18 @@ class SettingMainFragment: PreferenceFragmentCompat(), PreferenceFragmentCompat.
     override fun onPreferenceStartScreen(caller: PreferenceFragmentCompat?, pref: PreferenceScreen?): Boolean {
         caller?.preferenceScreen = pref
         return true
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        (preferenceScreen.findPreference("manage_notify_real_time") as SwitchPreference).apply {
+            if (isChecked) {
+                activity.startService((activity.application as App).intent)
+            } else {
+                activity.stopService((activity.application as App).intent)
+            }
+        }
     }
 
     fun showAccountManageFragment(): Boolean {
