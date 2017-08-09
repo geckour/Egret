@@ -119,6 +119,7 @@
     <string name="pref_switch_to_dark_theme">Change theme color darken</string>
     <string name="pref_switch_to_use_default_browser">Change scheme to open links</string>
     <string name="pref_switch_to_show_extreme_toot_bar">Show bar to post new toot on footer of TL</string>
+    <string name="pref_manage_notify_real_time">Whether notify real time</string>
 
     <string name="pref_stream_always">Always</string>
     <string name="pref_stream_wifi">When connect with Wi-Fi</string>
@@ -136,4 +137,8 @@
     <string name="pref_switch_to_show_extreme_toot_bar_text_off">Don\'t show new toot bar.</string>
     <string name="pref_switch_to_show_extreme_toot_bar_summary_on">Show new toot bar</string>
     <string name="pref_switch_to_show_extreme_toot_bar_summary_off">Don\'t show new toot bar</string>
+    <string name="pref_manage_notify_real_time_text_on">Change to notify real time</string>
+    <string name="pref_manage_notify_real_time_text_off">Change to do not notify real time</string>
+    <string name="pref_manage_notify_real_time_summary_on">Notify real time</string>
+    <string name="pref_manage_notify_real_time_summary_off">Do not notify real time</string>
 </resources>

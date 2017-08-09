@@ -23,6 +23,8 @@ class App: Application() {
         }.create()
     }
 
+    val intent: Intent by lazy { Intent(this, NotificationService::class.java) }
+
     override fun onCreate() {
         super.onCreate()
 
@@ -34,7 +36,6 @@ class App: Application() {
         OkHttpProvider.init()
         OrmaProvider.init(this)
 
-        val intent = Intent(this, NotificationService::class.java)
         startService(intent)
     }
 }
