@@ -8,3 +8,4 @@
 .externalNativeBuild
 gradle.properties
 keystore.jks
+app/app-release.apk
