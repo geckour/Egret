@@ -13,12 +13,13 @@ object OkHttpProvider {
     val authInterceptor = AuthInterceptor()
 
     fun init() {
-        val builder : OkHttpClient.Builder = OkHttpClient.Builder()
+        val builder = OkHttpClient.Builder().apply {
+            if (BuildConfig.DEBUG) {
+                addNetworkInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.HEADERS))
+                addNetworkInterceptor(StethoInterceptor())
+            }
 
-        if (BuildConfig.DEBUG) {
-            builder.addNetworkInterceptor(StethoInterceptor())
-            builder.addNetworkInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.HEADERS))
-            builder.addNetworkInterceptor(authInterceptor)
+            addNetworkInterceptor(authInterceptor)
         }
 
         client = builder.build()

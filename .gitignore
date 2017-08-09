@@ -7,5 +7,6 @@
 /captures
 .externalNativeBuild
 gradle.properties
-keystore.jks
+app/signing/release.gradle
+app/signing/keystore.jks
 app/app-release.apk
