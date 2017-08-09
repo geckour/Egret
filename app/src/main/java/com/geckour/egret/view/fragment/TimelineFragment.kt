@@ -588,7 +588,6 @@ class TimelineFragment: BaseFragment() {
             if (waitingContent) {
                 val status = gson.fromJson(data, Status::class.java)
                 val content = Common.getTimelineContent(status = status)
-                Log.d("parse", "body: ${status.content}")
 
                 adapter.addContent(content)
                 onAddItemToAdapter()
