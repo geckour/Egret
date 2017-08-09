@@ -120,7 +120,6 @@ class AuthAppFragment: RxFragment() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe( { value ->
-                    (activity as LoginActivity).showProgress(false)
                     storeAccessToken(appInfo.id, value)
                 }, { throwable ->
                     (activity as LoginActivity).showProgress(false)
@@ -144,9 +143,10 @@ class AuthAppFragment: RxFragment() {
                                     .subscribeOn(Schedulers.newThread())
                                     .observeOn(AndroidSchedulers.mainThread())
                                     .compose(bindToLifecycle())
-                                    .subscribe(
-                                            { (activity as LoginActivity).showMainActivity() },
-                                            Throwable::printStackTrace)
+                                    .subscribe({
+                                        (activity as LoginActivity).showProgress(false)
+                                        (activity as LoginActivity).showMainActivity()
+                                    }, Throwable::printStackTrace)
                         }
                     })
                 }, Throwable::printStackTrace)
