@@ -20,6 +20,8 @@ Android app for client of Mastodon.
 - Show images in the toot as inline / pop up viewer
 - NSFW / CW compatible
 - Search accounts / hashtags
+- Save images
+- Live notify
 - and more in future...
 
 ## Contributor
