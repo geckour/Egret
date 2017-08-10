@@ -66,7 +66,12 @@ class Common {
 
         fun getCurrentAccessToken(): AccessToken? {
             val accessTokens = OrmaProvider.db.selectFromAccessToken().isCurrentEq(true)
-            return if (accessTokens == null || accessTokens.isEmpty) null else accessTokens.last()
+            return accessTokens?.lastOrNull()
+        }
+
+        fun getInstanceName(): String? {
+            val accessToken = getCurrentAccessToken() ?: return null
+            return OrmaProvider.db.selectFromInstanceAuthInfo().idEq(accessToken.instanceId).last()?.instance
         }
 
         fun resetAuthInfo(): String? {
@@ -296,7 +301,7 @@ class Common {
             }
         })
 
-        fun getStoreContentsKey(category: TimelineFragment.Category) = "${TimelineFragment.STATE_ARGS_KEY_CONTENTS}:${category.name}"
+        fun getStoreContentsKey(category: TimelineFragment.Category) = "${getInstanceName()}:${getCurrentAccessToken()?.accountId}:${TimelineFragment.STATE_ARGS_KEY_CONTENTS}:${category.name}"
 
         fun showSoftKeyBoardOnFocusEditText(et: EditText, hideOnUnFocus: Boolean = true) {
             et.setOnFocusChangeListener { view, hasFocus ->

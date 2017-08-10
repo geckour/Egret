@@ -163,12 +163,16 @@ class TimelineFragment: BaseFragment() {
                 .apply {
                     if (getCategory() != Category.HashTag) {
                         val json = gson.toJson(adapter.getContents())
-                        putString(getStoreContentsKey(getCategory()), json)
-                    }else {
+                        val storedContentsKey = getStoreContentsKey(getCategory()).apply { Log.d("onPause", "storeContentsKey: $this") }
+                        putString(storedContentsKey, json)
+                    } else {
                         getHashTag()?.let { putString(ARGS_KEY_HASH_TAG, it) }
                     }
                 }
                 .apply()
+
+        sinceId = -1L
+        maxId = -1L
     }
 
     override fun onResume() {
@@ -208,11 +212,13 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun restoreTimeline() {
-        val storeContentsKey = getStoreContentsKey(getCategory())
+        adapter.clearContents()
+
+        val storeContentsKey = getStoreContentsKey(getCategory()).apply { Log.d("restoreTimeline", "storeContentsKey: $this") }
         if (sharedPref.contains(storeContentsKey)) {
-            adapter.clearContents()
             val type = object: TypeToken<List<TimelineContent>>() {}
             val contents: List<TimelineContent> = gson.fromJson(sharedPref.getString(storeContentsKey, ""), type.type)
+            Log.d("restoreTimeline", "contents.size: ${contents.size}")
             adapter.addAllContents(contents)
         }
 
