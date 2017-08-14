@@ -545,7 +545,7 @@ class MainActivity : BaseActivity() {
     }
 
     fun showTimelineFragment(category: TimelineFragment.Category = currentCategory, force: Boolean = false, hashTag: String? = null) {
-        val currentFragment = supportFragmentManager.findFragmentByTag(currentCategory.name)
+        val currentFragment = supportFragmentManager.fragments?.lastOrNull { it?.isVisible ?: false }
         val reqFragment = supportFragmentManager.findFragmentByTag(category.name)
 
         if (!force
