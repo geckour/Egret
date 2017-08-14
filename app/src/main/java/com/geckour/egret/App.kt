@@ -2,6 +2,7 @@ package com.geckour.egret
 
 import android.app.Application
 import android.content.Intent
+import android.content.IntentFilter
 import android.text.Spanned
 import com.facebook.stetho.Stetho
 import com.geckour.egret.util.OkHttpProvider
@@ -23,7 +24,7 @@ class App: Application() {
         }.create()
     }
 
-    val intent: Intent by lazy { Intent(this, NotificationService::class.java) }
+    val intent: Intent by lazy { NotificationService.getIntent(this) }
 
     override fun onCreate() {
         super.onCreate()
@@ -37,5 +38,6 @@ class App: Application() {
         OrmaProvider.init(this)
 
         startService(intent)
+        registerReceiver(DeleteNotificationReceiver(), IntentFilter(DeleteNotificationReceiver.ACTION_DELETE_NOTIFICATION))
     }
 }

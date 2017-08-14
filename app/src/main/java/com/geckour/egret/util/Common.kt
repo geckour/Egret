@@ -1,5 +1,6 @@
 package com.geckour.egret.util
 
+import android.app.Activity
 import android.content.Context
 import android.net.Uri
 import android.os.Build
@@ -20,6 +21,8 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.TextView
+import com.geckour.egret.App
+import com.geckour.egret.NotificationService
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Account
@@ -349,5 +352,13 @@ class Common {
         } ?: -1L
 
         fun dp(context: Context, pixel: Float): Float = pixel * context.resources.displayMetrics.density
+
+        fun resetNotificationService(activity: Activity) {
+            val intent = (activity.application as App).intent
+            activity.apply {
+                stopService(intent)
+                startService(intent)
+            }
+        }
     }
 }
