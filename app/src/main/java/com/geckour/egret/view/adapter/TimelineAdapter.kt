@@ -16,6 +16,8 @@ import com.geckour.egret.databinding.ItemRecycleStatusBinding
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.adapter.model.TimelineContent
+import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.util.*
@@ -467,42 +469,59 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
     fun getContents(): List<TimelineContent> = this.contents
 
     fun addContent(content: TimelineContent, limit: Int = DEFAULT_ITEMS_LIMIT) {
-        content.takeIf { !shouldMute(it) }?.let {
-            this.contents.add(0, it)
-            notifyItemInserted(0)
-            removeItemsWhenOverLimit(limit)
-        }
+        Single.just(content)
+                .map { Pair(it, shouldMute(it)) }
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ (c, b) ->
+                    if (!b) {
+                        this.contents.add(0, c)
+                        notifyItemInserted(0)
+                        removeItemsWhenOverLimit(limit)
+                    }
+                })
     }
 
     fun addContentAtLast(content: TimelineContent, limit: Int = DEFAULT_ITEMS_LIMIT) {
-        content.takeIf { !shouldMute(it) }?.let {
-            this.contents.add(it)
-            notifyItemInserted(this.contents.lastIndex)
-            removeItemsWhenOverLimit(limit)
-        }
+        Single.just(content)
+                .map { Pair(it, shouldMute(it)) }
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ (c, b) ->
+                    if (!b) {
+                        this.contents.add(c)
+                        notifyItemInserted(this.contents.lastIndex)
+                        removeItemsWhenOverLimit(limit)
+                    }
+                })
     }
 
     fun addAllContents(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
-        contents.filter { !shouldMute(it) }
-                .let {
-                    if (it.isEmpty()) return
-
-                    this.contents.addAll(0, it)
-                    notifyItemRangeInserted(0, it.size)
-                    removeItemsWhenOverLimit(limit)
-                }
+        Observable.fromIterable(contents)
+                .map { Pair(it, shouldMute(it)) }
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ (c, b) ->
+                    if (!b) {
+                        this.contents.add(0, c)
+                        notifyItemInserted(0)
+                        removeItemsWhenOverLimit(limit)
+                    }
+                })
     }
 
     fun addAllContentsAtLast(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
-        contents.filter { !shouldMute(it) }
-                .let {
-                    if (it.isEmpty()) return
-
-                    val size = this.contents.size
-                    this.contents.addAll(contents)
-                    notifyItemRangeInserted(size, contents.size)
-                    removeItemsWhenOverLimit(limit)
-                }
+        Observable.fromIterable(contents)
+                .map { Pair(it, shouldMute(it)) }
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ (c, b) ->
+                    if (!b) {
+                        this.contents.add(c)
+                        notifyItemInserted(this.contents.lastIndex)
+                        removeItemsWhenOverLimit(limit)
+                    }
+                })
     }
 
     fun clearContents() {

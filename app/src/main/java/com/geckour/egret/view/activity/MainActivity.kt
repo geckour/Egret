@@ -32,7 +32,6 @@ import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.adapter.TimelineAdapter
 import com.geckour.egret.view.adapter.model.TimelineContent
 import com.geckour.egret.view.fragment.*
-import com.geckour.egret.view.fragment.TimelineFragment.Companion.STATE_ARGS_KEY_RESUME
 import com.mikepenz.materialdrawer.AccountHeader
 import com.mikepenz.materialdrawer.AccountHeaderBuilder
 import com.mikepenz.materialdrawer.Drawer
@@ -40,9 +39,11 @@ import com.mikepenz.materialdrawer.DrawerBuilder
 import com.mikepenz.materialdrawer.model.DividerDrawerItem
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem
+import com.mikepenz.materialdrawer.model.interfaces.IProfile
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 
@@ -110,7 +111,7 @@ class MainActivity : BaseActivity() {
                                     }
                             )
                     )
-                    2 -> Pair(R.string.array_item_mute_hash_tag, if (content.tags.isEmpty()) "" else s.format(content.tags.map { s -> "#$s" }.joinToString()))
+                    2 -> Pair(R.string.array_item_mute_hash_tag, if (content.tags.isEmpty()) "" else s.format(content.tags.map { tag -> "#$tag" }.joinToString()))
                     3 -> {
                         var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
 
@@ -379,8 +380,10 @@ class MainActivity : BaseActivity() {
                     .compose(bindToLifecycle())
                     .subscribe({ result ->
                         Log.d("showSearchResult", "result.hashTags: ${result.hashTags}")
+
+                        val fragment = SearchResultFragment.newInstance(query = query, result = result)
                         supportFragmentManager.beginTransaction()
-                                .replace(R.id.container, SearchResultFragment.newInstance(query = query, result = result), SearchResultFragment.TAG)
+                                .replace(R.id.container, fragment, SearchResultFragment.TAG)
                                 .addToBackStack(SearchResultFragment.TAG)
                                 .commit()
                     }, Throwable::printStackTrace)
@@ -460,37 +463,31 @@ class MainActivity : BaseActivity() {
                             }
                             return@withOnAccountHeaderListener false
                         } else if (!current) {
-                            OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).executeAsSingle()
-                                    .flatMap { OrmaProvider.db.updateAccessToken().accountIdEq(profile.identifier).isCurrent(true).executeAsSingle() }
-                                    .subscribeOn(Schedulers.newThread())
-                                    .observeOn(AndroidSchedulers.mainThread())
-                                    .compose(bindToLifecycle())
-                                    .subscribe({ i ->
-                                        Timber.d("updated row count: $i")
+                            supportFragmentManager.fragments.lastOrNull { it.isVisible }?.let {
+                                (it as? TimelineFragment)?.let {
+                                    supportFragmentManager.beginTransaction().detach(it).commit()
+                                    supportFragmentManager.executePendingTransactions()
+                                }
+                                resetAccount(profile.identifier)
+                            }
 
-                                        supportFragmentManager.beginTransaction()
-                                                .apply {
-                                                    val editor = sharedPref.edit()
-                                                    editor.putBoolean(STATE_ARGS_KEY_RESUME, false)
-                                                    listOf(TimelineFragment.Category.Public, TimelineFragment.Category.Local, TimelineFragment.Category.User)
-                                                            .forEach {
-                                                                supportFragmentManager.findFragmentByTag(it.name)?.let { fragment ->
-                                                                    detach(fragment)
-                                                                    remove(fragment)
-                                                                }
-                                                            }
-                                                    editor.apply()
-                                                }
-                                                .commit()
-
-                                        showTimelineFragment(force = true)
-                                    }, Throwable::printStackTrace)
                             return@withOnAccountHeaderListener false
                         }
 
                         return@withOnAccountHeaderListener true
                     }
                     .build()
+
+    fun resetAccount(identifier: Long): Disposable = OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).executeAsSingle()
+            .flatMap { OrmaProvider.db.updateAccessToken().accountIdEq(identifier).isCurrent(true).executeAsSingle() }
+            .subscribeOn(Schedulers.newThread())
+            .observeOn(AndroidSchedulers.mainThread())
+            .compose(bindToLifecycle())
+            .subscribe({ i ->
+                Timber.d("updated row count: $i")
+
+                showTimelineFragment(force = true)
+            }, Throwable::printStackTrace)
 
     fun setNavDrawer() {
         drawer = DrawerBuilder().withActivity(this)
@@ -507,7 +504,7 @@ class MainActivity : BaseActivity() {
                         DividerDrawerItem(),
                         PrimaryDrawerItem().withName(R.string.navigation_drawer_item_settings).withIdentifier(NAV_ITEM_SETTINGS).withIcon(R.drawable.ic_settings_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark)
                 )
-                .withOnDrawerItemClickListener { v, position, item ->
+                .withOnDrawerItemClickListener { _, _, item ->
                     return@withOnDrawerItemClickListener when (item.identifier) {
                         NAV_ITEM_LOGIN -> {
                             startActivity(LoginActivity.getIntent(this))
@@ -535,7 +532,6 @@ class MainActivity : BaseActivity() {
                         }
 
                         NAV_ITEM_SETTINGS -> {
-
                             val intent = SettingActivity.getIntent(this)
                             startActivity(intent)
                             false
@@ -549,8 +545,8 @@ class MainActivity : BaseActivity() {
     }
 
     fun showTimelineFragment(category: TimelineFragment.Category = currentCategory, force: Boolean = false, hashTag: String? = null) {
+        val currentFragment = supportFragmentManager.fragments?.lastOrNull { it?.isVisible ?: false }
         val reqFragment = supportFragmentManager.findFragmentByTag(category.name)
-        val currentFragment = supportFragmentManager.findFragmentByTag(currentCategory.name)
 
         if (!force
                 && currentFragment != null
@@ -559,14 +555,14 @@ class MainActivity : BaseActivity() {
 
         supportFragmentManager.beginTransaction()
                 .apply {
-                    if (currentFragment != null && currentFragment.tag != category.name) detach(currentFragment)
-                    if (reqFragment == null) {
+                    currentFragment?.let { detach(it) }
+                    reqFragment?.let {
+                        attach(it)
+                    } ?: let {
                         val fragment = TimelineFragment.newInstance(category, hashTag)
                         replace(R.id.container, fragment, category.name)
-                    } else {
-                        attach(reqFragment)
                     }
-                    if (supportFragmentManager.backStackEntryCount > 0 && currentFragment != null) addToBackStack(category.name)
+                    if (supportFragmentManager.fragments?.size ?: 0 > 1) addToBackStack(category.name)
                 }
                 .commit()
 
