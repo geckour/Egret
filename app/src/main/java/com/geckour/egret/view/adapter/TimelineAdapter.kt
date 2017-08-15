@@ -21,8 +21,9 @@ import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.util.*
+import kotlin.collections.ArrayList
 
-class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : RecyclerView.Adapter<TimelineAdapter.ViewHolder>() {
+class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootCallback? = null, val doFilter: Boolean = true) : RecyclerView.Adapter<TimelineAdapter.ViewHolder>() {
 
     companion object {
         val DEFAULT_ITEMS_LIMIT = 100
@@ -57,6 +58,10 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
         val showTootDetail: (statusId: Long) -> Any
 
         val showHashTagTimeline: (hashTag: String) -> Any
+    }
+
+    interface OnAddTootCallback {
+        fun onAddOnTop()
     }
 
     inner class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
@@ -435,7 +440,7 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
     }
 
     override fun getItemViewType(position: Int): Int {
-        return contents[position].let { if (it.status != null) ContentType.Status.ordinal else if (it.notification != null) ContentType.Notification.ordinal else -1 }
+        return getContent(position).let { if (it.status != null) ContentType.Status.ordinal else if (it.notification != null) ContentType.Notification.ordinal else -1 }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ViewHolder {
@@ -451,7 +456,7 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
     }
 
     override fun onBindViewHolder(holder: ViewHolder?, position: Int) {
-        val item = contents[position]
+        val item = getContent(position)
         item.status?.let { holder?.bindData(it) }
         item.notification?.let { holder?.bindData(it) }
     }
@@ -477,9 +482,10 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
                     if (!b) {
                         this.contents.add(0, c)
                         notifyItemInserted(0)
+                        onAddTootListener?.onAddOnTop()
                         removeItemsWhenOverLimit(limit)
                     }
-                })
+                }, Throwable::printStackTrace)
     }
 
     fun addContentAtLast(content: TimelineContent, limit: Int = DEFAULT_ITEMS_LIMIT) {
@@ -493,34 +499,44 @@ class TimelineAdapter(val listener: Callbacks, val doFilter: Boolean = true) : R
                         notifyItemInserted(this.contents.lastIndex)
                         removeItemsWhenOverLimit(limit)
                     }
-                })
+                }, Throwable::printStackTrace)
     }
 
     fun addAllContents(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
+        val cs: ArrayList<TimelineContent> = ArrayList()
+
         Observable.fromIterable(contents)
                 .map { Pair(it, shouldMute(it)) }
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ (c, b) ->
                     if (!b) {
-                        this.contents.add(0, c)
-                        notifyItemInserted(0)
-                        removeItemsWhenOverLimit(limit)
+                        cs.add(c)
                     }
+                }, Throwable::printStackTrace, {
+                    this.contents.addAll(0, cs)
+                    notifyItemRangeInserted(0, cs.size)
+                    onAddTootListener?.onAddOnTop()
+                    removeItemsWhenOverLimit(limit)
                 })
     }
 
     fun addAllContentsAtLast(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
+        val cs: ArrayList<TimelineContent> = ArrayList()
+
         Observable.fromIterable(contents)
                 .map { Pair(it, shouldMute(it)) }
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ (c, b) ->
                     if (!b) {
-                        this.contents.add(c)
-                        notifyItemInserted(this.contents.lastIndex)
-                        removeItemsWhenOverLimit(limit)
+                        cs.add(c)
                     }
+                }, Throwable::printStackTrace, {
+                    val size = this.contents.size
+                    this.contents.addAll(cs)
+                    notifyItemRangeInserted(size, cs.size)
+                    removeItemsWhenOverLimit(limit)
                 })
     }
 
