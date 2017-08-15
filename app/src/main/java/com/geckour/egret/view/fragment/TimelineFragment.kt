@@ -69,7 +69,13 @@ class TimelineFragment: BaseFragment() {
     }
 
     lateinit private var binding: FragmentTimelineBinding
-    private val adapter: TimelineAdapter by lazy { TimelineAdapter((activity as MainActivity).timelineListener) }
+    private val adapter: TimelineAdapter by lazy {
+        TimelineAdapter(
+                (activity as MainActivity).timelineListener,
+                object: TimelineAdapter.OnAddTootCallback {
+                    override fun onAddOnTop() { onAddItemToAdapter() }
+                })
+    }
     private val sharedPref: SharedPreferences by lazy { PreferenceManager.getDefaultSharedPreferences(activity) }
     private var onTop = true
     private var inTouch = false
@@ -596,14 +602,12 @@ class TimelineFragment: BaseFragment() {
                 val content = Common.getTimelineContent(status = status)
 
                 adapter.addContent(content)
-                onAddItemToAdapter()
             }
             if (waitingNotification) {
                 val notification = gson.fromJson(data, Notification::class.java)
                 val content = Common.getTimelineContent(notification = notification)
 
                 adapter.addContent(content)
-                onAddItemToAdapter()
             }
             if (waitingDeletedId) {
                 adapter.removeContentByTootId(data.toLong())
