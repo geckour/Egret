@@ -10,6 +10,8 @@ import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.adapter.model.adapter.SpannedTypeAdapter
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.vanniktech.emoji.EmojiManager
+import com.vanniktech.emoji.one.EmojiOneProvider
 import paperparcel.Adapter
 import paperparcel.ProcessorConfig
 import timber.log.Timber
@@ -36,6 +38,8 @@ class App: Application() {
 
         OkHttpProvider.init()
         OrmaProvider.init(this)
+
+        EmojiManager.install(EmojiOneProvider())
 
         startService(intent)
         registerReceiver(DeleteNotificationReceiver(), IntentFilter(DeleteNotificationReceiver.ACTION_DELETE_NOTIFICATION))
