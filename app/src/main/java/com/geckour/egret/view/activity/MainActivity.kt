@@ -46,6 +46,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper
 
 class MainActivity : BaseActivity() {
 
@@ -370,6 +371,10 @@ class MainActivity : BaseActivity() {
         when (item.itemId) {}
 
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase))
     }
 
     fun showSearchResult(query: String) {

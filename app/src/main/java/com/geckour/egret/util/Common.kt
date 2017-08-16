@@ -21,6 +21,7 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.TextView
+import com.emojione.Emojione
 import com.geckour.egret.App
 import com.geckour.egret.NotificationService
 import com.geckour.egret.R
@@ -103,10 +104,10 @@ class Common {
                                 status.url,
                                 status.account.id,
                                 status.account.avatarUrl,
-                                status.account.displayName,
+                                Emojione.shortnameToUnicode(status.account.displayName),
                                 "@${status.account.acct}",
                                 Date(status.createdAt.time),
-                                getSpannedWithoutExtraMarginFromHtml(status.content),
+                                getSpannedWithoutExtraMarginFromHtml(Emojione.shortnameToUnicode(status.content)),
                                 status.media.map { it.previewImgUrl },
                                 status.media.map { it.url },
                                 status.sensitive,
