@@ -80,6 +80,7 @@ class AccountProfileFragment: BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.icon.setOnClickListener { showImageViewer(listOf(account.avatarUrl), 0) }
+        binding.header.setOnClickListener { showImageViewer(listOf(account.headerUrl), 0) }
 
         val movementMethod = Common.getMovementMethodFromPreference(binding.root.context)
         binding.url.movementMethod = movementMethod
