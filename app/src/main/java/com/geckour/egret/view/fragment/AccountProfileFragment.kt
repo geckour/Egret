@@ -48,22 +48,19 @@ class AccountProfileFragment: BaseFragment() {
         }
     }
 
-    lateinit private var account: Account
+    private val account: Account by lazy { arguments[ARGS_KEY_ACCOUNT] as Account }
     lateinit private var relationship: Relationship
     lateinit private var binding: FragmentAccountProfileBinding
     private var onTop = true
     private var inTouch = false
     private val adapter: TimelineAdapter by lazy { TimelineAdapter((activity as MainActivity).timelineListener) }
-    lateinit private var sharedPref: SharedPreferences
+    private val sharedPref: SharedPreferences by lazy { PreferenceManager.getDefaultSharedPreferences(activity) }
 
     private var maxId: Long = -1
     private var sinceId: Long = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        sharedPref = PreferenceManager.getDefaultSharedPreferences(activity)
-        account = arguments[ARGS_KEY_ACCOUNT] as Account
         (activity as MainActivity).supportActionBar?.hide()
     }
 
@@ -81,6 +78,8 @@ class AccountProfileFragment: BaseFragment() {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        binding.icon.setOnClickListener { showImageViewer(listOf(account.avatarUrl), 0) }
 
         val movementMethod = Common.getMovementMethodFromPreference(binding.root.context)
         binding.url.movementMethod = movementMethod
@@ -220,6 +219,14 @@ class AccountProfileFragment: BaseFragment() {
 
         reflectSettings()
         refreshBarTitle()
+    }
+
+    fun showImageViewer(urls: List<String>, position: Int) {
+        val fragment = ShowImagesDialogFragment.newInstance(urls, position)
+        activity.supportFragmentManager.beginTransaction()
+                .add(fragment, ShowImagesDialogFragment.TAG)
+                .addToBackStack(ShowImagesDialogFragment.TAG)
+                .commit()
     }
 
     fun showToots(loadNext: Boolean = false) {
