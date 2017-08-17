@@ -131,6 +131,18 @@ interface MastodonService {
             limit: Long? = 30
     ): Single<Result<List<Notification>>>
 
+    @GET("api/v1/favourites")
+    fun getFavouriteTimeline(
+            @Query("max_id")
+            maxId: Long? = null,
+
+            @Query("since_id")
+            sinceId: Long? = null,
+
+            @Query("limit")
+            limit: Long? = 40
+    ): Single<Result<List<Status>>>
+
     @GET("api/v1/accounts/{id}/statuses")
     fun getAccountAllToots(
             @Path("id")

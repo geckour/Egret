@@ -139,6 +139,7 @@ class Common {
                 else TimelineContent()
 
         fun getProfileContent(account: Account): ProfileContent = ProfileContent(
+                account.id,
                 account.avatarUrl,
                 account.headerUrl,
                 account.displayName,

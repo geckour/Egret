@@ -79,8 +79,17 @@ class AccountProfileFragment: BaseFragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        initViewsVisibility()
+
         binding.icon.setOnClickListener { showImageViewer(listOf(account.avatarUrl), 0) }
         binding.header.setOnClickListener { showImageViewer(listOf(account.headerUrl), 0) }
+
+        if (account.id == Common.getCurrentAccessToken()?.accountId) {
+            binding.buttonFavList.apply {
+                setOnClickListener { showFavList() }
+                visibility = View.VISIBLE
+            }
+        }
 
         val movementMethod = Common.getMovementMethodFromPreference(binding.root.context)
         binding.url.movementMethod = movementMethod
@@ -220,6 +229,14 @@ class AccountProfileFragment: BaseFragment() {
 
         reflectSettings()
         refreshBarTitle()
+    }
+
+    fun initViewsVisibility() {
+        binding.buttonFavList.visibility = View.GONE
+    }
+
+    fun showFavList() {
+        (activity as MainActivity).showTimelineFragment(TimelineFragment.Category.Fav)
     }
 
     fun showImageViewer(urls: List<String>, position: Int) {
