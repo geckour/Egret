@@ -198,6 +198,7 @@
             android:textAllCaps="false"
             android:textColor="@color/icon_tint_dark"
             android:textSize="12sp"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="@+id/frameLayout"
             app:layout_constraintRight_toRightOf="@+id/frameLayout" />
 

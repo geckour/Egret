@@ -47,6 +47,7 @@ class TimelineFragment: BaseFragment() {
         User,
         HashTag,
         Notification,
+        Fav,
         Unknown
     }
 
@@ -55,7 +56,6 @@ class TimelineFragment: BaseFragment() {
         val ARGS_KEY_CATEGORY = "category"
         val ARGS_KEY_HASH_TAG = "hashTag"
         val STATE_ARGS_KEY_CONTENTS = "contents"
-        val STATE_ARGS_KEY_RESUME = "resume"
         val REQUEST_CODE_GRANT_ACCESS_WIFI = 100
 
         fun newInstance(category: Category, hashTag: String? = null): TimelineFragment = TimelineFragment().apply {
@@ -139,6 +139,7 @@ class TimelineFragment: BaseFragment() {
                             Category.User -> showUserTimeline(loadPrev = true)
                             Category.Notification -> showNotificationTimeline(loadPrev = true)
                             Category.HashTag -> getHashTag()?.let { showHashTagTimeline(it, loadPrev = true) }
+                            Category.Fav -> showFavouriteTimeline(true)
                         }
                     }
                 }
@@ -212,6 +213,8 @@ class TimelineFragment: BaseFragment() {
         (activity as MainActivity).supportActionBar?.title =
                 when (category) {
                     Category.HashTag -> "$category TL${getHashTag()?.let { ": #$it" } ?: ""} - $domain"
+
+                    Category.Fav -> "Your favourited toots list - $domain"
 
                     else -> "$category TL - $domain"
                 }
@@ -291,6 +294,8 @@ class TimelineFragment: BaseFragment() {
                 Category.User -> showUserTimeline(true)
                 Category.HashTag -> getHashTag()?.let { showHashTagTimeline(it, true) }
                 Category.Notification -> showNotificationTimeline(true)
+                Category.Fav -> showFavouriteTimeline()
+
             }
         } else {
             when (category) {
@@ -299,6 +304,7 @@ class TimelineFragment: BaseFragment() {
                 Category.User -> showUserTimeline()
                 Category.HashTag -> getHashTag()?.let { showHashTagTimeline(it) }
                 Category.Notification -> showNotificationTimeline()
+                Category.Fav -> showFavouriteTimeline()
             }
         }
     }
@@ -557,6 +563,21 @@ class TimelineFragment: BaseFragment() {
                 .subscribe({
                     reflectContents(it, loadPrev)
                     if (loadStream) startHashTagTimelineStream()
+                }, { throwable ->
+                    throwable.printStackTrace()
+                    toggleRefreshIndicatorState(false)
+                })
+    }
+
+    fun showFavouriteTimeline(loadPrev: Boolean = false) {
+        if (loadPrev && maxId == -1L) return
+
+        MastodonClient(Common.resetAuthInfo() ?: return).getFavouriteTimeline(maxId = if (loadPrev) maxId else null, sinceId = if (!loadPrev && sinceId != -1L) sinceId else null)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe({
+                    reflectContents(it, loadPrev)
                 }, { throwable ->
                     throwable.printStackTrace()
                     toggleRefreshIndicatorState(false)
