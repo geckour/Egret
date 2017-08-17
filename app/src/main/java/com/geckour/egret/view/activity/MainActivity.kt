@@ -373,10 +373,6 @@ class MainActivity : BaseActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    override fun attachBaseContext(newBase: Context?) {
-        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase))
-    }
-
     fun showSearchResult(query: String) {
         Common.resetAuthInfo()?.let {
             MastodonClient(it).search(query)

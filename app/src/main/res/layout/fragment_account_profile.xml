@@ -36,7 +36,8 @@
             app:layout_constraintBottom_toBottomOf="@+id/icon"
             app:layout_constraintLeft_toLeftOf="@+id/header"
             app:layout_constraintRight_toRightOf="@+id/header"
-            app:layout_constraintTop_toTopOf="@+id/icon">
+            app:layout_constraintTop_toTopOf="@+id/icon"
+            android:id="@+id/frameLayout">
 
         </FrameLayout>
 
@@ -167,8 +168,9 @@
 
         <TextView
             android:id="@+id/url"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginRight="8dp"
             android:layout_marginTop="8dp"
             android:clickable="true"
             android:ellipsize="end"
@@ -178,15 +180,33 @@
             android:textSize="12sp"
             app:layout_constraintBottom_toBottomOf="@+id/icon"
             app:layout_constraintLeft_toLeftOf="@+id/screenName"
+            app:layout_constraintRight_toLeftOf="@+id/button_fav_list"
             app:layout_constraintTop_toBottomOf="@+id/followingText"
             tools:text="http://hoge.example.com" />
 
-        <TextView
+        <Button
+            android:id="@+id/button_fav_list"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="4dp"
+            android:background="@drawable/button_custom_material"
+            android:drawableLeft="@drawable/ic_star_black_12px"
+            android:drawableTint="@color/icon_tint_dark"
+            android:minHeight="0dp"
+            android:minWidth="0dp"
+            android:text="@string/button_list"
+            android:textAllCaps="false"
+            android:textColor="@color/icon_tint_dark"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@+id/frameLayout"
+            app:layout_constraintRight_toRightOf="@+id/frameLayout" />
+
+        <com.vanniktech.emoji.EmojiTextView
             android:id="@+id/note"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
+            android:layout_marginLeft="24dp"
+            android:layout_marginRight="24dp"
             android:layout_marginTop="8dp"
             android:clickable="true"
             android:maxLines="5"
