@@ -196,11 +196,24 @@
             android:minWidth="0dp"
             android:text="@string/button_list"
             android:textAllCaps="false"
-            android:textColor="@color/icon_tint_dark"
             android:textSize="12sp"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="@+id/frameLayout"
             app:layout_constraintRight_toRightOf="@+id/frameLayout" />
+
+        <Button
+            android:id="@+id/button_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="4dp"
+            android:background="@drawable/button_custom_material"
+            android:minHeight="0dp"
+            android:minWidth="0dp"
+            android:text="@string/button_edit"
+            android:textSize="12sp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/header"
+            app:layout_constraintRight_toRightOf="@+id/header" />
 
         <com.vanniktech.emoji.EmojiTextView
             android:id="@+id/note"

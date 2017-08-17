@@ -68,6 +68,7 @@
 
     <string name="created_at">Created at:</string>
     <string name="button_list">list</string>
+    <string name="button_edit">edit</string>
     <string name="hashtag">Hash tag:</string>
 
     <string name="mentioned_by">Mentioned by</string>
