@@ -15,10 +15,10 @@ open class BaseFragment: RxFragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        if (activity is MainActivity) {
-            (activity as MainActivity).supportActionBar?.show()
-            (activity as MainActivity).binding.appBarMain.contentMain.fab.show()
-            Common.setSimplicityPostBarVisibility((activity as MainActivity).binding.appBarMain.contentMain, false)
+        (activity as? MainActivity)?.apply {
+            supportActionBar?.show()
+            binding.appBarMain.contentMain.fab.show()
+            Common.setSimplicityPostBarVisibility(binding.appBarMain.contentMain, false)
         }
     }
 
@@ -30,12 +30,13 @@ open class BaseFragment: RxFragment() {
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
-                .subscribe({
-                    if (activity is MainActivity) {
-                        (activity as MainActivity).supportActionBar?.show()
-                        (activity as MainActivity).binding.appBarMain.contentMain.fab.show()
-                        Common.setSimplicityPostBarVisibility((activity as MainActivity).binding.appBarMain.contentMain, false)
-                    }
-                }, Throwable::printStackTrace)
+                .subscribe()
+
+        (activity as? MainActivity)?.apply {
+            supportActionBar?.show()
+            binding.appBarMain.toolbar.setOnClickListener(null)
+            binding.appBarMain.contentMain.fab.show()
+            Common.setSimplicityPostBarVisibility(binding.appBarMain.contentMain, false)
+        }
     }
 }
