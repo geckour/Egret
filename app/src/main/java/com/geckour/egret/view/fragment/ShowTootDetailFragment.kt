@@ -20,7 +20,7 @@ import io.reactivex.schedulers.Schedulers
 class ShowTootDetailFragment : BaseFragment() {
 
     companion object {
-        val TAG = "showTootDetailFragment"
+        val TAG: String = this::class.java.simpleName
         val ARGS_KEY_STATUS_ID = "statusId"
 
         fun newInstance(statusId: Long): ShowTootDetailFragment = ShowTootDetailFragment().apply {

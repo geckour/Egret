@@ -54,19 +54,19 @@ class SearchResultAdapter(val listener: TimelineAdapter.Callbacks) : RecyclerVie
             content.mediaUrls.indices.forEach {
                 when (it) {
                     0 -> {
-                        if (content.isSensitive ?: false) toggleMediaSpoiler(statusBinding.mediaSpoilerWrap1, true)
+                        if (content.isSensitive == true) toggleMediaSpoiler(statusBinding.mediaSpoilerWrap1, true)
                         setupMedia(statusBinding.media1, content.mediaPreviewUrls, content.mediaUrls, it)
                     }
                     1 -> {
-                        if (content.isSensitive ?: false) toggleMediaSpoiler(statusBinding.mediaSpoilerWrap2, true)
+                        if (content.isSensitive == true) toggleMediaSpoiler(statusBinding.mediaSpoilerWrap2, true)
                         setupMedia(statusBinding.media2, content.mediaPreviewUrls, content.mediaUrls, it)
                     }
                     2 -> {
-                        if (content.isSensitive ?: false) toggleMediaSpoiler(statusBinding.mediaSpoilerWrap3, true)
+                        if (content.isSensitive == true) toggleMediaSpoiler(statusBinding.mediaSpoilerWrap3, true)
                         setupMedia(statusBinding.media3, content.mediaPreviewUrls, content.mediaUrls, it)
                     }
                     3 -> {
-                        if (content.isSensitive ?: false) toggleMediaSpoiler(statusBinding.mediaSpoilerWrap4, true)
+                        if (content.isSensitive == true) toggleMediaSpoiler(statusBinding.mediaSpoilerWrap4, true)
                         setupMedia(statusBinding.media4, content.mediaPreviewUrls, content.mediaUrls, it)
                     }
                 }
@@ -101,7 +101,7 @@ class SearchResultAdapter(val listener: TimelineAdapter.Callbacks) : RecyclerVie
             initVisibility(SearchResultFragment.Category.Account)
 
             (accountBinding.root as ViewGroup).apply {
-                for (i in 0..childCount - 1) getChildAt(i).setOnClickListener { listener.showProfile(accountBinding.account.id) }
+                for (i in 0 until childCount) getChildAt(i).setOnClickListener { listener.showProfile(accountBinding.account.id) }
             }
             accountBinding.account = content
         }

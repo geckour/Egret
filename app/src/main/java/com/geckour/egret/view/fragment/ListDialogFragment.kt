@@ -7,28 +7,31 @@ import android.support.v7.app.AlertDialog
 import com.geckour.egret.R
 import com.geckour.egret.databinding.FragmentListDialogBinding
 import com.geckour.egret.view.adapter.ListDialogAdapter
+import com.geckour.egret.view.adapter.model.TimelineContent
 import com.trello.rxlifecycle2.components.support.RxDialogFragment
 
-class ListDialogFragment(val listener: OnItemClickListener? = null): RxDialogFragment() {
+class ListDialogFragment: RxDialogFragment() {
 
-    lateinit var binding: FragmentListDialogBinding
+    lateinit private var binding: FragmentListDialogBinding
+    private val listener: OnItemClickListener? by lazy { (activity as? OnItemClickListener) }
+    private val content: TimelineContent.TimelineStatus by lazy { arguments[ARGS_KEY_CONTENT] as TimelineContent.TimelineStatus }
 
     companion object {
         val TAG: String = this::class.java.simpleName
         val ARGS_KEY_TITLE = "title"
         val ARGS_KEY_RES_IDS = "itemResIds"
         val ARGS_KEY_STRINGS = "itemStrings"
+        val ARGS_KEY_CONTENT = "argsKeyContent"
 
-        fun newInstance(title: String, items: List<Pair<Int, String>>, listener: OnItemClickListener): ListDialogFragment {
-            val fragment = ListDialogFragment(listener)
-            val args = Bundle()
-            args.putString(ARGS_KEY_TITLE, title)
-            args.putIntArray(ARGS_KEY_RES_IDS, items.map { it.first }.toIntArray())
-            args.putStringArray(ARGS_KEY_STRINGS, items.map { it.second }.toTypedArray())
-            fragment.arguments = args
-
-            return fragment
-        }
+        fun newInstance(title: String, items: List<Pair<Int, String>>, content: TimelineContent.TimelineStatus): ListDialogFragment = ListDialogFragment()
+                .apply {
+                    arguments = Bundle().apply {
+                        putString(ARGS_KEY_TITLE, title)
+                        putIntArray(ARGS_KEY_RES_IDS, items.map { it.first }.toIntArray())
+                        putStringArray(ARGS_KEY_STRINGS, items.map { it.second }.toTypedArray())
+                        putSerializable(ARGS_KEY_CONTENT, content)
+                    }
+                }
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -43,7 +46,7 @@ class ListDialogFragment(val listener: OnItemClickListener? = null): RxDialogFra
                 },
                 object: ListDialogAdapter.OnItemClickListener {
                     override fun onClick(resId: Int) {
-                        listener?.onClick(resId)
+                        listener?.onClickListDialogItem(resId, content)
                         dismiss()
                     }
                 })
@@ -53,6 +56,6 @@ class ListDialogFragment(val listener: OnItemClickListener? = null): RxDialogFra
     }
 
     interface OnItemClickListener {
-        fun onClick(resId: Int)
+        fun onClickListDialogItem(resId: Int, content: TimelineContent.TimelineStatus)
     }
 }

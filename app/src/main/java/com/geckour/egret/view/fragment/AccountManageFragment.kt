@@ -82,7 +82,7 @@ class AccountManageFragment: BaseFragment() {
         preItems.clear()
 
         Observable.fromIterable(OrmaProvider.db.selectFromAccessToken())
-                .flatMap { token ->
+                .map { token ->
                     MastodonClient(Common.setAuthInfo(token) ?: throw IllegalArgumentException()).getAccount(token.accountId)
                             .map {
                                 val domain =  OrmaProvider.db.selectFromInstanceAuthInfo().idEq(token.instanceId).last().instance
@@ -90,11 +90,13 @@ class AccountManageFragment: BaseFragment() {
                             }
                 }
                 .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe({
-                    adapter.addItem(it)
-                    preItems.add(it)
+                    it.observeOn(AndroidSchedulers.mainThread())
+                            .subscribe({ content ->
+                                adapter.addItem(content)
+                                preItems.add(content)
+                            }, Throwable::printStackTrace)
                 }, Throwable::printStackTrace)
     }
 

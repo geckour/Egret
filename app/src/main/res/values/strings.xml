@@ -68,7 +68,17 @@
 
     <string name="created_at">Created at:</string>
     <string name="button_list">list</string>
+    <string name="button_edit">edit</string>
+    <string name="button_edit_cancel">cancel</string>
+    <string name="button_edit_save">save</string>
+    <string name="succeed_edit_profile">Saved.</string>
+    <string name="none_update_edit_profile">There are no updates on your profile.</string>
     <string name="hashtag">Hash tag:</string>
+    <string name="dialog_title_choose_source">Select media source</string>
+    <string name="dialog_message_choose_source">Pick existing media?\nOr capture new photo?</string>
+    <string name="dialog_button_pick_media">Pick media</string>
+    <string name="dialog_button_capture_image">Capture photo</string>
+    <string name="dialog_button_dismiss">Cancel</string>
 
     <string name="mentioned_by">Mentioned by</string>
     <string name="reblogged_by">Boosted by</string>

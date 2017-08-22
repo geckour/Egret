@@ -5,7 +5,9 @@ import android.text.Spanned
 data class ProfileContent(
         val id: Long,
         var iconUrl: String,
+        var iconImg: String?,
         var headerUrl: String,
+        var headerImg: String?,
         var screenName: String,
         var username: String,
         var url: Spanned,
