@@ -147,8 +147,10 @@ class AccountProfileFragment: BaseFragment() {
                         binding.mute.visibility = View.VISIBLE
                     }
 
-                    setFollowButtonState(this.relationship.following)
+                    setFollowButtonState(this.relationship)
                     binding.follow.setOnClickListener {
+                        if (this.relationship.hasSendFollowRequest) return@setOnClickListener
+
                         if (this.relationship.following) {
                             MastodonClient(domain).unFollowAccount(profile.id)
                                     .subscribeOn(Schedulers.newThread())
@@ -156,7 +158,7 @@ class AccountProfileFragment: BaseFragment() {
                                     .compose(bindToLifecycle())
                                     .subscribe( { relation ->
                                         this.relationship = relation
-                                        setFollowButtonState(relation.following)
+                                        setFollowButtonState(relation)
                                     }, Throwable::printStackTrace)
                         } else {
                             MastodonClient(domain).followAccount(profile.id)
@@ -165,7 +167,7 @@ class AccountProfileFragment: BaseFragment() {
                                     .compose(bindToLifecycle())
                                     .subscribe( { relation ->
                                         this.relationship = relation
-                                        setFollowButtonState(relation.following)
+                                        setFollowButtonState(relation)
                                     }, Throwable::printStackTrace)
                         }
                     }
@@ -591,13 +593,25 @@ class AccountProfileFragment: BaseFragment() {
         }
     }
 
-    private fun setFollowButtonState(state: Boolean) {
-        if (state) {
-            binding.follow.setImageResource(R.drawable.ic_people_black_24px)
-            binding.follow.setColorFilter(ContextCompat.getColor(activity, R.color.accent))
-        } else {
-            binding.follow.setImageResource(R.drawable.ic_person_add_black_24px)
-            binding.follow.setColorFilter(ContextCompat.getColor(activity, R.color.icon_tint_dark))
+    private fun setFollowButtonState(relationship: Relationship) {
+        binding.follow.apply {
+            when {
+                relationship.hasSendFollowRequest -> {
+                    isClickable = false
+                    setImageResource(R.drawable.ic_hourglass_empty_black_24px)
+                    setColorFilter(ContextCompat.getColor(activity, R.color.icon_tint_dark))
+                }
+                relationship.following -> {
+                    isClickable = true
+                    setImageResource(R.drawable.ic_people_black_24px)
+                    setColorFilter(ContextCompat.getColor(activity, R.color.accent))
+                }
+                else -> {
+                    isClickable = true
+                    setImageResource(R.drawable.ic_person_add_black_24px)
+                    setColorFilter(ContextCompat.getColor(activity, R.color.icon_tint_dark))
+                }
+            }
         }
     }
 

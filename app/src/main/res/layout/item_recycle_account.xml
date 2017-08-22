@@ -4,7 +4,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
-
+        <import type="android.view.View" />
         <variable
             name="account"
             type="com.geckour.egret.view.adapter.model.SearchResultAccount" />
@@ -34,7 +34,7 @@
             android:textColor="?attr/colorGray"
             android:textSize="16sp"
             app:layout_constraintLeft_toRightOf="@+id/icon"
-            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintRight_toLeftOf="@+id/lock"
             app:layout_constraintTop_toTopOf="@+id/icon"
             tools:text="つよいなまえ" />
 
@@ -49,6 +49,17 @@
             app:layout_constraintRight_toRightOf="@+id/nameStrong"
             app:layout_constraintTop_toBottomOf="@+id/nameStrong"
             tools:text="よわいなまえ" />
+
+        <ImageView
+            android:id="@+id/lock"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginRight="8dp"
+            android:tint="@color/icon_tint_dark"
+            android:visibility="@{account.isLocked ? View.VISIBLE : View.GONE}"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/icon"
+            app:srcCompat="@drawable/ic_lock_black_24px" />
 
         <TextView
             android:id="@+id/createdAt"
