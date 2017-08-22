@@ -64,8 +64,6 @@ class TimelineFragment: BaseFragment() {
                 hashTag?.let { putString(ARGS_KEY_HASH_TAG, hashTag) }
             }
         }
-
-        fun getCategoryById(rawValue: Int): Category = Category.values()[rawValue]
     }
 
     lateinit private var binding: FragmentTimelineBinding
@@ -140,6 +138,7 @@ class TimelineFragment: BaseFragment() {
                             Category.Notification -> showNotificationTimeline(loadPrev = true)
                             Category.HashTag -> getHashTag()?.let { showHashTagTimeline(it, loadPrev = true) }
                             Category.Fav -> showFavouriteTimeline(true)
+                            Category.Unknown -> {}
                         }
                     }
                 }
@@ -185,6 +184,8 @@ class TimelineFragment: BaseFragment() {
     override fun onResume() {
         super.onResume()
 
+        (activity as MainActivity).binding.appBarMain.toolbar.setOnClickListener { scrollToTop() }
+
         (activity as MainActivity).supportActionBar?.show()
         refreshBarTitle()
 
@@ -204,9 +205,9 @@ class TimelineFragment: BaseFragment() {
             else if (sharedPref.contains(ARGS_KEY_HASH_TAG)) sharedPref.getString(ARGS_KEY_HASH_TAG, "")
             else null
 
-    fun existsNoRunningStream() = listOf(publicStream, localStream, userStream).none { !(it?.isDisposed ?: true) }
+    private fun existsNoRunningStream() = listOf(publicStream, localStream, userStream).none { !(it?.isDisposed ?: true) }
 
-    fun refreshBarTitle() {
+    private fun refreshBarTitle() {
         val instanceId = Common.getCurrentAccessToken()?.instanceId
         val domain = if (instanceId == null) "not logged in" else OrmaProvider.db.selectFromInstanceAuthInfo().idEq(instanceId).last().instance
         val category = getCategory()
@@ -220,7 +221,7 @@ class TimelineFragment: BaseFragment() {
                 }
     }
 
-    fun restoreTimeline() {
+    private fun restoreTimeline() {
         adapter.clearContents()
 
         val storeContentsKey = getStoreContentsKey(getCategory()).apply { Log.d("restoreTimeline", "storeContentsKey: $this") }
@@ -246,7 +247,7 @@ class TimelineFragment: BaseFragment() {
                 .apply()
     }
 
-    fun reflectCategorySelection() {
+    private fun reflectCategorySelection() {
         (activity as MainActivity).resetSelectionNavItem(
                 when (getCategory()) {
                     Category.Public -> MainActivity.NAV_ITEM_TL_PUBLIC
@@ -257,17 +258,17 @@ class TimelineFragment: BaseFragment() {
                 })
     }
 
-    fun toggleRefreshIndicatorState(show: Boolean) = Common.toggleRefreshIndicatorState(binding.swipeRefreshLayout, show)
+    private fun toggleRefreshIndicatorState(show: Boolean) = Common.toggleRefreshIndicatorState(binding.swipeRefreshLayout, show)
 
-    fun toggleRefreshIndicatorActivity(show: Boolean) = Common.toggleRefreshIndicatorActivity(binding.swipeRefreshLayout, show)
+    private fun toggleRefreshIndicatorActivity(show: Boolean) = Common.toggleRefreshIndicatorActivity(binding.swipeRefreshLayout, show)
 
-    fun forceStopRefreshing() {
+    private fun forceStopRefreshing() {
         toggleRefreshIndicatorState(false)
         binding.swipeRefreshLayout.destroyDrawingCache()
         binding.swipeRefreshLayout.clearAnimation()
     }
 
-    fun showTimelineByCategory(category: Category) {
+    private fun showTimelineByCategory(category: Category) {
         val prefStream = sharedPref.getString("manage_stream", "1")
 
         if (prefStream == "1") {
@@ -295,6 +296,7 @@ class TimelineFragment: BaseFragment() {
                 Category.HashTag -> getHashTag()?.let { showHashTagTimeline(it, true) }
                 Category.Notification -> showNotificationTimeline(true)
                 Category.Fav -> showFavouriteTimeline()
+                Category.Unknown -> {}
 
             }
         } else {
@@ -305,6 +307,7 @@ class TimelineFragment: BaseFragment() {
                 Category.HashTag -> getHashTag()?.let { showHashTagTimeline(it) }
                 Category.Notification -> showNotificationTimeline()
                 Category.Fav -> showFavouriteTimeline()
+                Category.Unknown -> {}
             }
         }
     }
@@ -323,7 +326,7 @@ class TimelineFragment: BaseFragment() {
         }
     }
 
-    fun postToot(contentMainBinding: ContentMainBinding) {
+    private fun postToot(contentMainBinding: ContentMainBinding) {
         val button = contentMainBinding.buttonSimplicityToot.apply { isEnabled = false }
         val body = contentMainBinding.simplicityTootBody.text.toString()
         if (body.isBlank()) {
@@ -351,7 +354,7 @@ class TimelineFragment: BaseFragment() {
                 })
     }
 
-    fun stopTimelineStreams() {
+    private fun stopTimelineStreams() {
         stopPublicTimelineStream()
         stopLocalTimelineStream()
         stopUserTimelineStream()
@@ -359,7 +362,7 @@ class TimelineFragment: BaseFragment() {
         stopHashTagTimelineStream()
     }
 
-    fun startPublicTimelineStream() {
+    private fun startPublicTimelineStream() {
         publicStream?.dispose()
         publicStream = null
         Common.resetAuthInfo()?.let {
@@ -380,11 +383,11 @@ class TimelineFragment: BaseFragment() {
         }
     }
 
-    fun stopPublicTimelineStream() {
+    private fun stopPublicTimelineStream() {
         if (publicStream?.isDisposed == false) publicStream?.dispose()
     }
 
-    fun showPublicTimeline(loadStream: Boolean = false, loadPrev: Boolean = false) {
+    private fun showPublicTimeline(loadStream: Boolean = false, loadPrev: Boolean = false) {
         if (loadPrev && maxId == -1L) return
 
         MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(maxId = if (loadPrev) maxId else null, sinceId = if (!loadPrev && sinceId != -1L) sinceId else null)
@@ -400,7 +403,7 @@ class TimelineFragment: BaseFragment() {
                 })
     }
 
-    fun startUserTimelineStream() {
+    private fun startUserTimelineStream() {
         userStream?.dispose()
         userStream = null
 
@@ -422,11 +425,11 @@ class TimelineFragment: BaseFragment() {
         }
     }
 
-    fun stopUserTimelineStream() {
+    private fun stopUserTimelineStream() {
         if (userStream?.isDisposed == false) userStream?.dispose()
     }
 
-    fun showUserTimeline(loadStream: Boolean = false, loadPrev: Boolean = false) {
+    private fun showUserTimeline(loadStream: Boolean = false, loadPrev: Boolean = false) {
         if (loadPrev && maxId == -1L) return
 
         MastodonClient(Common.resetAuthInfo() ?: return).getUserTimeline(maxId = if (loadPrev) maxId else null, sinceId = if (!loadPrev && sinceId != -1L) sinceId else null)
@@ -442,7 +445,7 @@ class TimelineFragment: BaseFragment() {
                 })
     }
 
-    fun startLocalTimelineStream() {
+    private fun startLocalTimelineStream() {
         localStream?.dispose()
         localStream = null
 
@@ -464,11 +467,11 @@ class TimelineFragment: BaseFragment() {
         }
     }
 
-    fun stopLocalTimelineStream() {
+    private fun stopLocalTimelineStream() {
         if (localStream?.isDisposed == false) localStream?.dispose()
     }
 
-    fun showLocalTimeline(loadStream: Boolean = false, loadPrev: Boolean = false) {
+    private fun showLocalTimeline(loadStream: Boolean = false, loadPrev: Boolean = false) {
         if (loadPrev && maxId == -1L) return
 
         MastodonClient(Common.resetAuthInfo() ?: return).getPublicTimeline(true, maxId = if (loadPrev) maxId else null, sinceId = if (!loadPrev && sinceId != -1L) sinceId else null)
@@ -484,7 +487,7 @@ class TimelineFragment: BaseFragment() {
                 })
     }
 
-    fun startNotificationTimelineStream() {
+    private fun startNotificationTimelineStream() {
         notificationStream?.dispose()
         notificationStream = null
 
@@ -506,11 +509,11 @@ class TimelineFragment: BaseFragment() {
         }
     }
 
-    fun stopNotificationTimelineStream() {
+    private fun stopNotificationTimelineStream() {
         if (notificationStream?.isDisposed == false) notificationStream?.dispose()
     }
 
-    fun showNotificationTimeline(loadStream: Boolean = false, loadPrev: Boolean = false) {
+    private fun showNotificationTimeline(loadStream: Boolean = false, loadPrev: Boolean = false) {
         if (loadPrev && maxId == -1L) return
 
         MastodonClient(Common.resetAuthInfo() ?: return).getNotificationTimeline(maxId = if (loadPrev) maxId else null, sinceId = if (!loadPrev && sinceId != -1L) sinceId else null)
@@ -526,7 +529,7 @@ class TimelineFragment: BaseFragment() {
                 })
     }
 
-    fun startHashTagTimelineStream() {
+    private fun startHashTagTimelineStream() {
         hashTagStream?.dispose()
         hashTagStream = null
 
@@ -549,11 +552,11 @@ class TimelineFragment: BaseFragment() {
         }
     }
 
-    fun stopHashTagTimelineStream() {
+    private fun stopHashTagTimelineStream() {
         if (hashTagStream?.isDisposed == false) hashTagStream?.dispose()
     }
 
-    fun showHashTagTimeline(hashTag: String, loadStream: Boolean = false, loadPrev: Boolean = false) {
+    private fun showHashTagTimeline(hashTag: String, loadStream: Boolean = false, loadPrev: Boolean = false) {
         if (loadPrev && maxId == -1L) return
 
         MastodonClient(Common.resetAuthInfo() ?: return).getHashTagTimeline(hashTag, maxId = if (loadPrev) maxId else null, sinceId = if (!loadPrev && sinceId != -1L) sinceId else null)
@@ -569,7 +572,7 @@ class TimelineFragment: BaseFragment() {
                 })
     }
 
-    fun showFavouriteTimeline(loadPrev: Boolean = false) {
+    private fun showFavouriteTimeline(loadPrev: Boolean = false) {
         if (loadPrev && maxId == -1L) return
 
         MastodonClient(Common.resetAuthInfo() ?: return).getFavouriteTimeline(maxId = if (loadPrev) maxId else null, sinceId = if (!loadPrev && sinceId != -1L) sinceId else null)
@@ -584,7 +587,7 @@ class TimelineFragment: BaseFragment() {
                 })
     }
 
-    fun <V>reflectContents(result: Result<List<V>>, next: Boolean) {
+    private fun <V>reflectContents(result: Result<List<V>>, next: Boolean) {
         result.response()?.let {
             it.body()?.let {
                 if (it.isNotEmpty()) {
@@ -638,5 +641,9 @@ class TimelineFragment: BaseFragment() {
             waitingNotification = source == "event: notification" && getCategory() == Category.Notification
             waitingDeletedId = source == "event: delete"
         }
+    }
+
+    private fun scrollToTop() {
+        binding.recyclerView.smoothScrollToPosition(0)
     }
 }
