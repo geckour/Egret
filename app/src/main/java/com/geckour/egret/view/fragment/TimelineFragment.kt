@@ -314,7 +314,7 @@ class TimelineFragment: BaseFragment() {
         when (requestCode) {
             REQUEST_CODE_GRANT_ACCESS_WIFI -> {
                 if (grantResults.isNotEmpty() &&
-                        grantResults.filter { it != PackageManager.PERMISSION_GRANTED }.isEmpty()) {
+                        grantResults.none { it != PackageManager.PERMISSION_GRANTED }) {
                     showTimelineByCategory(getCategory())
                 } else {
                     Snackbar.make(binding.root, R.string.message_necessity_wifi_grant, Snackbar.LENGTH_SHORT)
@@ -381,7 +381,7 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun stopPublicTimelineStream() {
-        if (!(publicStream?.isDisposed ?: true)) publicStream?.dispose()
+        if (publicStream?.isDisposed == false) publicStream?.dispose()
     }
 
     fun showPublicTimeline(loadStream: Boolean = false, loadPrev: Boolean = false) {
@@ -423,7 +423,7 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun stopUserTimelineStream() {
-        if (!(userStream?.isDisposed ?: true)) userStream?.dispose()
+        if (userStream?.isDisposed == false) userStream?.dispose()
     }
 
     fun showUserTimeline(loadStream: Boolean = false, loadPrev: Boolean = false) {
@@ -465,7 +465,7 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun stopLocalTimelineStream() {
-        if (!(localStream?.isDisposed ?: true)) localStream?.dispose()
+        if (localStream?.isDisposed == false) localStream?.dispose()
     }
 
     fun showLocalTimeline(loadStream: Boolean = false, loadPrev: Boolean = false) {
@@ -507,7 +507,7 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun stopNotificationTimelineStream() {
-        if (getCategory() == Category.User && !(userStream?.isDisposed ?: true)) userStream?.dispose()
+        if (notificationStream?.isDisposed == false) notificationStream?.dispose()
     }
 
     fun showNotificationTimeline(loadStream: Boolean = false, loadPrev: Boolean = false) {
@@ -550,7 +550,7 @@ class TimelineFragment: BaseFragment() {
     }
 
     fun stopHashTagTimelineStream() {
-        if (getCategory() == Category.HashTag && !(hashTagStream?.isDisposed ?: true)) hashTagStream?.dispose()
+        if (hashTagStream?.isDisposed == false) hashTagStream?.dispose()
     }
 
     fun showHashTagTimeline(hashTag: String, loadStream: Boolean = false, loadPrev: Boolean = false) {

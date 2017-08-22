@@ -106,7 +106,7 @@ class NewTootCreateFragment : BaseFragment() {
         val domain = OrmaProvider.db.selectFromInstanceAuthInfo().idEq(token.instanceId).last().instance
         OrmaProvider.db.updateAccessToken().isCurrentEq(true).isCurrent(false).executeAsSingle()
                 .flatMap { OrmaProvider.db.updateAccessToken().idEq(token.id).isCurrent(true).executeAsSingle() }
-                .flatMap { MastodonClient(Common.resetAuthInfo() ?: throw IllegalArgumentException()).getSelfAccount() }
+                .flatMap { MastodonClient(Common.resetAuthInfo() ?: throw IllegalArgumentException()).getOwnAccount() }
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())

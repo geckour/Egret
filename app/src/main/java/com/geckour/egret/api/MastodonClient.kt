@@ -41,9 +41,11 @@ class MastodonClient(baseUrl: String) {
             password: String
     ): Single<InstanceAccess> = service.authUser(clientId, clientSecret, username, password)
 
-    fun getSelfAccount(): Single<Account> = service.getSelfAccount()
+    fun getOwnAccount(): Single<Account> = service.getOwnAccount()
 
-    fun getAccount(accountId: Long): Observable<Account> = service.getAccount(accountId)
+    fun getAccount(accountId: Long): Single<Account> = service.getAccount(accountId)
+
+    fun updateOwnAccount(displayName: String? = null, note: String? = null, avatarUrl: String? = null, headerUrl: String? = null): Single<Any> = service.updateOwnAccount(displayName, note, avatarUrl, headerUrl)
 
     fun getPublicTimelineAsStream(): Observable<ResponseBody> = streamService.getPublicTimelineAsStream()
 

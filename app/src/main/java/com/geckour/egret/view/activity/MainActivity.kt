@@ -39,16 +39,14 @@ import com.mikepenz.materialdrawer.DrawerBuilder
 import com.mikepenz.materialdrawer.model.DividerDrawerItem
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem
-import com.mikepenz.materialdrawer.model.interfaces.IProfile
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
-import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper
 
-class MainActivity : BaseActivity() {
+class MainActivity : BaseActivity(), ListDialogFragment.OnItemClickListener {
 
     lateinit var binding: ActivityMainBinding
     lateinit var drawer: Drawer
@@ -132,85 +130,25 @@ class MainActivity : BaseActivity() {
             ListDialogFragment.newInstance(
                     getString(R.string.dialog_title_mute),
                     items,
-                    object: ListDialogFragment.OnItemClickListener {
-                        override fun onClick(resId: Int) {
-                            when (resId) {
-                                R.string.array_item_mute_account -> {
-                                    Common.resetAuthInfo()?.let { domain ->
-                                        MastodonClient(domain).getSelfAccount()
-                                                .flatMap { if (it.id == content.accountId) Single.never() else MastodonClient(domain).muteAccount(content.accountId) }
-                                                .subscribeOn(Schedulers.newThread())
-                                                .observeOn(AndroidSchedulers.mainThread())
-                                                .subscribe({
-                                                    Snackbar.make(binding.root, "Muted account: ${content.nameWeak}", Snackbar.LENGTH_SHORT).show()
-                                                }, Throwable::printStackTrace)
-                                    }
-                                }
-
-                                R.string.array_item_mute_keyword -> {
-                                    val fragment = KeywordMuteFragment.newInstance(content.body.toString())
-                                    supportFragmentManager.beginTransaction()
-                                            .replace(R.id.container, fragment, KeywordMuteFragment.TAG)
-                                            .addToBackStack(KeywordMuteFragment.TAG)
-                                            .commit()
-                                }
-
-                                R.string.array_item_mute_hash_tag -> {
-                                    val fragment = HashTagMuteFragment.newInstance(content.tags)
-                                    supportFragmentManager.beginTransaction()
-                                            .replace(R.id.container, fragment, HashTagMuteFragment.TAG)
-                                            .addToBackStack(HashTagMuteFragment.TAG)
-                                            .commit()
-                                }
-
-                                R.string.array_item_mute_instance -> {
-                                    var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
-
-                                    if (content.nameWeak == instance) {
-                                        instance = ""
-                                        Common.getCurrentAccessToken()?.instanceId?.let {
-                                            instance = "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(it).last().instance}"
-                                        }
-                                    }
-
-                                    if (!TextUtils.isEmpty(instance)) {
-                                        OrmaProvider.db.prepareInsertIntoMuteInstanceAsSingle()
-                                                .map { inserter -> inserter.execute(MuteInstance(-1L, instance)) }
-                                                .subscribeOn(Schedulers.newThread())
-                                                .observeOn(AndroidSchedulers.mainThread())
-                                                .compose(bindToLifecycle())
-                                                .subscribe({
-                                                    Snackbar.make(binding.root, "Muted instance: $instance", Snackbar.LENGTH_SHORT).show()
-                                                }, Throwable::printStackTrace)
-                                    }
-                                }
-
-                                R.string.array_item_mute_client -> {
-                                    content.app?.let {
-                                        OrmaProvider.db.prepareInsertIntoMuteClientAsSingle()
-                                                .map { inserter -> inserter.execute(MuteClient(-1L, it)) }
-                                                .subscribeOn(Schedulers.newThread())
-                                                .observeOn(AndroidSchedulers.mainThread())
-                                                .compose(bindToLifecycle())
-                                                .subscribe({
-                                                    Snackbar.make(binding.root, "Muted client: ${content.app}", Snackbar.LENGTH_SHORT).show()
-                                                }, Throwable::printStackTrace)
-                                    }
-                                }
-                            }
-                        }
-                    }).show(supportFragmentManager, ListDialogFragment.TAG)
+                    content
+            ).show(supportFragmentManager, ListDialogFragment.TAG)
         }
 
         override val showProfile = { accountId: Long ->
-            AccountProfileFragment.newObservableInstance(accountId)
-                    .subscribe( {
-                        fragment ->
-                        supportFragmentManager.beginTransaction()
-                                .replace(R.id.container, fragment, AccountProfileFragment.TAG)
-                                .addToBackStack(AccountProfileFragment.TAG)
-                                .commit()
-                    }, Throwable::printStackTrace)
+            Common.resetAuthInfo()?.let {
+                MastodonClient(it).getAccount(accountId)
+                        .subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .compose(bindToLifecycle())
+                        .subscribe({ account ->
+                            val fragment = AccountProfileFragment.newInstance(account)
+
+                            supportFragmentManager.beginTransaction()
+                                    .replace(R.id.container, fragment, AccountProfileFragment.TAG)
+                                    .addToBackStack(AccountProfileFragment.TAG)
+                                    .commit()
+                        })
+            } ?: let {}
         }
 
         override val onReply = { content: TimelineContent.TimelineStatus ->
@@ -276,9 +214,11 @@ class MainActivity : BaseActivity() {
         }
 
         currentCategory =
-                if (intent.extras?.containsKey(ARGS_KEY_CATEGORY) ?: false) intent.extras[ARGS_KEY_CATEGORY] as TimelineFragment.Category
-                else if (sharedPref.contains(STATE_KEY_CATEGORY)) TimelineFragment.Category.values()[sharedPref.getInt(STATE_KEY_CATEGORY, TimelineFragment.Category.Public.ordinal)]
-                else TimelineFragment.Category.Public
+                when {
+                    intent.extras?.containsKey(ARGS_KEY_CATEGORY) == true -> intent.extras[ARGS_KEY_CATEGORY] as TimelineFragment.Category
+                    sharedPref.contains(STATE_KEY_CATEGORY) -> TimelineFragment.Category.values()[sharedPref.getInt(STATE_KEY_CATEGORY, TimelineFragment.Category.Public.ordinal)]
+                    else -> TimelineFragment.Category.Public
+                }
 
         binding.appBarMain.contentMain.apply {
             simplicityTootBody.setOnKeyListener { v, keyCode, event ->
@@ -391,12 +331,79 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    override fun onClickListDialogItem(resId: Int, content: TimelineContent.TimelineStatus) {
+        when (resId) {
+            R.string.array_item_mute_account -> {
+                Common.resetAuthInfo()?.let { domain ->
+                    MastodonClient(domain).getOwnAccount()
+                            .flatMap { if (it.id == content.accountId) Single.never() else MastodonClient(domain).muteAccount(content.accountId) }
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe({
+                                Snackbar.make(binding.root, "Muted account: ${content.nameWeak}", Snackbar.LENGTH_SHORT).show()
+                            }, Throwable::printStackTrace)
+                }
+            }
+
+            R.string.array_item_mute_keyword -> {
+                val fragment = KeywordMuteFragment.newInstance(content.body.toString())
+                supportFragmentManager.beginTransaction()
+                        .replace(R.id.container, fragment, KeywordMuteFragment.TAG)
+                        .addToBackStack(KeywordMuteFragment.TAG)
+                        .commit()
+            }
+
+            R.string.array_item_mute_hash_tag -> {
+                val fragment = HashTagMuteFragment.newInstance(content.tags)
+                supportFragmentManager.beginTransaction()
+                        .replace(R.id.container, fragment, HashTagMuteFragment.TAG)
+                        .addToBackStack(HashTagMuteFragment.TAG)
+                        .commit()
+            }
+
+            R.string.array_item_mute_instance -> {
+                var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
+
+                if (content.nameWeak == instance) {
+                    instance = ""
+                    Common.getCurrentAccessToken()?.instanceId?.let {
+                        instance = "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(it).last().instance}"
+                    }
+                }
+
+                if (!TextUtils.isEmpty(instance)) {
+                    OrmaProvider.db.prepareInsertIntoMuteInstanceAsSingle()
+                            .map { inserter -> inserter.execute(MuteInstance(-1L, instance)) }
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .compose(bindToLifecycle())
+                            .subscribe({
+                                Snackbar.make(binding.root, "Muted instance: $instance", Snackbar.LENGTH_SHORT).show()
+                            }, Throwable::printStackTrace)
+                }
+            }
+
+            R.string.array_item_mute_client -> {
+                content.app?.let {
+                    OrmaProvider.db.prepareInsertIntoMuteClientAsSingle()
+                            .map { inserter -> inserter.execute(MuteClient(-1L, it)) }
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .compose(bindToLifecycle())
+                            .subscribe({
+                                Snackbar.make(binding.root, "Muted client: ${content.app}", Snackbar.LENGTH_SHORT).show()
+                            }, Throwable::printStackTrace)
+                }
+            }
+        }
+    }
+
     fun commitAccountsIntoAccountHeader() {
         accountHeader.clear()
 
         Observable.fromIterable(OrmaProvider.db.selectFromAccessToken())
                 .flatMap {
-                    MastodonClient(Common.setAuthInfo(it) ?: throw IllegalArgumentException()).getSelfAccount()
+                    MastodonClient(Common.setAuthInfo(it) ?: throw IllegalArgumentException()).getOwnAccount()
                             .map { account -> Pair(it, account) }
                             .toObservable()
                 }
@@ -450,7 +457,7 @@ class MainActivity : BaseActivity() {
                     .withOnAccountHeaderListener { v, profile, current ->
                         if (v.id == R.id.material_drawer_account_header_current) {
                             Common.resetAuthInfo()?.let {
-                                MastodonClient(it).getSelfAccount()
+                                MastodonClient(it).getOwnAccount()
                                         .subscribeOn(Schedulers.newThread())
                                         .observeOn(AndroidSchedulers.mainThread())
                                         .compose(bindToLifecycle())

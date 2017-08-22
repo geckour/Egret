@@ -109,6 +109,8 @@ dependencies {
     compile 'uk.co.chrisjenx:calligraphy:2.2.0'
 
     compile 'com.vanniktech:emoji-one:0.5.1'
+
+    compile 'commons-io:commons-io:2.5'
 }
 repositories {
     jcenter()

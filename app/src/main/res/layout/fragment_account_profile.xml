@@ -51,12 +51,15 @@
             app:layout_constraintLeft_toLeftOf="@+id/header"
             app:layout_constraintTop_toTopOf="@+id/header" />
 
-        <TextView
+        <com.vanniktech.emoji.EmojiEditText
             android:id="@+id/screenName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
+            android:layout_marginStart="8dp"
+            android:background="@android:color/transparent"
             android:ellipsize="end"
             android:minLines="1"
             android:singleLine="true"
@@ -69,9 +72,7 @@
             app:layout_constraintRight_toRightOf="@+id/header"
             app:layout_constraintTop_toTopOf="@+id/icon"
             app:layout_constraintVertical_chainStyle="packed"
-            tools:text="おなまえ"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp" />
+            tools:text="おなまえ" />
 
         <TextView
             android:id="@+id/username"
@@ -202,6 +203,20 @@
             app:layout_constraintRight_toRightOf="@+id/frameLayout" />
 
         <Button
+            android:id="@+id/button_cancel_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="4dp"
+            android:background="@drawable/button_custom_material"
+            android:minHeight="0dp"
+            android:minWidth="0dp"
+            android:text="@string/button_edit_cancel"
+            android:textSize="12sp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/header"
+            app:layout_constraintRight_toLeftOf="@+id/button_edit" />
+
+        <Button
             android:id="@+id/button_edit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -215,13 +230,14 @@
             app:layout_constraintBottom_toBottomOf="@+id/header"
             app:layout_constraintRight_toRightOf="@+id/header" />
 
-        <com.vanniktech.emoji.EmojiTextView
+        <com.vanniktech.emoji.EmojiEditText
             android:id="@+id/note"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="24dp"
             android:layout_marginRight="24dp"
             android:layout_marginTop="8dp"
+            android:background="@android:color/transparent"
             android:clickable="true"
             android:maxLines="5"
             android:scrollHorizontally="false"

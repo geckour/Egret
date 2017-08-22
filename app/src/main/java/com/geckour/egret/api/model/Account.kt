@@ -30,19 +30,19 @@ data class Account(
         @SerializedName("statuses_count")
         var statusesCount: Long,
 
-        val note: String,
+        var note: String,
 
         val url: URL,
 
         @SerializedName("avatar")
-        val avatarUrl: String,
+        var avatarUrl: String,
 
         @SerializedName("avatar_static")
-        val avatarImg: String,
+        var avatarUrlStatic: String,
 
         @SerializedName("header")
-        val headerUrl: String,
+        var headerUrl: String,
 
         @SerializedName("header_static")
-        val headerImg: String
+        var headerUrlStatic: String
 ): Serializable
