@@ -39,6 +39,8 @@ class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootC
     interface Callbacks {
         val copyTootUrlToClipboard: (url: String) -> Any
 
+        val shareToot: (content: TimelineContent.TimelineStatus) -> Any
+
         val showTootInBrowser: (content: TimelineContent.TimelineStatus) -> Any
 
         val copyTootToClipboard: (content: TimelineContent.TimelineStatus) -> Any
@@ -328,7 +330,7 @@ class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootC
             }
         }
 
-        fun showPopup(type: ContentType, view: View) {
+        private fun showPopup(type: ContentType, view: View) {
             val popup = PopupMenu(view.context, view)
             val currentAccountId = OrmaProvider.db.selectFromAccessToken().isCurrentEq(true).last().accountId
             val contentAccountId = when(type) {
@@ -342,6 +344,11 @@ class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootC
                         when (item?.itemId) {
                             R.id.action_url -> {
                                 listener.copyTootUrlToClipboard(timelineBinding.status.tootUrl)
+                                true
+                            }
+
+                            R.id.action_share -> {
+                                listener.shareToot(timelineBinding.status)
                                 true
                             }
 

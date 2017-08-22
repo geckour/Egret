@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.design.widget.Snackbar
+import android.support.v4.app.ShareCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.SearchView
 import android.text.Html
@@ -78,6 +79,15 @@ class MainActivity : BaseActivity(), ListDialogFragment.OnItemClickListener {
             val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("url of toot", url)
             clipboard.primaryClip = clip
+        }
+
+        override val shareToot = { content: TimelineContent.TimelineStatus ->
+            ShareCompat.IntentBuilder.from(this@MainActivity).apply {
+                setChooserTitle(R.string.dialog_title_share_toot)
+                setSubject(getString(R.string.dialog_subject_share_toot))
+                setText("${content.nameStrong}(${content.nameWeak}):\n${content.body}")
+                setType("text/plain")
+            }.startChooser()
         }
 
         override val showTootInBrowser = { content: TimelineContent.TimelineStatus ->

@@ -7,6 +7,7 @@
     <string name="action_settings">Settings</string>
     <string name="action_search">Search</string>
     <string name="action_copy_toot_url">Copy URL of toot</string>
+    <string name="action_share_toot">Share toot…</string>
     <string name="action_open_toot_in_web">Open in browser</string>
     <string name="action_copy_toot_body">Copy toot</string>
     <string name="error_toot_not_exist">Oops! the Toot does not exist!</string>
@@ -79,6 +80,8 @@
     <string name="dialog_button_pick_media">Pick media</string>
     <string name="dialog_button_capture_image">Capture photo</string>
     <string name="dialog_button_dismiss">Cancel</string>
+    <string name="dialog_title_share_toot">Share toot to other app</string>
+    <string name="dialog_subject_share_toot">Share toot from Egret</string>
 
     <string name="mentioned_by">Mentioned by</string>
     <string name="reblogged_by">Boosted by</string>

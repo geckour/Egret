@@ -44,6 +44,16 @@
             android:name=".view.activity.SettingActivity"
             android:label="@string/title_activity_setting"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".view.activity.ShareActivity"
+            android:label="@string/app_name"
+            android:noHistory="true">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
+        </activity>
 
         <service android:name=".NotificationService" />
 
