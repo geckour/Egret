@@ -16,5 +16,5 @@ data class Relationship(
         var muting: Boolean,
 
         @SerializedName("requested")
-        var requestedAllowToFollow: Boolean
+        var hasSendFollowRequest: Boolean
 )

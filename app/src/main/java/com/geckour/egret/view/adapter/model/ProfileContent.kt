@@ -8,6 +8,7 @@ data class ProfileContent(
         var iconImg: String?,
         var headerUrl: String,
         var headerImg: String?,
+        var locked: Boolean,
         var screenName: String,
         var username: String,
         var url: Spanned,

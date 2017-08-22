@@ -49,7 +49,6 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_marginLeft="8dp"
-            android:layout_marginStart="8dp"
             app:imageUrl="@{(status.rebloggedStatusContent == null) ? null : status.iconUrl}"
             app:layout_constraintBottom_toBottomOf="@+id/indicate_action"
             app:layout_constraintLeft_toRightOf="@+id/indicate_action"
@@ -71,7 +70,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="4dp"
-            android:layout_marginRight="8dp"
+            android:layout_marginRight="4dp"
             android:ellipsize="end"
             android:maxLines="1"
             android:singleLine="true"
@@ -79,9 +78,22 @@
             android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="@+id/indicate_action"
             app:layout_constraintLeft_toRightOf="@+id/actionBy"
-            app:layout_constraintRight_toLeftOf="@+id/time"
+            app:layout_constraintRight_toLeftOf="@+id/action_lock"
             app:layout_constraintTop_toTopOf="@+id/indicate_action"
             tools:text="ゆーざーねーむ" />
+
+        <ImageView
+            android:id="@+id/action_lock"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="8dp"
+            android:tint="@color/icon_tint_dark"
+            android:visibility="@{(status.rebloggedStatusContent == null) ? View.GONE : (status.rebloggedStatusContent.accountLocked ? View.VISIBLE : View.GONE)}"
+            app:layout_constraintBottom_toBottomOf="@+id/indicate_action"
+            app:layout_constraintRight_toLeftOf="@+id/time"
+            app:layout_constraintTop_toTopOf="@+id/indicate_action"
+            app:srcCompat="@drawable/ic_lock_black_24px" />
 
         <ImageView
             android:id="@+id/icon"
@@ -109,7 +121,7 @@
             android:textColor="?attr/colorGray"
             android:textSize="12sp"
             app:layout_constraintLeft_toRightOf="@+id/icon"
-            app:layout_constraintRight_toLeftOf="@+id/time"
+            app:layout_constraintRight_toLeftOf="@+id/lock"
             app:layout_constraintTop_toTopOf="@+id/icon"
             tools:text="つよいなまえ" />
 
@@ -117,7 +129,6 @@
             android:id="@+id/name_weak"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginRight="8dp"
             android:layout_marginTop="4dp"
             android:ellipsize="end"
             android:maxLines="1"
@@ -125,9 +136,20 @@
             android:text="@{(status.rebloggedStatusContent == null) ? status.nameWeak : status.rebloggedStatusContent.nameWeak}"
             android:textSize="10sp"
             app:layout_constraintLeft_toLeftOf="@+id/name_strong"
-            app:layout_constraintRight_toLeftOf="@+id/time"
+            app:layout_constraintRight_toRightOf="@+id/name_strong"
             app:layout_constraintTop_toBottomOf="@+id/name_strong"
             tools:text="よわいなまえ" />
+
+        <ImageView
+            android:id="@+id/lock"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginRight="8dp"
+            android:tint="@color/icon_tint_dark"
+            android:visibility="@{(status.rebloggedStatusContent == null) ? (status.accountLocked ? View.VISIBLE : View.GONE) : (status.rebloggedStatusContent.accountLocked ? View.VISIBLE : View.GONE)}"
+            app:layout_constraintRight_toLeftOf="@+id/time"
+            app:layout_constraintTop_toTopOf="@+id/icon"
+            app:srcCompat="@drawable/ic_lock_black_24px" />
 
         <ImageView
             android:id="@+id/opt"
