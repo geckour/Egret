@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <include android:id="@+id/license_stetho"
+                    layout="@layout/item_license" />
+
+                <include android:id="@+id/license_reactive_x_java"
+                    layout="@layout/item_license" />
+
+                <include android:id="@+id/license_reactive_x_android"
+                    layout="@layout/item_license" />
+
+                <include android:id="@+id/license_reactive_x_kotlin"
+                    layout="@layout/item_license" />
+
+                <include android:id="@+id/license_reactive_x_lifecycle"
+                    layout="@layout/item_license" />
+
+                <include android:id="@+id/license_orma"
+                    layout="@layout/item_license" />
+
+                <include android:id="@+id/license_retrofit"
+                    layout="@layout/item_license" />
+
+                <include android:id="@+id/license_glide"
+                    layout="@layout/item_license" />
+
+                <include android:id="@+id/license_timber"
+                    layout="@layout/item_license" />
+
+                <include android:id="@+id/license_paper_parcel"
+                    layout="@layout/item_license" />
+
+                <include android:id="@+id/license_material_drawer"
+                    layout="@layout/item_license" />
+
+                <include android:id="@+id/license_circular_image_view"
+                    layout="@layout/item_license" />
+
+                <include android:id="@+id/license_calligraphy"
+                    layout="@layout/item_license" />
+
+                <include android:id="@+id/license_emoji"
+                    layout="@layout/item_license" />
+
+                <include android:id="@+id/license_commons_io"
+                    layout="@layout/item_license" />
+            </LinearLayout>
+        </ScrollView>
+    </FrameLayout>
+</layout>

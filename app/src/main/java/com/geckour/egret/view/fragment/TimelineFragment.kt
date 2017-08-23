@@ -250,10 +250,10 @@ class TimelineFragment: BaseFragment() {
     private fun reflectCategorySelection() {
         (activity as MainActivity).resetSelectionNavItem(
                 when (getCategory()) {
-                    Category.Public -> MainActivity.NAV_ITEM_TL_PUBLIC
-                    Category.Local -> MainActivity.NAV_ITEM_TL_LOCAL
-                    Category.User -> MainActivity.NAV_ITEM_TL_USER
-                    Category.Notification -> MainActivity.NAV_ITEM_TL_NOTIFICATION
+                    Category.Public -> MainActivity.NavItem.NAV_ITEM_TL_PUBLIC.ordinal.toLong()
+                    Category.Local -> MainActivity.NavItem.NAV_ITEM_TL_LOCAL.ordinal.toLong()
+                    Category.User -> MainActivity.NavItem.NAV_ITEM_TL_USER.ordinal.toLong()
+                    Category.Notification -> MainActivity.NavItem.NAV_ITEM_TL_NOTIFICATION.ordinal.toLong()
                     else -> -1
                 })
     }

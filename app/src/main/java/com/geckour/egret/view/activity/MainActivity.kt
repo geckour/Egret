@@ -50,7 +50,7 @@ import timber.log.Timber
 class MainActivity : BaseActivity(), ListDialogFragment.OnItemClickListener {
 
     lateinit var binding: ActivityMainBinding
-    lateinit var drawer: Drawer
+    lateinit private var drawer: Drawer
     lateinit private var accountHeader: AccountHeader
     private val sharedPref: SharedPreferences by lazy { PreferenceManager.getDefaultSharedPreferences(this) }
     lateinit private var currentCategory: TimelineFragment.Category
@@ -58,12 +58,6 @@ class MainActivity : BaseActivity(), ListDialogFragment.OnItemClickListener {
     companion object {
         const val STATE_KEY_THEME_MODE = "stateKeyThemeMode"
         const val ARGS_KEY_CATEGORY = "argsKeyCategory"
-        const val NAV_ITEM_LOGIN: Long = 0
-        const val NAV_ITEM_TL_PUBLIC: Long = 1
-        const val NAV_ITEM_TL_LOCAL: Long = 2
-        const val NAV_ITEM_TL_USER: Long = 3
-        const val NAV_ITEM_TL_NOTIFICATION: Long = 4
-        const val NAV_ITEM_SETTINGS: Long = 5
         const val REQUEST_CODE_NOTIFICATION = 0
 
         fun getIntent(context: Context, category: TimelineFragment.Category? = null): Intent {
@@ -72,6 +66,16 @@ class MainActivity : BaseActivity(), ListDialogFragment.OnItemClickListener {
 
             return intent
         }
+    }
+
+    enum class NavItem {
+        NAV_ITEM_LOGIN,
+        NAV_ITEM_TL_PUBLIC,
+        NAV_ITEM_TL_LOCAL,
+        NAV_ITEM_TL_USER,
+        NAV_ITEM_TL_NOTIFICATION,
+        NAV_ITEM_SETTINGS,
+        NAV_ITEM_OTHERS
     }
 
     val timelineListener = object: TimelineAdapter.Callbacks {
@@ -120,7 +124,7 @@ class MainActivity : BaseActivity(), ListDialogFragment.OnItemClickListener {
                                     }
                             )
                     )
-                    2 -> Pair(R.string.array_item_mute_hash_tag, if (content.tags.isEmpty()) "" else s.format(content.tags.map { tag -> "#$tag" }.joinToString()))
+                    2 -> Pair(R.string.array_item_mute_hash_tag, if (content.tags.isEmpty()) "" else s.format(content.tags.joinToString { tag -> "#$tag" }))
                     3 -> {
                         var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
 
@@ -297,9 +301,7 @@ class MainActivity : BaseActivity(), ListDialogFragment.OnItemClickListener {
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         menu?.findItem(R.id.action_search)?.icon?.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP)
         (menu?.findItem(R.id.action_search)?.actionView as SearchView?)?.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
-            override fun onQueryTextChange(text: String?): Boolean {
-                return false
-            }
+            override fun onQueryTextChange(text: String?): Boolean = false
 
             override fun onQueryTextSubmit(text: String?): Boolean {
                 if (text != null) {
@@ -513,44 +515,51 @@ class MainActivity : BaseActivity(), ListDialogFragment.OnItemClickListener {
                 .withActionBarDrawerToggleAnimated(true)
                 .withToolbar(binding.appBarMain.toolbar)
                 .addDrawerItems(
-                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_public).withIdentifier(NAV_ITEM_TL_PUBLIC).withIcon(R.drawable.ic_public_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
-                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_local).withIdentifier(NAV_ITEM_TL_LOCAL).withIcon(R.drawable.ic_place_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
-                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_user).withIdentifier(NAV_ITEM_TL_USER).withIcon(R.drawable.ic_mood_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
-                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_notification).withIdentifier(NAV_ITEM_TL_NOTIFICATION).withIcon(R.drawable.ic_notifications_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
+                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_public).withIdentifier(NavItem.NAV_ITEM_TL_PUBLIC.ordinal.toLong()).withIcon(R.drawable.ic_public_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
+                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_local).withIdentifier(NavItem.NAV_ITEM_TL_LOCAL.ordinal.toLong()).withIcon(R.drawable.ic_place_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
+                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_user).withIdentifier(NavItem.NAV_ITEM_TL_USER.ordinal.toLong()).withIcon(R.drawable.ic_mood_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
+                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_notification).withIdentifier(NavItem.NAV_ITEM_TL_NOTIFICATION.ordinal.toLong()).withIcon(R.drawable.ic_notifications_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
                         DividerDrawerItem(),
-                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_login).withIdentifier(NAV_ITEM_LOGIN).withIcon(R.drawable.ic_person_add_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
+                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_login).withIdentifier(NavItem.NAV_ITEM_LOGIN.ordinal.toLong()).withIcon(R.drawable.ic_person_add_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
                         DividerDrawerItem(),
-                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_settings).withIdentifier(NAV_ITEM_SETTINGS).withIcon(R.drawable.ic_settings_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark)
+                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_settings).withIdentifier(NavItem.NAV_ITEM_SETTINGS.ordinal.toLong()).withIcon(R.drawable.ic_settings_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
+                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_others).withIdentifier(NavItem.NAV_ITEM_OTHERS.ordinal.toLong()).withIcon(R.drawable.ic_extension_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark)
                 )
                 .withOnDrawerItemClickListener { _, _, item ->
                     return@withOnDrawerItemClickListener when (item.identifier) {
-                        NAV_ITEM_LOGIN -> {
+                        NavItem.NAV_ITEM_LOGIN.ordinal.toLong() -> {
                             startActivity(LoginActivity.getIntent(this))
                             false
                         }
 
-                        NAV_ITEM_TL_PUBLIC -> {
+                        NavItem.NAV_ITEM_TL_PUBLIC.ordinal.toLong() -> {
                             showTimelineFragment(TimelineFragment.Category.Public)
                             false
                         }
 
-                        NAV_ITEM_TL_LOCAL -> {
+                        NavItem.NAV_ITEM_TL_LOCAL.ordinal.toLong() -> {
                             showTimelineFragment(TimelineFragment.Category.Local)
                             false
                         }
 
-                        NAV_ITEM_TL_USER -> {
+                        NavItem.NAV_ITEM_TL_USER.ordinal.toLong() -> {
                             showTimelineFragment(TimelineFragment.Category.User)
                             false
                         }
 
-                        NAV_ITEM_TL_NOTIFICATION -> {
+                        NavItem.NAV_ITEM_TL_NOTIFICATION.ordinal.toLong() -> {
                             showTimelineFragment(TimelineFragment.Category.Notification)
                             false
                         }
 
-                        NAV_ITEM_SETTINGS -> {
-                            val intent = SettingActivity.getIntent(this)
+                        NavItem.NAV_ITEM_SETTINGS.ordinal.toLong() -> {
+                            val intent = SettingActivity.getIntent(this, SettingActivity.Type.Preference)
+                            startActivity(intent)
+                            false
+                        }
+
+                        NavItem.NAV_ITEM_OTHERS.ordinal.toLong() -> {
+                            val intent = SettingActivity.getIntent(this, SettingActivity.Type.Misc)
                             startActivity(intent)
                             false
                         }
