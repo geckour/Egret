@@ -14,11 +14,7 @@ class SettingMainFragment: PreferenceFragmentCompat(), PreferenceFragmentCompat.
     companion object {
         val TAG: String = this::class.java.simpleName
 
-        fun newInstance(): SettingMainFragment {
-            val fragment = SettingMainFragment()
-
-            return fragment
-        }
+        fun newInstance(): SettingMainFragment = SettingMainFragment()
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
@@ -27,9 +23,7 @@ class SettingMainFragment: PreferenceFragmentCompat(), PreferenceFragmentCompat.
         preferenceScreen.findPreference("manage_restrictions").setOnPreferenceClickListener { showRestrictFragment() }
     }
 
-    override fun getCallbackFragment(): Fragment {
-        return this
-    }
+    override fun getCallbackFragment(): Fragment = this
 
     override fun onPreferenceStartScreen(caller: PreferenceFragmentCompat?, pref: PreferenceScreen?): Boolean {
         caller?.preferenceScreen = pref
@@ -48,7 +42,7 @@ class SettingMainFragment: PreferenceFragmentCompat(), PreferenceFragmentCompat.
         }
     }
 
-    fun showAccountManageFragment(): Boolean {
+    private fun showAccountManageFragment(): Boolean {
         val fragment = AccountManageFragment.newInstance()
         (activity as SettingActivity).supportFragmentManager.beginTransaction()
                 .replace(R.id.container, fragment, AccountManageFragment.TAG)
@@ -58,7 +52,7 @@ class SettingMainFragment: PreferenceFragmentCompat(), PreferenceFragmentCompat.
         return true
     }
 
-    fun showRestrictFragment(): Boolean {
+    private fun showRestrictFragment(): Boolean {
         val fragment = SettingRestrictFragment.newInstance()
         (activity as SettingActivity).supportFragmentManager.beginTransaction()
                 .replace(R.id.container, fragment, SettingRestrictFragment.TAG)
