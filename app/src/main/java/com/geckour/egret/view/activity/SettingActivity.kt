@@ -36,18 +36,20 @@ class SettingActivity: BaseActivity() {
         setSupportActionBar(toolbar)
         binding.appBarMain.contentMain.fab.hide()
 
-        if (intent.hasExtra(ARGS_KEY_TYPE)) {
-            when (intent.extras[ARGS_KEY_TYPE]) {
-                Type.Preference -> {
-                    supportFragmentManager.beginTransaction()
-                            .replace(R.id.container, SettingMainFragment.newInstance(), SettingMainFragment.TAG)
-                            .commit()
-                }
+        if (savedInstanceState == null) {
+            if (intent.hasExtra(ARGS_KEY_TYPE)) {
+                when (intent.extras[ARGS_KEY_TYPE]) {
+                    Type.Preference -> {
+                        supportFragmentManager.beginTransaction()
+                                .replace(R.id.container, SettingMainFragment.newInstance(), SettingMainFragment.TAG)
+                                .commit()
+                    }
 
-                Type.Misc -> {
-                    supportFragmentManager.beginTransaction()
-                            .replace(R.id.container, MiscFragment.newInstance(), MiscFragment.TAG)
-                            .commit()
+                    Type.Misc -> {
+                        supportFragmentManager.beginTransaction()
+                                .replace(R.id.container, MiscFragment.newInstance(), MiscFragment.TAG)
+                                .commit()
+                    }
                 }
             }
         }
