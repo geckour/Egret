@@ -481,41 +481,31 @@ class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootC
     fun getContents(): List<TimelineContent> = this.contents
 
     fun addContent(content: TimelineContent, limit: Int = DEFAULT_ITEMS_LIMIT) {
-        Single.just(content)
-                .map { Pair(it, shouldMute(it)) }
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ (c, b) ->
-                    if (!b) {
-                        this.contents.add(0, c)
-                        notifyItemInserted(0)
-                        onAddTootListener?.onAddOnTop()
-                        removeItemsWhenOverLimit(limit)
-                    }
-                }, Throwable::printStackTrace)
+        shouldMute(content).subscribe({ (c, b) ->
+            if (!b) {
+                this.contents.add(0, c)
+                notifyItemInserted(0)
+                onAddTootListener?.onAddOnTop()
+                removeItemsWhenOverLimit(limit)
+            }
+        }, Throwable::printStackTrace)
     }
 
     fun addContentAtLast(content: TimelineContent, limit: Int = DEFAULT_ITEMS_LIMIT) {
-        Single.just(content)
-                .map { Pair(it, shouldMute(it)) }
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ (c, b) ->
-                    if (!b) {
-                        this.contents.add(c)
-                        notifyItemInserted(this.contents.lastIndex)
-                        removeItemsWhenOverLimit(limit)
-                    }
-                }, Throwable::printStackTrace)
+        shouldMute(content).subscribe({ (c, b) ->
+            if (!b) {
+                this.contents.add(c)
+                notifyItemInserted(this.contents.lastIndex)
+                removeItemsWhenOverLimit(limit)
+            }
+        }, Throwable::printStackTrace)
     }
 
     fun addAllContents(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
         val cs: ArrayList<TimelineContent> = ArrayList()
 
         Observable.fromIterable(contents)
-                .map { Pair(it, shouldMute(it)) }
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+                .flatMap { shouldMute(it).toObservable() }
                 .subscribe({ (c, b) ->
                     if (!b) {
                         cs.add(c)
@@ -532,7 +522,7 @@ class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootC
         val cs: ArrayList<TimelineContent> = ArrayList()
 
         Observable.fromIterable(contents)
-                .map { Pair(it, shouldMute(it)) }
+                .flatMap { shouldMute(it).toObservable() }
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ (c, b) ->
@@ -570,32 +560,41 @@ class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootC
         }
     }
 
-    fun shouldMute(content: TimelineContent): Boolean {
-        if (!doFilter) return false
+    fun shouldMute(content: TimelineContent): Single<Pair<TimelineContent, Boolean>> {
+        return Single.just(content)
+                .map {
+                    val mute: Boolean = run {
+                        if (!doFilter) return@run false
 
-        OrmaProvider.db.selectFromMuteClient().forEach {
-            if (content.status?.app == it.client) return true
-        }
-        OrmaProvider.db.selectFromMuteHashTag().forEach { tag ->
-            content.status?.tags?.forEach { if (tag.hashTag == it) return true }
-        }
-        OrmaProvider.db.selectFromMuteKeyword().forEach {
-            if (it.isRegex) {
-                if (content.status?.body?.toString()?.matches(Regex(it.keyword)) ?: false) return true
-            } else if (content.status?.body?.toString()?.contains(it.keyword) ?: false) return true
-        }
-        OrmaProvider.db.selectFromMuteInstance().forEach {
-            var instance = content.status?.nameWeak?.replace(Regex("^@.+@(.+)$"), "@$1") ?: ""
-            if (content.status?.nameWeak == instance) {
-                instance = Common.getCurrentAccessToken()?.instanceId?.let {
-                    "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(it).last().instance}"
-                } ?: ""
-            }
+                        OrmaProvider.db.selectFromMuteClient().forEach {
+                            if (content.status?.app == it.client) return@run  true
+                        }
+                        OrmaProvider.db.selectFromMuteHashTag().forEach { tag ->
+                            content.status?.tags?.forEach { if (tag.hashTag == it) return@run  true }
+                        }
+                        OrmaProvider.db.selectFromMuteKeyword().forEach {
+                            if (it.isRegex) {
+                                if (content.status?.body?.toString()?.matches(Regex(it.keyword)) == true) return@run  true
+                            } else if (content.status?.body?.toString()?.contains(it.keyword) == true) return@run  true
+                        }
+                        OrmaProvider.db.selectFromMuteInstance().forEach {
+                            var instance = content.status?.nameWeak?.replace(Regex("^@.+@(.+)$"), "@$1") ?: ""
+                            if (content.status?.nameWeak == instance) {
+                                instance = Common.getCurrentAccessToken()?.instanceId?.let {
+                                    "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(it).last().instance}"
+                                } ?: ""
+                            }
 
-            if (it.instance == instance) return true
-        }
+                            if (it.instance == instance) return@run  true
+                        }
 
-        return false
+                        return@run  false
+                    }
+
+                    Pair(it, mute)
+                }
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
     }
 
     private fun removeItemsWhenOverLimit(limit: Int = DEFAULT_ITEMS_LIMIT) {
