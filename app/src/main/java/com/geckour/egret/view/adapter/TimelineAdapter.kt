@@ -26,7 +26,7 @@ import kotlin.collections.ArrayList
 class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootCallback? = null, val doFilter: Boolean = true) : RecyclerView.Adapter<TimelineAdapter.ViewHolder>() {
 
     companion object {
-        val DEFAULT_ITEMS_LIMIT = 100
+        const val DEFAULT_ITEMS_LIMIT = 100
     }
 
     enum class ContentType {
