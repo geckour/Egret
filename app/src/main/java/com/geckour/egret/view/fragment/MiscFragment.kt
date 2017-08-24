@@ -36,7 +36,7 @@ class MiscFragment: PreferenceFragmentCompat(), PreferenceFragmentCompat.OnPrefe
 
         (activity as? SettingActivity)?.binding?.appBarMain?.toolbar?.title = getString(R.string.title_fragment_others)
     }
-    
+
     private fun showLicenseFragment(): Boolean {
         val fragment = LicenseFragment.newInstance()
         (activity as SettingActivity).supportFragmentManager.beginTransaction()
