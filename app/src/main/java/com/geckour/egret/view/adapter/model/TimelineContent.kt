@@ -1,7 +1,6 @@
 package com.geckour.egret.view.adapter.model
 
 import android.text.Spanned
-import com.geckour.egret.api.model.Notification
 import java.io.Serializable
 import java.util.*
 
