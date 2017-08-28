@@ -78,6 +78,10 @@ class MainActivity : BaseActivity(), ListDialogFragment.OnItemClickListener {
         NAV_ITEM_OTHERS
     }
 
+    interface OnBackPressedListener {
+        fun onBackPressedInMainActivity(callback: (doBack: Boolean) -> Any)
+    }
+
     val timelineListener = object: TimelineAdapter.Callbacks {
         override val copyTootUrlToClipboard = { url: String ->
             val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -288,7 +292,9 @@ class MainActivity : BaseActivity(), ListDialogFragment.OnItemClickListener {
         if (drawer.isDrawerOpen) {
             drawer.closeDrawer()
         } else {
-            super.onBackPressed()
+            (supportFragmentManager.fragments.lastOrNull { it.isVisible } as? OnBackPressedListener)?.let {
+                it.onBackPressedInMainActivity { if (it) super.onBackPressed() }
+            } ?: super.onBackPressed()
         }
     }
 
