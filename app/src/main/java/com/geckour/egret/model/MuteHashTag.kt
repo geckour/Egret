@@ -6,7 +6,7 @@ import com.github.gfx.android.orma.annotation.Setter
 import com.github.gfx.android.orma.annotation.Table
 
 @Table
-class MuteHashTag(
+data class MuteHashTag(
     @Setter("id") @PrimaryKey(autoincrement = true) val id: Long = -1L,
     @Setter("hashTag") @Column var hashTag: String = ""
 )

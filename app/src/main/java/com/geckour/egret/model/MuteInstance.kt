@@ -6,7 +6,7 @@ import com.github.gfx.android.orma.annotation.Setter
 import com.github.gfx.android.orma.annotation.Table
 
 @Table
-class MuteInstance(
+data class MuteInstance(
         @Setter("id") @PrimaryKey(autoincrement = true) val id: Long = -1L,
         @Setter("instance") @Column var instance: String = ""
 )

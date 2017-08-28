@@ -12,11 +12,8 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.vanniktech.emoji.EmojiManager
 import com.vanniktech.emoji.one.EmojiOneProvider
-import paperparcel.Adapter
-import paperparcel.ProcessorConfig
 import timber.log.Timber
 
-@ProcessorConfig(adapters = arrayOf(Adapter(SpannedTypeAdapter::class)))
 class App: Application() {
 
     companion object {
