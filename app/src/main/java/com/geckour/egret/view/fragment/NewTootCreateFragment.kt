@@ -3,8 +3,8 @@ package com.geckour.egret.view.fragment
 import android.Manifest
 import android.app.Activity
 import android.content.ClipData
-import android.content.ContentUris
 import android.content.ContentValues
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.databinding.DataBindingUtil
@@ -15,6 +15,7 @@ import android.provider.MediaStore
 import android.support.design.widget.Snackbar
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
+import android.support.v7.app.AlertDialog
 import android.text.Editable
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -22,12 +23,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.EditText
-import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
+import com.geckour.egret.api.model.Attachment
 import com.geckour.egret.api.service.MastodonService
 import com.geckour.egret.databinding.FragmentCreateNewTootBinding
+import com.geckour.egret.model.Draft
 import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.MainActivity
@@ -43,13 +45,15 @@ import okhttp3.RequestBody
 import java.io.File
 
 
-class NewTootCreateFragment : BaseFragment() {
+class NewTootCreateFragment : BaseFragment(), MainActivity.OnBackPressedListener {
 
-    lateinit var binding: FragmentCreateNewTootBinding
+    lateinit private var binding: FragmentCreateNewTootBinding
     private val postMediaReqs: ArrayList<Disposable> = ArrayList()
-    private var mediaCount: Int = 0
-    private val mediaIds: ArrayList<Long> = ArrayList()
+    private val attachments: ArrayList<Attachment> = ArrayList()
     private var capturedImageUri: Uri? = null
+    lateinit private var initialBody: String
+    lateinit private var initialAlertBody: String
+    private var isSuccessPost = false
 
     companion object {
         val TAG: String = this::class.java.simpleName
@@ -123,6 +127,16 @@ class NewTootCreateFragment : BaseFragment() {
         if (arguments.containsKey(ARGS_KEY_BODY))
             binding.tootBody.text = Editable.Factory.getInstance().newEditable(arguments.getString(ARGS_KEY_BODY))
 
+        if (arguments.containsKey(ARGS_KEY_REPLY_TO_STATUS_ID)
+                && arguments.containsKey(ARGS_KEY_REPLY_TO_ACCOUNT_NAME)
+                && arguments.getString(ARGS_KEY_REPLY_TO_ACCOUNT_NAME) != null) {
+            binding.replyTo.text = "reply to: ${arguments.getString(ARGS_KEY_REPLY_TO_ACCOUNT_NAME)}"
+            binding.replyTo.visibility = View.VISIBLE
+            val accountName = "${arguments.getString(ARGS_KEY_REPLY_TO_ACCOUNT_NAME)} "
+            binding.tootBody.text = Editable.Factory.getInstance().newEditable(accountName)
+            binding.tootBody.setSelection(accountName.length)
+        }
+
         binding.tootBody.setOnKeyListener { v, keyCode, event ->
             when (event.action) {
                 KeyEvent.ACTION_DOWN -> {
@@ -174,15 +188,8 @@ class NewTootCreateFragment : BaseFragment() {
             postToot(binding.tootBody.text.toString())
         }
 
-        if (arguments.containsKey(ARGS_KEY_REPLY_TO_STATUS_ID)
-                && arguments.containsKey(ARGS_KEY_REPLY_TO_ACCOUNT_NAME)
-                && arguments.getString(ARGS_KEY_REPLY_TO_ACCOUNT_NAME) != null) {
-            binding.replyTo.text = "reply to: ${arguments.getString(ARGS_KEY_REPLY_TO_ACCOUNT_NAME)}"
-            binding.replyTo.visibility = View.VISIBLE
-            val accountName = "${arguments.getString(ARGS_KEY_REPLY_TO_ACCOUNT_NAME)} "
-            binding.tootBody.text = Editable.Factory.getInstance().newEditable(accountName)
-            binding.tootBody.setSelection(accountName.length)
-        }
+        initialBody = binding.tootBody.text.toString()
+        initialAlertBody = binding.tootAlertBody.text.toString()
     }
 
     override fun onPause() {
@@ -196,16 +203,37 @@ class NewTootCreateFragment : BaseFragment() {
         when (requestCode) {
             REQUEST_CODE_PICK_MEDIA -> {
                 if (resultCode == Activity.RESULT_OK) {
-                    data?.let { bindMedia(it) }
+                    data?.let { postMedia(it) }
                 }
             }
 
             REQUEST_CODE_CAPTURE_IMAGE -> {
                 if (resultCode == Activity.RESULT_OK) {
-                    capturedImageUri?.let { bindImage(it) }
+                    capturedImageUri?.let { postImage(it) }
                 }
             }
         }
+    }
+
+    override fun onBackPressedInMainActivity(callback: (Boolean) -> Any) {
+        if (isSuccessPost.not() &&
+                (initialBody != binding.tootBody.text.toString() || initialAlertBody != binding.tootAlertBody.text.toString())) {
+            AlertDialog.Builder(activity)
+                    .setTitle(R.string.dialog_title_confirm_save)
+                    .setMessage(R.string.dialog_message_confirm_save)
+                    .setPositiveButton(R.string.dialog_button_ok_confirm_save, { dialog, _ ->
+                        saveAsDraft(dialog, callback)
+                    })
+                    .setNegativeButton(R.string.dialog_button_dismiss_confirm_save, { dialog, _ ->
+                        dialog.dismiss()
+                        callback(true)
+                    })
+                    .setNeutralButton(R.string.dialog_button_cancel_confirm_save, { dialog, _ ->
+                        dialog.dismiss()
+                        callback(false)
+                    })
+                    .show()
+        } else callback(true)
     }
 
     private fun postToot(body: String) {
@@ -218,7 +246,7 @@ class NewTootCreateFragment : BaseFragment() {
                 .postNewToot(
                         body = body,
                         inReplyToId = if (binding.replyTo.visibility == View.VISIBLE) arguments.getLong(ARGS_KEY_REPLY_TO_STATUS_ID) else null,
-                        mediaIds = if (mediaIds.size > 0) mediaIds else null,
+                        mediaIds = if (attachments.size > 0) attachments.map { it.id } else null,
                         isSensitive = binding.switchNsfw.isChecked,
                         spoilerText = if (binding.switchCw.isChecked) binding.tootAlertBody.text.toString() else null,
                         visibility = when (binding.spinnerVisibility.selectedItemPosition) {
@@ -231,6 +259,75 @@ class NewTootCreateFragment : BaseFragment() {
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe( { onPostSuccess() }, Throwable::printStackTrace)
+    }
+
+    private fun saveAsDraft(dialog: DialogInterface, callback: (Boolean) -> Any, draftId: Long? = null) {
+        Common.getCurrentAccessToken()?.let { (id) ->
+            if (draftId == null) {
+                OrmaProvider.db.relationOfDraft()
+                        .insertAsSingle {
+                            Draft(
+                                    tokenId = id,
+                                    body = binding.tootBody.text.toString(),
+                                    alertBody = binding.tootAlertBody.text.toString(),
+                                    inReplyToId = if (binding.replyTo.visibility == View.VISIBLE) arguments.getLong(ARGS_KEY_REPLY_TO_STATUS_ID) else null,
+                                    attachments = Draft.Attachments(attachments),
+                                    sensitive = binding.switchNsfw.isChecked,
+                                    visibility = when (binding.spinnerVisibility.selectedItemPosition) {
+                                        0 -> MastodonService.Visibility.public.ordinal
+                                        1 -> MastodonService.Visibility.unlisted.ordinal
+                                        2 -> MastodonService.Visibility.private.ordinal
+                                        3 -> MastodonService.Visibility.direct.ordinal
+                                        else -> -1
+                                    }
+                            )
+                        }
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe({
+                            Snackbar.make(binding.root, R.string.complete_save_draft, Snackbar.LENGTH_SHORT).show()
+                            dialog.dismiss()
+                            callback(true)
+                        }, { throwable ->
+                            throwable.printStackTrace()
+                            Snackbar.make(binding.root, R.string.failure_save_draft, Snackbar.LENGTH_SHORT).show()
+                            dialog.dismiss()
+                            callback(false)
+                        })
+            } else {
+                OrmaProvider.db.relationOfDraft()
+                        .upsertAsSingle(
+                                Draft(
+                                        id = draftId,
+                                        tokenId = id,
+                                        body = binding.tootBody.text.toString(),
+                                        alertBody = binding.tootAlertBody.text.toString(),
+                                        inReplyToId = if (binding.replyTo.visibility == View.VISIBLE) arguments.getLong(ARGS_KEY_REPLY_TO_STATUS_ID) else null,
+                                        attachments = Draft.Attachments(attachments),
+                                        sensitive = binding.switchNsfw.isChecked,
+                                        visibility = when (binding.spinnerVisibility.selectedItemPosition) {
+                                            0 -> MastodonService.Visibility.public.ordinal
+                                            1 -> MastodonService.Visibility.unlisted.ordinal
+                                            2 -> MastodonService.Visibility.private.ordinal
+                                            3 -> MastodonService.Visibility.direct.ordinal
+                                            else -> -1
+                                        }
+                                )
+                        )
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe({
+                            Snackbar.make(binding.root, R.string.complete_save_draft, Snackbar.LENGTH_SHORT).show()
+                            dialog.dismiss()
+                            callback(true)
+                        }, { throwable ->
+                            throwable.printStackTrace()
+                            Snackbar.make(binding.root, R.string.failure_save_draft, Snackbar.LENGTH_SHORT).show()
+                            dialog.dismiss()
+                            callback(false)
+                        })
+            }
+        }
     }
 
     private fun pickMedia() {
@@ -286,146 +383,90 @@ class NewTootCreateFragment : BaseFragment() {
         }
     }
 
-    private fun bindMedia(data: Intent) {
-        Common.resetAuthInfo()?.let { domain ->
-            if (data.clipData != null) {
-                getMediaPathsFromClipDataAsObservable(data.clipData)
-                        .subscribeOn(Schedulers.newThread())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .compose(bindToLifecycle())
-                        .subscribe({ (path, uri) ->
-                            if (++mediaCount < 5) {
-                                postMedia(domain, path, uri)
-                            } else {
-                                Snackbar.make(binding.root, R.string.error_too_many_media, Snackbar.LENGTH_SHORT).show()
+    private fun postMedia(data: Intent) {
+        if (attachments.size < 4) {
+            Common.resetAuthInfo()?.let { domain ->
+                if (data.clipData != null) {
+                    getMediaPathsFromClipDataAsObservable(data.clipData)
+                            .flatMap { (path, uri) ->
+                                queryPostImageToAPI(domain, path, uri).toObservable()
                             }
-                        }, Throwable::printStackTrace)
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .compose(bindToLifecycle())
+                            .subscribe({
+                                attachments.add(it)
+                                indicateImage(it.previewImgUrl)
+                            }, { throwable ->
+                                throwable.printStackTrace()
+                                Snackbar.make(binding.root, R.string.error_unable_upload_media, Snackbar.LENGTH_SHORT).show()
+                            })
+                }
+
+                if (data.data != null) {
+                    getMediaPathFromUriAsSingle(data.data)
+                            .flatMap { (path, uri) ->
+                                queryPostImageToAPI(domain, path, uri)
+                            }
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .compose(bindToLifecycle())
+                            .subscribe({
+                                attachments.add(it)
+                                indicateImage(it.previewImgUrl)
+                            }, { throwable ->
+                                throwable.printStackTrace()
+                                Snackbar.make(binding.root, R.string.error_unable_upload_media, Snackbar.LENGTH_SHORT).show()
+                            })
+                }
             }
-            if (data.data != null && ++mediaCount < 5) {
-                getMediaPathFromUriAsSingle(data.data)
+        } else Snackbar.make(binding.root, R.string.error_too_many_media, Snackbar.LENGTH_SHORT).show()
+    }
+
+    private fun postImage(uri: Uri) {
+        if (attachments.size < 4) {
+            Common.resetAuthInfo()?.let { domain ->
+                getImagePathFromUriAsSingle(uri)
+                        .flatMap { path ->
+                            queryPostImageToAPI(domain, path, uri)
+                        }
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
                         .compose(bindToLifecycle())
                         .subscribe({
-                            if (++mediaCount < 5) {
-                                postMedia(domain, it, data.data)
-                            } else {
-                                Snackbar.make(binding.root, R.string.error_too_many_media, Snackbar.LENGTH_SHORT).show()
-                            }
-                        }, Throwable::printStackTrace)
+                            attachments.add(it)
+                            indicateImage(it.url)
+                        }, { throwable ->
+                            throwable.printStackTrace()
+                            Snackbar.make(binding.root, R.string.error_unable_upload_media, Snackbar.LENGTH_SHORT).show()
+                        })
             }
+        } else {
+            Snackbar.make(binding.root, R.string.error_too_many_media, Snackbar.LENGTH_SHORT).show()
         }
     }
 
-    private fun bindImage(uri: Uri) {
-        getImagePathFromUriAsSingle(uri)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .compose(bindToLifecycle())
-                .subscribe({ path ->
-                    if (++mediaCount < 5) {
-                        Common.resetAuthInfo()?.let {
-                            postImage(it, path, uri)
-                        }
-                    } else {
-                        Snackbar.make(binding.root, R.string.error_too_many_media, Snackbar.LENGTH_SHORT).show()
-                    }
-                }, Throwable::printStackTrace)
-    }
-
-    private fun postMedia(domain: String, path: String, uri: Uri) {
+    private fun queryPostImageToAPI(domain: String, path: String, uri: Uri): Single<Attachment> {
         val file = File(path)
         val body = MultipartBody.Part.createFormData(
                 "file",
                 file.name,
                 RequestBody.create(MediaType.parse(activity.contentResolver.getType(uri)), file))
 
-        postMediaReqs.add(
-                MastodonClient(domain).postNewMedia(body)
-                        .subscribeOn(Schedulers.newThread())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .compose(bindToLifecycle())
-                        .subscribe({
-                            mediaIds.add(it.id)
-                            indicateMedia(uri)
-                        }, { throwable ->
-                            throwable.printStackTrace()
-                            mediaCount--
-                            Snackbar.make(binding.root, R.string.error_unable_upload_media, Snackbar.LENGTH_SHORT).show()
-                        })
-        )
+        return MastodonClient(domain).postNewMedia(body)
     }
 
-    private fun postImage(domain: String, path: String, uri: Uri) {
-        val file = File(path)
-        val body = MultipartBody.Part.createFormData(
-                "file",
-                file.name,
-                RequestBody.create(MediaType.parse("jpeg"), file))
-
-        postMediaReqs.add(
-                MastodonClient(domain).postNewMedia(body)
-                        .subscribeOn(Schedulers.newThread())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .compose(bindToLifecycle())
-                        .subscribe({
-                            mediaIds.add(it.id)
-                            indicateImage(uri)
-                        }, { throwable ->
-                            throwable.printStackTrace()
-                            mediaCount--
-                            Snackbar.make(binding.root, R.string.error_unable_upload_media, Snackbar.LENGTH_SHORT).show()
-                        })
-        )
+    private fun indicateImage(url: String, index: Int = attachments.size) {
+        when (index) {
+            0 -> Glide.with(activity).load(url).into(binding.media1)
+            1 -> Glide.with(activity).load(url).into(binding.media2)
+            2 -> Glide.with(activity).load(url).into(binding.media3)
+            3 -> Glide.with(activity).load(url).into(binding.media4)
+            else -> {}
+        }
     }
 
-    private fun indicateMedia(uri: Uri) {
-        Single.just(
-                MediaStore.Images.Thumbnails.getThumbnail(
-                        activity.contentResolver,
-                        DocumentsContract.getDocumentId(uri).split(":").last().toLong(),
-                        MediaStore.Images.Thumbnails.MINI_KIND,
-                        null))
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .compose(bindToLifecycle())
-                .subscribe({
-                    val mediaViews: List<ImageView> = listOf(
-                            binding.media1,
-                            binding.media2,
-                            binding.media3,
-                            binding.media4
-                    )
-
-                    mediaViews.firstOrNull { it.drawable == null }?.setImageBitmap(it)
-                }, Throwable::printStackTrace)
-    }
-
-    private fun indicateImage(uri: Uri) {
-        Single.just(
-                MediaStore.Images.Thumbnails.getThumbnail(
-                        activity.contentResolver,
-                        ContentUris.parseId(uri),
-                        MediaStore.Images.Thumbnails.MINI_KIND,
-                        null))
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .compose(bindToLifecycle())
-                .subscribe({
-                    val mediaViews: List<ImageView> = listOf(
-                            binding.media1,
-                            binding.media2,
-                            binding.media3,
-                            binding.media4
-                    )
-
-                    mediaViews.firstOrNull { it.drawable == null }?.setImageBitmap(it)
-
-                    deleteTempImage()
-                }, Throwable::printStackTrace)
-    }
-
-    private fun getMediaPathFromUriAsSingle(uri: Uri): Single<String> {
+    private fun getMediaPathFromUriAsSingle(uri: Uri): Single<Pair<String, Uri>> {
         val projection = MediaStore.Images.Media.DATA
 
         return Single.just(DocumentsContract.getDocumentId(uri).split(":").last())
@@ -437,7 +478,8 @@ class NewTootCreateFragment : BaseFragment() {
                             arrayOf(it), null)
                     cursor.moveToFirst()
 
-                    cursor.getString(cursor.getColumnIndexOrThrow(projection)).apply { cursor.close() }
+                    val path = cursor.getString(cursor.getColumnIndexOrThrow(projection)).apply { cursor.close() }
+                    Pair(path, uri)
                 }
     }
 
@@ -491,6 +533,7 @@ class NewTootCreateFragment : BaseFragment() {
     }
 
     private fun onPostSuccess() {
+        isSuccessPost = true
         (activity as? MainActivity)?.supportFragmentManager?.popBackStack()
         (activity as? ShareActivity)?.apply {
             supportFragmentManager?.popBackStack()
