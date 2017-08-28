@@ -2,6 +2,16 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <data>
+        <variable
+            name="name"
+            type="String" />
+
+        <variable
+            name="body"
+            type="String" />
+    </data>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -17,6 +27,7 @@
             android:paddingBottom="12dp"
             android:paddingLeft="32dp"
             android:paddingTop="12dp"
+            android:text="@{name}"
             android:textSize="20sp"
             tools:ignore="MissingPrefix"
             tools:text="ライブラリ名" />
@@ -34,6 +45,7 @@
             android:background="?attr/colorPrimaryDark"
             android:padding="12dp"
             android:textColor="@android:color/white"
+            android:text="@{body}"
             android:textSize="12sp"
             android:visibility="gone"
             tools:ignore="MissingPrefix"

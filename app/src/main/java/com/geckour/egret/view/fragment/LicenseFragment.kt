@@ -21,7 +21,6 @@ class LicenseFragment : BaseFragment() {
         Retrofit,
         Glide,
         Timber,
-        PaperParcel,
         MaterialDrawer,
         CircularImageView,
         Calligraphy,
@@ -59,69 +58,28 @@ class LicenseFragment : BaseFragment() {
     }
 
     private fun injectLicense() {
-        mapOf(
-                Pair(License.Stetho, binding.licenseStetho),
-                Pair(License.RxJava, binding.licenseReactiveXJava),
-                Pair(License.RxAndroid, binding.licenseReactiveXAndroid),
-                Pair(License.RxKotlin, binding.licenseReactiveXKotlin),
-                Pair(License.RxLifecycle, binding.licenseReactiveXLifecycle),
-                Pair(License.Orma, binding.licenseOrma),
-                Pair(License.Retrofit, binding.licenseRetrofit),
-                Pair(License.Glide, binding.licenseGlide),
-                Pair(License.PaperParcel, binding.licensePaperParcel),
-                Pair(License.Timber, binding.licenseTimber),
-                Pair(License.MaterialDrawer, binding.licenseMaterialDrawer),
-                Pair(License.CircularImageView, binding.licenseCircularImageView),
-                Pair(License.Calligraphy, binding.licenseCalligraphy),
-                Pair(License.Emoji, binding.licenseEmoji),
-                Pair(License.CommonsIO, binding.licenseCommonsIo)
+        listOf(
+                binding.licenseStetho,
+                binding.licenseReactiveXJava,
+                binding.licenseReactiveXAndroid,
+                binding.licenseReactiveXKotlin,
+                binding.licenseReactiveXLifecycle,
+                binding.licenseOrma,
+                binding.licenseRetrofit,
+                binding.licenseGlide,
+                binding.licenseTimber,
+                binding.licenseMaterialDrawer,
+                binding.licenseCircularImageView,
+                binding.licenseCalligraphy,
+                binding.licenseEmoji,
+                binding.licenseCommonsIo
         )
-                .apply {
-                    forEach {
-                        it.value.apply {
-                            name.apply {
-                                text = getLicenseName(it.key)
-                                setOnClickListener { body.visibility = if (body.visibility == View.VISIBLE) View.GONE else View.VISIBLE }
-                            }
-                            body.text = getLicenseBody(it.key)
+                .forEach {
+                    it.apply {
+                        name.setOnClickListener {
+                            body.visibility = if (body.visibility == View.VISIBLE) View.GONE else View.VISIBLE
                         }
                     }
                 }
-    }
-    
-    private fun getLicenseName(license: License): String = when (license) {
-        License.Stetho -> getString(R.string.license_name_stetho)
-        License.RxJava -> getString(R.string.license_name_reactive_x_java)
-        License.RxAndroid -> getString(R.string.license_name_reactive_x_android)
-        License.RxKotlin -> getString(R.string.license_name_reactive_x_kotlin)
-        License.RxLifecycle -> getString(R.string.license_name_reactive_x_lifecycle)
-        License.Orma -> getString(R.string.license_name_orma)
-        License.Retrofit -> getString(R.string.license_name_retrofit)
-        License.Glide -> getString(R.string.license_name_glide)
-        License.Timber -> getString(R.string.license_name_timber)
-        License.PaperParcel -> getString(R.string.license_name_paper_parcel)
-        License.MaterialDrawer -> getString(R.string.license_name_material_drawer)
-        License.CircularImageView -> getString(R.string.license_name_circular_image_view)
-        License.Calligraphy -> getString(R.string.license_name_calligraphy)
-        License.Emoji -> getString(R.string.license_name_emoji)
-        License.CommonsIO -> getString(R.string.license_name_commons_io)
-    }
-
-    private fun getLicenseBody(license: License): String = when (license) {
-        License.Stetho -> getString(R.string.license_body_stetho)
-        License.RxJava -> getString(R.string.license_body_reactive_x_java)
-        License.RxAndroid -> getString(R.string.license_body_reactive_x_android)
-        License.RxKotlin -> getString(R.string.license_body_reactive_x_kotlin)
-        License.RxLifecycle -> getString(R.string.license_body_reactive_x_lifecycle)
-        License.Orma -> getString(R.string.license_body_orma)
-        License.Retrofit -> getString(R.string.license_body_retrofit)
-        License.Glide -> getString(R.string.license_body_glide)
-        License.Timber -> getString(R.string.license_body_timber)
-        License.PaperParcel -> getString(R.string.license_body_paper_parcel)
-        License.MaterialDrawer -> getString(R.string.license_body_material_drawer)
-        License.CircularImageView -> getString(R.string.license_body_circular_image_view)
-        License.Calligraphy -> getString(R.string.license_body_calligraphy)
-        License.Emoji -> getString(R.string.license_body_emoji)
-        License.CommonsIO -> getString(R.string.license_body_commons_io)
     }
 }
