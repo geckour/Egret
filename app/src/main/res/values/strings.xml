@@ -48,6 +48,8 @@
     </string>
 
     <string name="message_complete_saving_image">Completed to save the image.</string>
+    <string name="message_complete_clear_db">Data has cleared.</string>
+    <string name="message_complete_clear_pref">Preference has cleared.</string>
     
     <string name="message_necessity_wifi_grant">To control streaming by such status, grant authority of accessing Wi-Fi status to app.</string>
     <string name="message_necessity_read_storage_grant">To pick medias, grant authority of reading storage to app.</string>
@@ -146,6 +148,7 @@
     <string name="pref_switch_to_use_default_browser">Change scheme to open links</string>
     <string name="pref_switch_to_show_extreme_toot_bar">Show bar to post new toot on footer of TL</string>
     <string name="pref_manage_notify_real_time">Whether notify real time</string>
+    <string name="pref_manage_held_data">Manage app\'s data</string>
 
     <string name="pref_stream_always">Always</string>
     <string name="pref_stream_wifi">When connect with Wi-Fi</string>
@@ -168,6 +171,11 @@
     <string name="pref_manage_notify_real_time_summary_on">Notify real time</string>
     <string name="pref_manage_notify_real_time_summary_off">Do not notify real time</string>
     <string name="pref_show_licenses">Show open source licenses</string>
+    <string name="pref_clear_all_preference">Clear all preference data</string>
+    <string name="pref_clear_all_draft">Clear all drafts data</string>
+    <string name="pref_clear_all_restriction">Clear all restrictions data</string>
+    <string name="pref_clear_all_db_except_login_info">Reset whole database except data used to login</string>
+    <string name="pref_clear_all_db">Reset whole database</string>
 
     <string name="license_name_stetho">Stetho</string>
     <string name="license_name_reactive_x_java">RxJava</string>

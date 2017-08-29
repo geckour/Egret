@@ -7,7 +7,6 @@ import android.support.v7.preference.PreferenceFragmentCompat
 import android.support.v7.preference.PreferenceScreen
 import com.geckour.egret.App
 import com.geckour.egret.R
-import com.geckour.egret.view.activity.SettingActivity
 
 class SettingMainFragment: PreferenceFragmentCompat(), PreferenceFragmentCompat.OnPreferenceStartScreenCallback {
 
@@ -21,6 +20,7 @@ class SettingMainFragment: PreferenceFragmentCompat(), PreferenceFragmentCompat.
         setPreferencesFromResource(R.xml.preferences_main, rootKey)
         preferenceScreen.findPreference("manage_accounts").setOnPreferenceClickListener { showAccountManageFragment() }
         preferenceScreen.findPreference("manage_restrictions").setOnPreferenceClickListener { showRestrictFragment() }
+        preferenceScreen.findPreference("manage_held_data").setOnPreferenceClickListener { showSettingAppDataManageFragment() }
     }
 
     override fun getCallbackFragment(): Fragment = this
@@ -44,7 +44,7 @@ class SettingMainFragment: PreferenceFragmentCompat(), PreferenceFragmentCompat.
 
     private fun showAccountManageFragment(): Boolean {
         val fragment = AccountManageFragment.newInstance()
-        (activity as SettingActivity).supportFragmentManager.beginTransaction()
+        activity.supportFragmentManager.beginTransaction()
                 .replace(R.id.container, fragment, AccountManageFragment.TAG)
                 .addToBackStack(AccountManageFragment.TAG)
                 .commit()
@@ -54,11 +54,20 @@ class SettingMainFragment: PreferenceFragmentCompat(), PreferenceFragmentCompat.
 
     private fun showRestrictFragment(): Boolean {
         val fragment = SettingRestrictFragment.newInstance()
-        (activity as SettingActivity).supportFragmentManager.beginTransaction()
+        activity.supportFragmentManager.beginTransaction()
                 .replace(R.id.container, fragment, SettingRestrictFragment.TAG)
                 .addToBackStack(SettingRestrictFragment.TAG)
                 .commit()
 
+        return true
+    }
+
+    private fun showSettingAppDataManageFragment(): Boolean {
+        val fragment = SettingAppDataManageFragment.newInstance()
+        activity.supportFragmentManager.beginTransaction()
+                .replace(R.id.container, fragment, SettingAppDataManageFragment.TAG)
+                .addToBackStack(SettingAppDataManageFragment.TAG)
+                .commit()
         return true
     }
 }
