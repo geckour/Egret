@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="@string/pref_manage_held_data">
+
+        <PreferenceScreen android:key="clear_all_preference"
+            android:title="@string/pref_clear_all_preference" />
+
+        <PreferenceScreen android:key="clear_all_draft"
+            android:title="@string/pref_clear_all_draft" />
+
+        <PreferenceScreen android:key="clear_all_restriction"
+            android:title="@string/pref_clear_all_restriction" />
+
+        <PreferenceScreen android:key="clear_all_db_except_login_info"
+            android:title="@string/pref_clear_all_db_except_login_info" />
+
+        <PreferenceScreen android:key="clear_all_db"
+            android:title="@string/pref_clear_all_db" />
+    </PreferenceCategory>
+</PreferenceScreen>

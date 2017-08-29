@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.design.widget.Snackbar
+import android.support.v4.app.ShareCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.SearchView
 import android.text.Html
@@ -39,19 +40,17 @@ import com.mikepenz.materialdrawer.DrawerBuilder
 import com.mikepenz.materialdrawer.model.DividerDrawerItem
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem
-import com.mikepenz.materialdrawer.model.interfaces.IProfile
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
-import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper
 
-class MainActivity : BaseActivity() {
+class MainActivity : BaseActivity(), ListDialogFragment.OnItemClickListener {
 
     lateinit var binding: ActivityMainBinding
-    lateinit var drawer: Drawer
+    lateinit private var drawer: Drawer
     lateinit private var accountHeader: AccountHeader
     private val sharedPref: SharedPreferences by lazy { PreferenceManager.getDefaultSharedPreferences(this) }
     lateinit private var currentCategory: TimelineFragment.Category
@@ -59,12 +58,6 @@ class MainActivity : BaseActivity() {
     companion object {
         const val STATE_KEY_THEME_MODE = "stateKeyThemeMode"
         const val ARGS_KEY_CATEGORY = "argsKeyCategory"
-        const val NAV_ITEM_LOGIN: Long = 0
-        const val NAV_ITEM_TL_PUBLIC: Long = 1
-        const val NAV_ITEM_TL_LOCAL: Long = 2
-        const val NAV_ITEM_TL_USER: Long = 3
-        const val NAV_ITEM_TL_NOTIFICATION: Long = 4
-        const val NAV_ITEM_SETTINGS: Long = 5
         const val REQUEST_CODE_NOTIFICATION = 0
 
         fun getIntent(context: Context, category: TimelineFragment.Category? = null): Intent {
@@ -75,11 +68,34 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    enum class NavItem {
+        NAV_ITEM_LOGIN,
+        NAV_ITEM_TL_PUBLIC,
+        NAV_ITEM_TL_LOCAL,
+        NAV_ITEM_TL_USER,
+        NAV_ITEM_TL_NOTIFICATION,
+        NAV_ITEM_SETTINGS,
+        NAV_ITEM_OTHERS
+    }
+
+    interface OnBackPressedListener {
+        fun onBackPressedInMainActivity(callback: (doBack: Boolean) -> Any)
+    }
+
     val timelineListener = object: TimelineAdapter.Callbacks {
         override val copyTootUrlToClipboard = { url: String ->
             val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("url of toot", url)
             clipboard.primaryClip = clip
+        }
+
+        override val shareToot = { content: TimelineContent.TimelineStatus ->
+            ShareCompat.IntentBuilder.from(this@MainActivity).apply {
+                setChooserTitle(R.string.dialog_title_share_toot)
+                setSubject(getString(R.string.dialog_subject_share_toot))
+                setText("${content.nameStrong}(${content.nameWeak}):\n${content.body}")
+                setType("text/plain")
+            }.startChooser()
         }
 
         override val showTootInBrowser = { content: TimelineContent.TimelineStatus ->
@@ -112,7 +128,7 @@ class MainActivity : BaseActivity() {
                                     }
                             )
                     )
-                    2 -> Pair(R.string.array_item_mute_hash_tag, if (content.tags.isEmpty()) "" else s.format(content.tags.map { tag -> "#$tag" }.joinToString()))
+                    2 -> Pair(R.string.array_item_mute_hash_tag, if (content.tags.isEmpty()) "" else s.format(content.tags.joinToString { tag -> "#$tag" }))
                     3 -> {
                         var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
 
@@ -132,85 +148,25 @@ class MainActivity : BaseActivity() {
             ListDialogFragment.newInstance(
                     getString(R.string.dialog_title_mute),
                     items,
-                    object: ListDialogFragment.OnItemClickListener {
-                        override fun onClick(resId: Int) {
-                            when (resId) {
-                                R.string.array_item_mute_account -> {
-                                    Common.resetAuthInfo()?.let { domain ->
-                                        MastodonClient(domain).getSelfAccount()
-                                                .flatMap { if (it.id == content.accountId) Single.never() else MastodonClient(domain).muteAccount(content.accountId) }
-                                                .subscribeOn(Schedulers.newThread())
-                                                .observeOn(AndroidSchedulers.mainThread())
-                                                .subscribe({
-                                                    Snackbar.make(binding.root, "Muted account: ${content.nameWeak}", Snackbar.LENGTH_SHORT).show()
-                                                }, Throwable::printStackTrace)
-                                    }
-                                }
-
-                                R.string.array_item_mute_keyword -> {
-                                    val fragment = KeywordMuteFragment.newInstance(content.body.toString())
-                                    supportFragmentManager.beginTransaction()
-                                            .replace(R.id.container, fragment, KeywordMuteFragment.TAG)
-                                            .addToBackStack(KeywordMuteFragment.TAG)
-                                            .commit()
-                                }
-
-                                R.string.array_item_mute_hash_tag -> {
-                                    val fragment = HashTagMuteFragment.newInstance(content.tags)
-                                    supportFragmentManager.beginTransaction()
-                                            .replace(R.id.container, fragment, HashTagMuteFragment.TAG)
-                                            .addToBackStack(HashTagMuteFragment.TAG)
-                                            .commit()
-                                }
-
-                                R.string.array_item_mute_instance -> {
-                                    var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
-
-                                    if (content.nameWeak == instance) {
-                                        instance = ""
-                                        Common.getCurrentAccessToken()?.instanceId?.let {
-                                            instance = "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(it).last().instance}"
-                                        }
-                                    }
-
-                                    if (!TextUtils.isEmpty(instance)) {
-                                        OrmaProvider.db.prepareInsertIntoMuteInstanceAsSingle()
-                                                .map { inserter -> inserter.execute(MuteInstance(-1L, instance)) }
-                                                .subscribeOn(Schedulers.newThread())
-                                                .observeOn(AndroidSchedulers.mainThread())
-                                                .compose(bindToLifecycle())
-                                                .subscribe({
-                                                    Snackbar.make(binding.root, "Muted instance: $instance", Snackbar.LENGTH_SHORT).show()
-                                                }, Throwable::printStackTrace)
-                                    }
-                                }
-
-                                R.string.array_item_mute_client -> {
-                                    content.app?.let {
-                                        OrmaProvider.db.prepareInsertIntoMuteClientAsSingle()
-                                                .map { inserter -> inserter.execute(MuteClient(-1L, it)) }
-                                                .subscribeOn(Schedulers.newThread())
-                                                .observeOn(AndroidSchedulers.mainThread())
-                                                .compose(bindToLifecycle())
-                                                .subscribe({
-                                                    Snackbar.make(binding.root, "Muted client: ${content.app}", Snackbar.LENGTH_SHORT).show()
-                                                }, Throwable::printStackTrace)
-                                    }
-                                }
-                            }
-                        }
-                    }).show(supportFragmentManager, ListDialogFragment.TAG)
+                    content
+            ).show(supportFragmentManager, ListDialogFragment.TAG)
         }
 
         override val showProfile = { accountId: Long ->
-            AccountProfileFragment.newObservableInstance(accountId)
-                    .subscribe( {
-                        fragment ->
-                        supportFragmentManager.beginTransaction()
-                                .replace(R.id.container, fragment, AccountProfileFragment.TAG)
-                                .addToBackStack(AccountProfileFragment.TAG)
-                                .commit()
-                    }, Throwable::printStackTrace)
+            Common.resetAuthInfo()?.let {
+                MastodonClient(it).getAccount(accountId)
+                        .subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .compose(bindToLifecycle())
+                        .subscribe({ account ->
+                            val fragment = AccountProfileFragment.newInstance(account)
+
+                            supportFragmentManager.beginTransaction()
+                                    .replace(R.id.container, fragment, AccountProfileFragment.TAG)
+                                    .addToBackStack(AccountProfileFragment.TAG)
+                                    .commit()
+                        })
+            } ?: let {}
         }
 
         override val onReply = { content: TimelineContent.TimelineStatus ->
@@ -276,9 +232,11 @@ class MainActivity : BaseActivity() {
         }
 
         currentCategory =
-                if (intent.extras?.containsKey(ARGS_KEY_CATEGORY) ?: false) intent.extras[ARGS_KEY_CATEGORY] as TimelineFragment.Category
-                else if (sharedPref.contains(STATE_KEY_CATEGORY)) TimelineFragment.Category.values()[sharedPref.getInt(STATE_KEY_CATEGORY, TimelineFragment.Category.Public.ordinal)]
-                else TimelineFragment.Category.Public
+                when {
+                    intent.extras?.containsKey(ARGS_KEY_CATEGORY) == true -> intent.extras[ARGS_KEY_CATEGORY] as TimelineFragment.Category
+                    sharedPref.contains(STATE_KEY_CATEGORY) -> TimelineFragment.Category.values()[sharedPref.getInt(STATE_KEY_CATEGORY, TimelineFragment.Category.Public.ordinal)]
+                    else -> TimelineFragment.Category.Public
+                }
 
         binding.appBarMain.contentMain.apply {
             simplicityTootBody.setOnKeyListener { v, keyCode, event ->
@@ -334,7 +292,9 @@ class MainActivity : BaseActivity() {
         if (drawer.isDrawerOpen) {
             drawer.closeDrawer()
         } else {
-            super.onBackPressed()
+            (supportFragmentManager.fragments.lastOrNull { it?.isVisible ?: false } as? OnBackPressedListener)?.let {
+                it.onBackPressedInMainActivity { if (it) super.onBackPressed() }
+            } ?: super.onBackPressed()
         }
     }
 
@@ -347,9 +307,7 @@ class MainActivity : BaseActivity() {
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         menu?.findItem(R.id.action_search)?.icon?.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP)
         (menu?.findItem(R.id.action_search)?.actionView as SearchView?)?.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
-            override fun onQueryTextChange(text: String?): Boolean {
-                return false
-            }
+            override fun onQueryTextChange(text: String?): Boolean = false
 
             override fun onQueryTextSubmit(text: String?): Boolean {
                 if (text != null) {
@@ -373,10 +331,6 @@ class MainActivity : BaseActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    override fun attachBaseContext(newBase: Context?) {
-        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase))
-    }
-
     fun showSearchResult(query: String) {
         Common.resetAuthInfo()?.let {
             MastodonClient(it).search(query)
@@ -395,12 +349,79 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    override fun onClickListDialogItem(resId: Int, content: TimelineContent.TimelineStatus) {
+        when (resId) {
+            R.string.array_item_mute_account -> {
+                Common.resetAuthInfo()?.let { domain ->
+                    MastodonClient(domain).getOwnAccount()
+                            .flatMap { if (it.id == content.accountId) Single.never() else MastodonClient(domain).muteAccount(content.accountId) }
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe({
+                                Snackbar.make(binding.root, "Muted account: ${content.nameWeak}", Snackbar.LENGTH_SHORT).show()
+                            }, Throwable::printStackTrace)
+                }
+            }
+
+            R.string.array_item_mute_keyword -> {
+                val fragment = KeywordMuteFragment.newInstance(content.body.toString())
+                supportFragmentManager.beginTransaction()
+                        .replace(R.id.container, fragment, KeywordMuteFragment.TAG)
+                        .addToBackStack(KeywordMuteFragment.TAG)
+                        .commit()
+            }
+
+            R.string.array_item_mute_hash_tag -> {
+                val fragment = HashTagMuteFragment.newInstance(content.tags)
+                supportFragmentManager.beginTransaction()
+                        .replace(R.id.container, fragment, HashTagMuteFragment.TAG)
+                        .addToBackStack(HashTagMuteFragment.TAG)
+                        .commit()
+            }
+
+            R.string.array_item_mute_instance -> {
+                var instance = content.nameWeak.replace(Regex("^@.+@(.+)$"), "@$1")
+
+                if (content.nameWeak == instance) {
+                    instance = ""
+                    Common.getCurrentAccessToken()?.instanceId?.let {
+                        instance = "@${OrmaProvider.db.selectFromInstanceAuthInfo().idEq(it).last().instance}"
+                    }
+                }
+
+                if (!TextUtils.isEmpty(instance)) {
+                    OrmaProvider.db.prepareInsertIntoMuteInstanceAsSingle()
+                            .map { inserter -> inserter.execute(MuteInstance(-1L, instance)) }
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .compose(bindToLifecycle())
+                            .subscribe({
+                                Snackbar.make(binding.root, "Muted instance: $instance", Snackbar.LENGTH_SHORT).show()
+                            }, Throwable::printStackTrace)
+                }
+            }
+
+            R.string.array_item_mute_client -> {
+                content.app?.let {
+                    OrmaProvider.db.prepareInsertIntoMuteClientAsSingle()
+                            .map { inserter -> inserter.execute(MuteClient(-1L, it)) }
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .compose(bindToLifecycle())
+                            .subscribe({
+                                Snackbar.make(binding.root, "Muted client: ${content.app}", Snackbar.LENGTH_SHORT).show()
+                            }, Throwable::printStackTrace)
+                }
+            }
+        }
+    }
+
     fun commitAccountsIntoAccountHeader() {
         accountHeader.clear()
 
         Observable.fromIterable(OrmaProvider.db.selectFromAccessToken())
                 .flatMap {
-                    MastodonClient(Common.setAuthInfo(it) ?: throw IllegalArgumentException()).getSelfAccount()
+                    MastodonClient(Common.setAuthInfo(it) ?: throw IllegalArgumentException()).getOwnAccount()
                             .map { account -> Pair(it, account) }
                             .toObservable()
                 }
@@ -454,7 +475,7 @@ class MainActivity : BaseActivity() {
                     .withOnAccountHeaderListener { v, profile, current ->
                         if (v.id == R.id.material_drawer_account_header_current) {
                             Common.resetAuthInfo()?.let {
-                                MastodonClient(it).getSelfAccount()
+                                MastodonClient(it).getOwnAccount()
                                         .subscribeOn(Schedulers.newThread())
                                         .observeOn(AndroidSchedulers.mainThread())
                                         .compose(bindToLifecycle())
@@ -500,44 +521,51 @@ class MainActivity : BaseActivity() {
                 .withActionBarDrawerToggleAnimated(true)
                 .withToolbar(binding.appBarMain.toolbar)
                 .addDrawerItems(
-                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_public).withIdentifier(NAV_ITEM_TL_PUBLIC).withIcon(R.drawable.ic_public_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
-                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_local).withIdentifier(NAV_ITEM_TL_LOCAL).withIcon(R.drawable.ic_place_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
-                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_user).withIdentifier(NAV_ITEM_TL_USER).withIcon(R.drawable.ic_mood_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
-                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_notification).withIdentifier(NAV_ITEM_TL_NOTIFICATION).withIcon(R.drawable.ic_notifications_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
+                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_public).withIdentifier(NavItem.NAV_ITEM_TL_PUBLIC.ordinal.toLong()).withIcon(R.drawable.ic_public_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
+                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_local).withIdentifier(NavItem.NAV_ITEM_TL_LOCAL.ordinal.toLong()).withIcon(R.drawable.ic_place_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
+                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_user).withIdentifier(NavItem.NAV_ITEM_TL_USER.ordinal.toLong()).withIcon(R.drawable.ic_mood_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
+                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_tl_notification).withIdentifier(NavItem.NAV_ITEM_TL_NOTIFICATION.ordinal.toLong()).withIcon(R.drawable.ic_notifications_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
                         DividerDrawerItem(),
-                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_login).withIdentifier(NAV_ITEM_LOGIN).withIcon(R.drawable.ic_person_add_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
+                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_login).withIdentifier(NavItem.NAV_ITEM_LOGIN.ordinal.toLong()).withIcon(R.drawable.ic_person_add_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
                         DividerDrawerItem(),
-                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_settings).withIdentifier(NAV_ITEM_SETTINGS).withIcon(R.drawable.ic_settings_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark)
+                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_settings).withIdentifier(NavItem.NAV_ITEM_SETTINGS.ordinal.toLong()).withIcon(R.drawable.ic_settings_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark),
+                        PrimaryDrawerItem().withName(R.string.navigation_drawer_item_others).withIdentifier(NavItem.NAV_ITEM_OTHERS.ordinal.toLong()).withIcon(R.drawable.ic_extension_black_24px).withIconTintingEnabled(true).withIconColorRes(R.color.icon_tint_dark)
                 )
                 .withOnDrawerItemClickListener { _, _, item ->
                     return@withOnDrawerItemClickListener when (item.identifier) {
-                        NAV_ITEM_LOGIN -> {
+                        NavItem.NAV_ITEM_LOGIN.ordinal.toLong() -> {
                             startActivity(LoginActivity.getIntent(this))
                             false
                         }
 
-                        NAV_ITEM_TL_PUBLIC -> {
+                        NavItem.NAV_ITEM_TL_PUBLIC.ordinal.toLong() -> {
                             showTimelineFragment(TimelineFragment.Category.Public)
                             false
                         }
 
-                        NAV_ITEM_TL_LOCAL -> {
+                        NavItem.NAV_ITEM_TL_LOCAL.ordinal.toLong() -> {
                             showTimelineFragment(TimelineFragment.Category.Local)
                             false
                         }
 
-                        NAV_ITEM_TL_USER -> {
+                        NavItem.NAV_ITEM_TL_USER.ordinal.toLong() -> {
                             showTimelineFragment(TimelineFragment.Category.User)
                             false
                         }
 
-                        NAV_ITEM_TL_NOTIFICATION -> {
+                        NavItem.NAV_ITEM_TL_NOTIFICATION.ordinal.toLong() -> {
                             showTimelineFragment(TimelineFragment.Category.Notification)
                             false
                         }
 
-                        NAV_ITEM_SETTINGS -> {
-                            val intent = SettingActivity.getIntent(this)
+                        NavItem.NAV_ITEM_SETTINGS.ordinal.toLong() -> {
+                            val intent = SettingActivity.getIntent(this, SettingActivity.Type.Preference)
+                            startActivity(intent)
+                            false
+                        }
+
+                        NavItem.NAV_ITEM_OTHERS.ordinal.toLong() -> {
+                            val intent = SettingActivity.getIntent(this, SettingActivity.Type.Misc)
                             startActivity(intent)
                             false
                         }

@@ -7,7 +7,7 @@ import com.github.gfx.android.orma.annotation.Table
 import java.util.*
 
 @Table
-class InstanceAuthInfo(
+data class InstanceAuthInfo(
         @Setter("id") @PrimaryKey(autoincrement = true) val id: Long = -1L,
         @Setter("instance") @Column val instance: String = "",
         @Setter("auth_id") @Column var authId: Long = -1L,

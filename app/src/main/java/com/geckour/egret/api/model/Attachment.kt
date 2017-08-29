@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 data class Attachment(
         val id: Long,
 
-        var type: String,
+        var type: Type,
 
         var url: String,
 
@@ -18,9 +18,10 @@ data class Attachment(
         @SerializedName("text_url")
         var urlInText: String?
 ) {
-        enum class Type(val rowValue: Int) {
-                image(0),
-                video(1),
-                gifv(2)
-        }
+
+    enum class Type {
+        image,
+        video,
+        gifv
+    }
 }

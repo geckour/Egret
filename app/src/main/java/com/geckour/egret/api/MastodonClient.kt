@@ -41,9 +41,11 @@ class MastodonClient(baseUrl: String) {
             password: String
     ): Single<InstanceAccess> = service.authUser(clientId, clientSecret, username, password)
 
-    fun getSelfAccount(): Single<Account> = service.getSelfAccount()
+    fun getOwnAccount(): Single<Account> = service.getOwnAccount()
 
-    fun getAccount(accountId: Long): Observable<Account> = service.getAccount(accountId)
+    fun getAccount(accountId: Long): Single<Account> = service.getAccount(accountId)
+
+    fun updateOwnAccount(displayName: String? = null, note: String? = null, avatarUrl: String? = null, headerUrl: String? = null): Single<Any> = service.updateOwnAccount(displayName, note, avatarUrl, headerUrl)
 
     fun getPublicTimelineAsStream(): Observable<ResponseBody> = streamService.getPublicTimelineAsStream()
 
@@ -62,6 +64,8 @@ class MastodonClient(baseUrl: String) {
     fun getUserTimeline(maxId: Long? = null, sinceId: Long? = null): Single<Result<List<Status>>> = service.getUserTimeline(maxId, sinceId)
 
     fun getNotificationTimeline(maxId: Long? = null, sinceId: Long? = null): Single<Result<List<Notification>>> = service.getNotificationTimeline(maxId, sinceId)
+
+    fun getFavouriteTimeline(maxId: Long? = null, sinceId: Long? = null): Single<Result<List<Status>>> = service.getFavouriteTimeline(maxId, sinceId)
 
     fun getAccountAllToots(accountId: Long, maxId: Long? = null, sinceId: Long? = null): Single<Result<List<Status>>> = service.getAccountAllToots(accountId, maxId, sinceId)
 

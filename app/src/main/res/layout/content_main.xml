@@ -32,7 +32,7 @@
 
         <android.support.constraint.ConstraintLayout
             android:id="@+id/simplicity_post_wrap"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:background="?attr/colorBgFaded"
             android:elevation="8dp"
@@ -58,15 +58,18 @@
                 android:text="@string/button_create_toot"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginEnd="8dp" />
 
-            <EditText
+            <com.vanniktech.emoji.EmojiEditText
                 android:id="@+id/simplicity_toot_body"
                 android:layout_width="0dp"
-                android:layout_height="32dp"
+                android:layout_height="0dp"
                 android:layout_marginBottom="8dp"
+                android:layout_marginEnd="8dp"
                 android:layout_marginLeft="8dp"
                 android:layout_marginRight="8dp"
+                android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
                 android:background="?attr/colorThin"
                 android:gravity="start"
@@ -74,11 +77,10 @@
                 android:padding="2dp"
                 android:textAlignment="gravity"
                 android:textSize="12sp"
-                android:visibility="visible"
                 app:layout_constraintBottom_toBottomOf="@+id/button_simplicity_toot"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toLeftOf="@+id/button_simplicity_toot"
-                app:layout_constraintTop_toTopOf="@+id/button_simplicity_toot"/>
+                app:layout_constraintTop_toTopOf="@+id/button_simplicity_toot" />
         </android.support.constraint.ConstraintLayout>
 
     </android.support.constraint.ConstraintLayout>

@@ -15,15 +15,12 @@ import android.text.Spanned
 import android.text.format.DateFormat
 import android.text.method.LinkMovementMethod
 import android.text.method.MovementMethod
-import android.util.DisplayMetrics
-import android.util.TypedValue
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.TextView
 import com.emojione.Emojione
 import com.geckour.egret.App
-import com.geckour.egret.NotificationService
 import com.geckour.egret.R
 import com.geckour.egret.api.MastodonClient
 import com.geckour.egret.api.model.Account
@@ -57,7 +54,7 @@ class Common {
         }
 
         private fun requestWeatherCertified(domain: String, callback: (hasCertified: Boolean, accountId: Long) -> Any) {
-            MastodonClient(domain).getSelfAccount()
+            MastodonClient(domain).getOwnAccount()
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({ account ->
@@ -104,6 +101,7 @@ class Common {
                                 status.url,
                                 status.account.id,
                                 status.account.avatarUrl,
+                                status.account.isLocked,
                                 Emojione.shortnameToUnicode(status.account.displayName),
                                 "@${status.account.acct}",
                                 Date(status.createdAt.time),
@@ -128,6 +126,7 @@ class Common {
                                     it.id,
                                     it.type,
                                     it.account.id,
+                                    it.account.isLocked,
                                     it.account.avatarUrl,
                                     it.account.displayName,
                                     "@${it.account.acct}",
@@ -139,8 +138,12 @@ class Common {
                 else TimelineContent()
 
         fun getProfileContent(account: Account): ProfileContent = ProfileContent(
+                account.id,
                 account.avatarUrl,
+                null,
                 account.headerUrl,
+                null,
+                account.isLocked,
                 account.displayName,
                 "@${account.acct}",
                 getSpannedWithoutExtraMarginFromHtml("<a href=\"${account.url}\">${account.url}</a>"),

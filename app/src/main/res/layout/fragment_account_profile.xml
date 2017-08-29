@@ -4,6 +4,7 @@
         xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
+        <import type="android.view.View" />
         <variable
             name="content"
             type="com.geckour.egret.view.adapter.model.ProfileContent" />
@@ -36,7 +37,8 @@
             app:layout_constraintBottom_toBottomOf="@+id/icon"
             app:layout_constraintLeft_toLeftOf="@+id/header"
             app:layout_constraintRight_toRightOf="@+id/header"
-            app:layout_constraintTop_toTopOf="@+id/icon">
+            app:layout_constraintTop_toTopOf="@+id/icon"
+            android:id="@+id/frameLayout">
 
         </FrameLayout>
 
@@ -50,12 +52,13 @@
             app:layout_constraintLeft_toLeftOf="@+id/header"
             app:layout_constraintTop_toTopOf="@+id/header" />
 
-        <TextView
+        <com.vanniktech.emoji.EmojiEditText
             android:id="@+id/screenName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
+            android:layout_marginRight="4dp"
+            android:background="@android:color/transparent"
             android:ellipsize="end"
             android:minLines="1"
             android:singleLine="true"
@@ -65,18 +68,15 @@
             app:layout_constraintBottom_toTopOf="@+id/username"
             app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintLeft_toRightOf="@+id/icon"
-            app:layout_constraintRight_toRightOf="@+id/header"
+            app:layout_constraintRight_toLeftOf="@+id/lock"
             app:layout_constraintTop_toTopOf="@+id/icon"
             app:layout_constraintVertical_chainStyle="packed"
-            tools:text="おなまえ"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp" />
+            tools:text="おなまえ" />
 
         <TextView
             android:id="@+id/username"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginRight="8dp"
             android:layout_marginTop="4dp"
             android:ellipsize="end"
             android:minLines="1"
@@ -86,11 +86,22 @@
             android:textSize="12sp"
             app:layout_constraintBottom_toTopOf="@+id/followingText"
             app:layout_constraintLeft_toLeftOf="@+id/screenName"
-            app:layout_constraintRight_toRightOf="@+id/header"
+            app:layout_constraintRight_toRightOf="@+id/screenName"
             app:layout_constraintTop_toBottomOf="@+id/screenName"
             app:layout_constraintVertical_chainStyle="packed"
-            tools:text="あいでぃー"
-            android:layout_marginEnd="8dp" />
+            tools:text="あいでぃー" />
+
+        <ImageView
+            android:id="@+id/lock"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginRight="8dp"
+            android:tint="@color/icon_tint_dark"
+            android:visibility="@{content.locked ? View.VISIBLE : View.GONE}"
+            app:layout_constraintBottom_toBottomOf="@+id/screenName"
+            app:layout_constraintRight_toRightOf="@+id/header"
+            app:layout_constraintTop_toTopOf="@+id/screenName"
+            app:srcCompat="@drawable/ic_lock_black_24px" />
 
         <TextView
             android:id="@+id/followingText"
@@ -167,8 +178,9 @@
 
         <TextView
             android:id="@+id/url"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginRight="8dp"
             android:layout_marginTop="8dp"
             android:clickable="true"
             android:ellipsize="end"
@@ -178,16 +190,63 @@
             android:textSize="12sp"
             app:layout_constraintBottom_toBottomOf="@+id/icon"
             app:layout_constraintLeft_toLeftOf="@+id/screenName"
+            app:layout_constraintRight_toLeftOf="@+id/button_fav_list"
             app:layout_constraintTop_toBottomOf="@+id/followingText"
             tools:text="http://hoge.example.com" />
 
-        <TextView
+        <Button
+            android:id="@+id/button_fav_list"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="4dp"
+            android:background="@drawable/button_custom_material"
+            android:drawableLeft="@drawable/ic_star_black_12px"
+            android:drawableTint="@color/icon_tint_dark"
+            android:minHeight="0dp"
+            android:minWidth="0dp"
+            android:text="@string/button_list"
+            android:textAllCaps="false"
+            android:textSize="12sp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/frameLayout"
+            app:layout_constraintRight_toRightOf="@+id/frameLayout" />
+
+        <Button
+            android:id="@+id/button_cancel_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="4dp"
+            android:background="@drawable/button_custom_material"
+            android:minHeight="0dp"
+            android:minWidth="0dp"
+            android:text="@string/button_edit_cancel"
+            android:textSize="12sp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/header"
+            app:layout_constraintRight_toLeftOf="@+id/button_edit" />
+
+        <Button
+            android:id="@+id/button_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="4dp"
+            android:background="@drawable/button_custom_material"
+            android:minHeight="0dp"
+            android:minWidth="0dp"
+            android:text="@string/button_edit"
+            android:textSize="12sp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/header"
+            app:layout_constraintRight_toRightOf="@+id/header" />
+
+        <com.vanniktech.emoji.EmojiEditText
             android:id="@+id/note"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
+            android:layout_marginLeft="24dp"
+            android:layout_marginRight="24dp"
             android:layout_marginTop="8dp"
+            android:background="@android:color/transparent"
             android:clickable="true"
             android:maxLines="5"
             android:scrollHorizontally="false"
@@ -291,8 +350,7 @@
             android:visibility="invisible"
             app:layout_constraintBottom_toTopOf="@+id/timeline"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:srcCompat="@drawable/ic_volume_off_black_24px"
-            android:layout_marginStart="14dp" />
+            app:srcCompat="@drawable/ic_volume_off_black_24px" />
 
         <ImageView
             android:id="@+id/block"
@@ -308,8 +366,7 @@
             app:layout_constraintBottom_toBottomOf="@+id/mute"
             app:layout_constraintLeft_toRightOf="@+id/mute"
             app:layout_constraintTop_toTopOf="@+id/mute"
-            app:srcCompat="@drawable/ic_block_black_24px"
-            android:layout_marginStart="10dp" />
+            app:srcCompat="@drawable/ic_block_black_24px" />
 
         <ImageView
             android:id="@+id/follow"
@@ -323,8 +380,7 @@
             android:visibility="invisible"
             app:layout_constraintBottom_toTopOf="@+id/timeline"
             app:layout_constraintRight_toRightOf="parent"
-            app:srcCompat="@drawable/ic_person_add_black_24px"
-            android:layout_marginEnd="14dp" />
+            app:srcCompat="@drawable/ic_person_add_black_24px" />
 
         <include
             android:id="@+id/timeline"

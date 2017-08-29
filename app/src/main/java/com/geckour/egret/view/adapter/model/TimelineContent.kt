@@ -1,7 +1,7 @@
 package com.geckour.egret.view.adapter.model
 
 import android.text.Spanned
-import com.geckour.egret.api.model.Notification
+import java.io.Serializable
 import java.util.*
 
 data class TimelineContent(
@@ -13,6 +13,7 @@ data class TimelineContent(
             val tootUrl: String,
             val accountId: Long,
             var iconUrl: String,
+            var accountLocked: Boolean,
             var nameStrong: String,
             var nameWeak: String,
             val time: Date,
@@ -29,7 +30,7 @@ data class TimelineContent(
             var rebloggedStatusContent: TimelineStatus?,
             var app: String?,
             var treeStatus: TreeStatus
-    ) {
+    ): Serializable {
         enum class TreeStatus {
             None,
             Top,
@@ -42,6 +43,7 @@ data class TimelineContent(
             val id: Long,
             val type: String,
             val accountId: Long,
+            var accountLocked: Boolean,
             var iconUrl: String,
             var nameStrong: String,
             var nameWeak: String,

@@ -22,7 +22,7 @@ class SearchResultFragment: BaseFragment() {
     }
 
     companion object {
-        val TAG = "searchResultFragment"
+        val TAG: String = this::class.java.simpleName
         private val ARGS_KEY_CATEGORY = "category"
         private val ARGS_KEY_QUERY = "query"
         private val ARGS_KEY_RESULT = "result"

@@ -56,13 +56,29 @@ interface MastodonService {
     ): Single<InstanceAccess>
 
     @GET("api/v1/accounts/verify_credentials")
-    fun getSelfAccount(): Single<Account>
+    fun getOwnAccount(): Single<Account>
 
     @GET("api/v1/accounts/{id}")
     fun getAccount(
             @Path("id")
             accountId: Long
-    ): Observable<Account>
+    ): Single<Account>
+
+    @FormUrlEncoded
+    @PATCH("api/v1/accounts/update_credentials")
+    fun updateOwnAccount(
+            @Field("display_name")
+            displayName: String? = null,
+
+            @Field("note")
+            note: String? = null,
+
+            @Field("avatar")
+            avatar: String? = null,
+
+            @Field("header")
+            headeer: String? = null
+    ): Single<Any>
 
     @GET("api/v1/streaming/public")
     @Streaming
@@ -130,6 +146,18 @@ interface MastodonService {
             @Query("limit")
             limit: Long? = 30
     ): Single<Result<List<Notification>>>
+
+    @GET("api/v1/favourites")
+    fun getFavouriteTimeline(
+            @Query("max_id")
+            maxId: Long? = null,
+
+            @Query("since_id")
+            sinceId: Long? = null,
+
+            @Query("limit")
+            limit: Long? = 40
+    ): Single<Result<List<Status>>>
 
     @GET("api/v1/accounts/{id}/statuses")
     fun getAccountAllToots(

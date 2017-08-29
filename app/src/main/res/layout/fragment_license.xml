@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <include android:id="@+id/license_stetho"
+                    layout="@layout/item_license"
+                    app:name="@{@string/license_name_stetho}"
+                    app:body="@{@string/license_body_stetho}" />
+
+                <include android:id="@+id/license_reactive_x_java"
+                    layout="@layout/item_license"
+                    app:name="@{@string/license_name_reactive_x_java}"
+                    app:body="@{@string/license_body_reactive_x_java}" />
+
+                <include android:id="@+id/license_reactive_x_android"
+                    layout="@layout/item_license"
+                    app:name="@{@string/license_name_reactive_x_android}"
+                    app:body="@{@string/license_body_reactive_x_android}" />
+
+                <include android:id="@+id/license_reactive_x_kotlin"
+                    layout="@layout/item_license"
+                    app:name="@{@string/license_name_reactive_x_kotlin}"
+                    app:body="@{@string/license_body_reactive_x_kotlin}" />
+
+                <include android:id="@+id/license_reactive_x_lifecycle"
+                    layout="@layout/item_license"
+                    app:name="@{@string/license_name_reactive_x_lifecycle}"
+                    app:body="@{@string/license_body_reactive_x_lifecycle}" />
+
+                <include android:id="@+id/license_orma"
+                    layout="@layout/item_license"
+                    app:name="@{@string/license_name_orma}"
+                    app:body="@{@string/license_body_orma}" />
+
+                <include android:id="@+id/license_retrofit"
+                    layout="@layout/item_license"
+                    app:name="@{@string/license_name_retrofit}"
+                    app:body="@{@string/license_body_retrofit}" />
+
+                <include android:id="@+id/license_glide"
+                    layout="@layout/item_license"
+                    app:name="@{@string/license_name_glide}"
+                    app:body="@{@string/license_body_glide}" />
+
+                <include android:id="@+id/license_timber"
+                    layout="@layout/item_license"
+                    app:name="@{@string/license_name_timber}"
+                    app:body="@{@string/license_body_timber}" />
+
+                <include android:id="@+id/license_material_drawer"
+                    layout="@layout/item_license"
+                    app:name="@{@string/license_name_material_drawer}"
+                    app:body="@{@string/license_body_material_drawer}" />
+
+                <include android:id="@+id/license_circular_image_view"
+                    layout="@layout/item_license"
+                    app:name="@{@string/license_name_circular_image_view}"
+                    app:body="@{@string/license_body_circular_image_view}" />
+
+                <include android:id="@+id/license_calligraphy"
+                    layout="@layout/item_license"
+                    app:name="@{@string/license_name_calligraphy}"
+                    app:body="@{@string/license_body_calligraphy}" />
+
+                <include android:id="@+id/license_emoji"
+                    layout="@layout/item_license"
+                    app:name="@{@string/license_name_emoji}"
+                    app:body="@{@string/license_body_emoji}" />
+
+                <include android:id="@+id/license_commons_io"
+                    layout="@layout/item_license"
+                    app:name="@{@string/license_name_commons_io}"
+                    app:body="@{@string/license_body_commons_io}" />
+            </LinearLayout>
+        </ScrollView>
+    </FrameLayout>
+</layout>

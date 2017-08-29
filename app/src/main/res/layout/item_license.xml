@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable
+            name="name"
+            type="String" />
+
+        <variable
+            name="body"
+            type="String" />
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        tools:showIn="@layout/fragment_license">
+
+        <TextView
+            android:id="@+id/name"
+            fontPath="fonts/Ricty-Regular.ttf"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?android:attr/selectableItemBackground"
+            android:paddingBottom="12dp"
+            android:paddingLeft="32dp"
+            android:paddingTop="12dp"
+            android:text="@{name}"
+            android:textSize="20sp"
+            tools:ignore="MissingPrefix"
+            tools:text="ライブラリ名" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorDivider" />
+
+        <TextView
+            android:id="@+id/body"
+            fontPath="fonts/Ricty-Regular.ttf"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorPrimaryDark"
+            android:padding="12dp"
+            android:textColor="@android:color/white"
+            android:text="@{body}"
+            android:textSize="12sp"
+            android:visibility="gone"
+            tools:ignore="MissingPrefix"
+            tools:text="ライセンス文" />
+    </LinearLayout>
+</layout>
