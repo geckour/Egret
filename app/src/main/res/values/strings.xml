@@ -92,6 +92,8 @@
     <string name="dialog_button_ok_confirm_save">Save</string>
     <string name="dialog_button_dismiss_confirm_save">Discard</string>
     <string name="dialog_button_cancel_confirm_save">Cancel</string>
+    <string name="dialog_message_select_draft">Select draft to restore</string>
+    <string name="error_unable_select_draft">Failed to select the draft.</string>
 
     <string name="mentioned_by">Mentioned by</string>
     <string name="reblogged_by">Boosted by</string>

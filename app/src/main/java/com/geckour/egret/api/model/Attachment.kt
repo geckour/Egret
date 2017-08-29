@@ -1,6 +1,5 @@
 package com.geckour.egret.api.model
 
-import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 
 data class Attachment(
