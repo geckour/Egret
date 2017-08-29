@@ -45,7 +45,7 @@ import okhttp3.RequestBody
 import java.io.File
 
 
-class NewTootCreateFragment : BaseFragment(), MainActivity.OnBackPressedListener {
+class NewTootCreateFragment : BaseFragment(), MainActivity.OnBackPressedListener, SelectDraftDialogFragment.OnSelectDraftItemListener {
 
     lateinit private var binding: FragmentCreateNewTootBinding
     private val postMediaReqs: ArrayList<Disposable> = ArrayList()
@@ -54,6 +54,8 @@ class NewTootCreateFragment : BaseFragment(), MainActivity.OnBackPressedListener
     lateinit private var initialBody: String
     lateinit private var initialAlertBody: String
     private var isSuccessPost = false
+    private val drafts: ArrayList<Draft> = ArrayList()
+    private var draft: Draft? = null
 
     companion object {
         val TAG: String = this::class.java.simpleName
@@ -190,6 +192,23 @@ class NewTootCreateFragment : BaseFragment(), MainActivity.OnBackPressedListener
 
         initialBody = binding.tootBody.text.toString()
         initialAlertBody = binding.tootAlertBody.text.toString()
+
+        Common.getCurrentAccessToken()?.id?.let {
+            drafts.addAll(
+                    OrmaProvider.db.relationOfDraft()
+                            .tokenIdEq(it)
+                            .orderByCreatedAtAsc()
+            )
+        }
+        binding.draft.apply {
+            if (drafts.isNotEmpty()) {
+                visibility = View.VISIBLE
+                setOnClickListener { onLoadDraft() }
+            } else {
+                visibility = View.INVISIBLE
+                setOnClickListener(null)
+            }
+        }
     }
 
     override fun onPause() {
@@ -236,6 +255,65 @@ class NewTootCreateFragment : BaseFragment(), MainActivity.OnBackPressedListener
         } else callback(true)
     }
 
+    override fun onSelect(draft: Draft) {
+        this.draft = draft
+        OrmaProvider.db.relationOfDraft()
+                .deleter()
+                .idEq(draft.id)
+                .executeAsSingle()
+                .map {
+                    Common.getCurrentAccessToken()?.id?.let {
+                        OrmaProvider.db.relationOfDraft()
+                                .tokenIdEq(it)
+                                .orderByCreatedAtAsc()
+                                .toList()
+                    } ?: arrayListOf()
+                }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ drafts ->
+                    this.drafts.apply {
+                        clear()
+                        addAll(drafts)
+                    }
+                    if (this.drafts.isEmpty()) binding.draft.apply {
+                        visibility = View.INVISIBLE
+                        setOnClickListener(null)
+                    }
+                    var account = ""
+                    if (draft.inReplyToId != null && draft.inReplyToName != null) {
+                        binding.replyTo.text = "reply to: ${draft.inReplyToName}"
+                        binding.replyTo.visibility = View.VISIBLE
+                        account = "${draft.inReplyToName} "
+                    }
+                    val body = "$account${draft.body}"
+                    binding.tootBody.setText(body)
+                    binding.tootBody.setSelection(body.length)
+                    binding.tootAlertBody.setText(draft.alertBody)
+                    this.attachments.apply {
+                        clear()
+                        addAll(draft.attachments.value)
+                    }
+                    Observable.fromIterable(this.attachments.mapIndexed { i, attachment -> Pair(i, attachment)})
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe({ (i, attachment) ->
+                                Glide.with(activity).load(attachment.previewImgUrl).into(
+                                        when (i) {
+                                            0 -> binding.media1
+                                            1 -> binding.media2
+                                            2 -> binding.media3
+                                            3 -> binding.media4
+                                            else -> throw IndexOutOfBoundsException("There are attachments over 4.")
+                                        }
+                                )
+                            }, Throwable::printStackTrace)
+                    binding.switchCw.isChecked = draft.warning
+                    binding.switchNsfw.isChecked = draft.sensitive
+                    binding.spinnerVisibility.setSelection(draft.visibility)
+                }, Throwable::printStackTrace)
+    }
+
     private fun postToot(body: String) {
         if (body.isBlank()) {
             Snackbar.make(binding.root, R.string.error_empty_toot, Snackbar.LENGTH_SHORT)
@@ -245,7 +323,7 @@ class NewTootCreateFragment : BaseFragment(), MainActivity.OnBackPressedListener
         MastodonClient(Common.resetAuthInfo() ?: return)
                 .postNewToot(
                         body = body,
-                        inReplyToId = if (binding.replyTo.visibility == View.VISIBLE) arguments.getLong(ARGS_KEY_REPLY_TO_STATUS_ID) else null,
+                        inReplyToId = if (binding.replyTo.visibility == View.VISIBLE) draft?.inReplyToId ?: arguments.getLong(ARGS_KEY_REPLY_TO_STATUS_ID) else null,
                         mediaIds = if (attachments.size > 0) attachments.map { it.id } else null,
                         isSensitive = binding.switchNsfw.isChecked,
                         spoilerText = if (binding.switchCw.isChecked) binding.tootAlertBody.text.toString() else null,
@@ -270,16 +348,12 @@ class NewTootCreateFragment : BaseFragment(), MainActivity.OnBackPressedListener
                                     tokenId = id,
                                     body = binding.tootBody.text.toString(),
                                     alertBody = binding.tootAlertBody.text.toString(),
-                                    inReplyToId = if (binding.replyTo.visibility == View.VISIBLE) arguments.getLong(ARGS_KEY_REPLY_TO_STATUS_ID) else null,
+                                    inReplyToId = if (binding.replyTo.visibility == View.VISIBLE) draft?.inReplyToId ?: arguments.getLong(ARGS_KEY_REPLY_TO_STATUS_ID) else null,
+                                    inReplyToName = if (binding.replyTo.visibility == View.VISIBLE) draft?.inReplyToName ?: arguments.getString(ARGS_KEY_REPLY_TO_ACCOUNT_NAME) else null,
                                     attachments = Draft.Attachments(attachments),
+                                    warning = binding.switchCw.isChecked,
                                     sensitive = binding.switchNsfw.isChecked,
-                                    visibility = when (binding.spinnerVisibility.selectedItemPosition) {
-                                        0 -> MastodonService.Visibility.public.ordinal
-                                        1 -> MastodonService.Visibility.unlisted.ordinal
-                                        2 -> MastodonService.Visibility.private.ordinal
-                                        3 -> MastodonService.Visibility.direct.ordinal
-                                        else -> -1
-                                    }
+                                    visibility = binding.spinnerVisibility.selectedItemPosition
                             )
                         }
                         .subscribeOn(Schedulers.io())
@@ -328,6 +402,14 @@ class NewTootCreateFragment : BaseFragment(), MainActivity.OnBackPressedListener
                         })
             }
         }
+    }
+
+    private fun onLoadDraft() {
+        SelectDraftDialogFragment.newInstance(drafts)
+                .apply {
+                    setTargetFragment(this@NewTootCreateFragment, 0)
+                }
+                .show(activity.supportFragmentManager, SelectDraftDialogFragment.TAG)
     }
 
     private fun pickMedia() {

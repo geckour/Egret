@@ -394,7 +394,6 @@ class TimelineFragment: BaseFragment() {
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
-<<<<<<< Updated upstream
                 .subscribe({
                     reflectContents(it, loadPrev)
                     if (loadStream) startPublicTimelineStream()
@@ -595,23 +594,6 @@ class TimelineFragment: BaseFragment() {
                     if (it.first() is Status) {
                         if (next) adapter.addAllContentsAtLast(it.map { Common.getTimelineContent(status = it as Status) })
                         else adapter.addAllContents(it.map { Common.getTimelineContent(status = it as Status) })
-=======
-                .subscribe({ source ->
-                    Log.d("showPublicTimeline", "source: $source")
-
-                    if (source.startsWith("data: ")) {
-                        val data = source.replace(Regex("^data:\\s(.+)"), "$1")
-                        try {
-                            val status = Gson().fromJson(data, Status::class.java)
-                            val content = TimelineContent(status.account.avatarUrl, status.account.displayName, status.account.username, status.createdAt.time, status.content)
-                            Log.d("showPublicTimeline", "body: ${status.content}")
-
-                            adapter.addContent(content)
-                            if ((binding.recyclerView.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition() == 0) binding.recyclerView.smoothScrollToPosition(0)
-                        } catch (e: JsonSyntaxException) {
-                            Log.e("showPublicTimeline", e.message)
-                        }
->>>>>>> Stashed changes
                     }
                     if (it.first() is Notification) {
                         if (next) adapter.addAllContentsAtLast(it.map { Common.getTimelineContent(notification = it as Notification) })

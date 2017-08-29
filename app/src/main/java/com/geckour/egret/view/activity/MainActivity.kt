@@ -292,7 +292,7 @@ class MainActivity : BaseActivity(), ListDialogFragment.OnItemClickListener {
         if (drawer.isDrawerOpen) {
             drawer.closeDrawer()
         } else {
-            (supportFragmentManager.fragments.lastOrNull { it.isVisible } as? OnBackPressedListener)?.let {
+            (supportFragmentManager.fragments.lastOrNull { it?.isVisible ?: false } as? OnBackPressedListener)?.let {
                 it.onBackPressedInMainActivity { if (it) super.onBackPressed() }
             } ?: super.onBackPressed()
         }

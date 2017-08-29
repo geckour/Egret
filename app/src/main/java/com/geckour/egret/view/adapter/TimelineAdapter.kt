@@ -23,7 +23,10 @@ import io.reactivex.schedulers.Schedulers
 import java.util.*
 import kotlin.collections.ArrayList
 
-class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootCallback? = null, val doFilter: Boolean = true) : RecyclerView.Adapter<TimelineAdapter.ViewHolder>() {
+class TimelineAdapter(
+        val listener: Callbacks,
+        private val onAddTootListener: OnAddTootCallback? = null,
+        private val doFilter: Boolean = true): RecyclerView.Adapter<TimelineAdapter.ViewHolder>() {
 
     companion object {
         const val DEFAULT_ITEMS_LIMIT = 100
@@ -89,19 +92,19 @@ class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootC
             content.mediaUrls.indices.forEach {
                 when (it) {
                     0 -> {
-                        if (content.isSensitive ?: false) toggleMediaSpoiler(timelineBinding.mediaSpoilerWrap1, true)
+                        if (content.isSensitive == true) toggleMediaSpoiler(timelineBinding.mediaSpoilerWrap1, true)
                         setupMedia(timelineBinding.media1, content.mediaPreviewUrls, content.mediaUrls, it)
                     }
                     1 -> {
-                        if (content.isSensitive ?: false) toggleMediaSpoiler(timelineBinding.mediaSpoilerWrap2, true)
+                        if (content.isSensitive == true) toggleMediaSpoiler(timelineBinding.mediaSpoilerWrap2, true)
                         setupMedia(timelineBinding.media2, content.mediaPreviewUrls, content.mediaUrls, it)
                     }
                     2 -> {
-                        if (content.isSensitive ?: false) toggleMediaSpoiler(timelineBinding.mediaSpoilerWrap3, true)
+                        if (content.isSensitive == true) toggleMediaSpoiler(timelineBinding.mediaSpoilerWrap3, true)
                         setupMedia(timelineBinding.media3, content.mediaPreviewUrls, content.mediaUrls, it)
                     }
                     3 -> {
-                        if (content.isSensitive ?: false) toggleMediaSpoiler(timelineBinding.mediaSpoilerWrap4, true)
+                        if (content.isSensitive == true) toggleMediaSpoiler(timelineBinding.mediaSpoilerWrap4, true)
                         setupMedia(timelineBinding.media4, content.mediaPreviewUrls, content.mediaUrls, it)
                     }
                 }
@@ -157,7 +160,7 @@ class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootC
             else toggleStatus(ContentType.Notification, true)
         }
 
-        fun initVisibility(type: ContentType) {
+        private fun initVisibility(type: ContentType) {
             toggleAction(type, false)
             toggleStatus(type, false)
             initSpoiler(type)
@@ -165,6 +168,9 @@ class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootC
             when(type) {
                 ContentType.Status -> {
                     timelineBinding.body.text = null
+
+                    timelineBinding.actionLock.visibility = View.GONE
+                    timelineBinding.lock.visibility = View.GONE
 
                     listOf(timelineBinding.media1, timelineBinding.media2, timelineBinding.media3, timelineBinding.media4)
                             .forEach {
@@ -184,6 +190,9 @@ class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootC
                         visibility = View.GONE
                     }
 
+                    notificationBinding.actionLock.visibility = View.GONE
+                    notificationBinding.lock.visibility = View.GONE
+
                     listOf(notificationBinding.media1, notificationBinding.media2, notificationBinding.media3, notificationBinding.media4)
                             .forEach {
                                 it.apply {
@@ -198,7 +207,7 @@ class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootC
             }
         }
 
-        fun bindAction(contentType: ContentType, notificationType: Notification.NotificationType) {
+        private fun bindAction(contentType: ContentType, notificationType: Notification.NotificationType) {
             when (contentType) {
                 ContentType.Status -> {
                     if (notificationType == Notification.NotificationType.reblog) {
@@ -232,7 +241,7 @@ class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootC
             }
         }
 
-        fun toggleAction(type: ContentType, show: Boolean) {
+        private fun toggleAction(type: ContentType, show: Boolean) {
             when(type) {
                 ContentType.Status -> {
                     listOf(timelineBinding.indicateAction, timelineBinding.actionIcon, timelineBinding.actionBy, timelineBinding.actionName)
@@ -256,7 +265,7 @@ class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootC
             }
         }
 
-        fun toggleStatus(type: ContentType, show: Boolean) {
+        private fun toggleStatus(type: ContentType, show: Boolean) {
             when(type) {
                 ContentType.Status -> {
                     listOf(
@@ -294,7 +303,7 @@ class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootC
             }
         }
 
-        fun initSpoiler(type: ContentType) {
+        private fun initSpoiler(type: ContentType) {
             when(type) {
                 ContentType.Status -> {
                     timelineBinding.bodyAdditional.visibility = View.GONE
@@ -308,7 +317,7 @@ class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootC
             }
         }
 
-        fun toggleBodySpoiler(type: ContentType, show: Boolean) {
+        private fun toggleBodySpoiler(type: ContentType, show: Boolean) {
             when(type) {
                 ContentType.Status -> {
                     timelineBinding.clearSpoiler.apply {
@@ -409,14 +418,14 @@ class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootC
             popup.show()
         }
 
-        fun toggleMediaSpoiler(view: View, show: Boolean) {
+        private fun toggleMediaSpoiler(view: View, show: Boolean) {
             view.apply {
                 setOnClickListener { it.visibility = View.GONE }
                 visibility = if (show) View.VISIBLE else View.GONE
             }
         }
 
-        fun setupMedia(view: ImageView, previewUrls: List<String>, urls: List<String>, position: Int) {
+        private fun setupMedia(view: ImageView, previewUrls: List<String>, urls: List<String>, position: Int) {
             view.apply {
                 visibility = View.VISIBLE
                 setOnClickListener { listener.onClickMedia(urls, position) }
@@ -424,7 +433,7 @@ class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootC
             Glide.with(view.context).load(previewUrls[position]).into(view)
         }
 
-        fun reflectTreeStatus() {
+        private fun reflectTreeStatus() {
             when (timelineBinding.status.treeStatus) {
                 TimelineContent.TimelineStatus.TreeStatus.None -> {
                     timelineBinding.treeLineUpper.visibility = View.GONE
@@ -446,9 +455,8 @@ class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootC
         }
     }
 
-    override fun getItemViewType(position: Int): Int {
-        return getContent(position).let { if (it.status != null) ContentType.Status.ordinal else if (it.notification != null) ContentType.Notification.ordinal else -1 }
-    }
+    override fun getItemViewType(position: Int): Int =
+            getContent(position).let { if (it.status != null) ContentType.Status.ordinal else if (it.notification != null) ContentType.Notification.ordinal else -1 }
 
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): ViewHolder {
         if (viewType == ContentType.Status.ordinal) {
@@ -468,9 +476,7 @@ class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootC
         item.notification?.let { holder?.bindData(it) }
     }
 
-    override fun getItemCount(): Int {
-        return contents.size
-    }
+    override fun getItemCount(): Int = contents.size
 
     fun getContent(index: Int): TimelineContent = this.contents[index]
 
@@ -560,7 +566,7 @@ class TimelineAdapter(val listener: Callbacks, val onAddTootListener: OnAddTootC
         }
     }
 
-    fun shouldMute(content: TimelineContent): Single<Pair<TimelineContent, Boolean>> {
+    private fun shouldMute(content: TimelineContent): Single<Pair<TimelineContent, Boolean>> {
         return Single.just(content)
                 .map {
                     val mute: Boolean = run {
