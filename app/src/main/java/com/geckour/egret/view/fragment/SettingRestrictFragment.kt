@@ -12,11 +12,7 @@ class SettingRestrictFragment: PreferenceFragmentCompat(), PreferenceFragmentCom
     companion object {
         val TAG: String = this::class.java.simpleName
 
-        fun newInstance(): SettingRestrictFragment {
-            val fragment = SettingRestrictFragment()
-
-            return fragment
-        }
+        fun newInstance(): SettingRestrictFragment = SettingRestrictFragment()
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
