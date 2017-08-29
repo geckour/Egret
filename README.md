@@ -22,6 +22,9 @@ Android app for client of Mastodon.
 - Search accounts / hashtags
 - Save images
 - Live notify
+- Edit your own profile
+- Share toot
+- Save toot as draft
 - and more in future...
 
 ## Contributor
