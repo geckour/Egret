@@ -3,6 +3,9 @@
 
     <PreferenceCategory android:title="@string/pref_manage_held_data">
 
+        <PreferenceScreen android:key="clear_tl_cache"
+            android:title="@string/pref_clear_tl_cache" />
+
         <PreferenceScreen android:key="clear_all_preference"
             android:title="@string/pref_clear_all_preference" />
 

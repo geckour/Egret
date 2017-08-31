@@ -53,15 +53,15 @@ class TimelineFragment: BaseFragment() {
 
     companion object {
         val TAG: String = this::class.java.simpleName
-        val ARGS_KEY_CATEGORY = "category"
-        val ARGS_KEY_HASH_TAG = "hashTag"
-        val STATE_ARGS_KEY_CONTENTS = "contents"
-        val REQUEST_CODE_GRANT_ACCESS_WIFI = 100
+        const val ARGS_KEY_CATEGORY = "category"
+        const val STATE_KEY_HASH_TAG = "hashTag"
+        const val STATE_ARGS_KEY_CONTENTS = "contents"
+        const val REQUEST_CODE_GRANT_ACCESS_WIFI = 100
 
         fun newInstance(category: Category, hashTag: String? = null): TimelineFragment = TimelineFragment().apply {
             arguments = Bundle().apply {
                 putString(ARGS_KEY_CATEGORY, category.name)
-                hashTag?.let { putString(ARGS_KEY_HASH_TAG, hashTag) }
+                hashTag?.let { putString(STATE_KEY_HASH_TAG, hashTag) }
             }
         }
     }
@@ -172,7 +172,7 @@ class TimelineFragment: BaseFragment() {
                         val storedContentsKey = getStoreContentsKey(getCategory()).apply { Log.d("onPause", "storeContentsKey: $this") }
                         putString(storedContentsKey, json)
                     } else {
-                        getHashTag()?.let { putString(ARGS_KEY_HASH_TAG, it) }
+                        getHashTag()?.let { putString(STATE_KEY_HASH_TAG, it) }
                     }
                 }
                 .apply()
@@ -201,8 +201,8 @@ class TimelineFragment: BaseFragment() {
             else Category.Unknown
 
     fun getHashTag(): String? =
-            if (arguments != null && arguments.containsKey(ARGS_KEY_HASH_TAG)) arguments.getString(ARGS_KEY_HASH_TAG)
-            else if (sharedPref.contains(ARGS_KEY_HASH_TAG)) sharedPref.getString(ARGS_KEY_HASH_TAG, "")
+            if (arguments != null && arguments.containsKey(STATE_KEY_HASH_TAG)) arguments.getString(STATE_KEY_HASH_TAG)
+            else if (sharedPref.contains(STATE_KEY_HASH_TAG)) sharedPref.getString(STATE_KEY_HASH_TAG, "")
             else null
 
     private fun existsNoRunningStream() = listOf(publicStream, localStream, userStream).none { !(it?.isDisposed ?: true) }

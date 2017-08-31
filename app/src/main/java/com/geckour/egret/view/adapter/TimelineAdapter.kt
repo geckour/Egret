@@ -510,8 +510,7 @@ class TimelineAdapter(
     fun addAllContents(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
         val cs: ArrayList<TimelineContent> = ArrayList()
 
-        Observable.fromIterable(contents)
-                .flatMap { shouldMute(it).toObservable() }
+        Observable.concat(contents.map { shouldMute(it).toObservable() })
                 .subscribe({ (c, b) ->
                     if (!b) {
                         cs.add(c)
@@ -527,10 +526,7 @@ class TimelineAdapter(
     fun addAllContentsAtLast(contents: List<TimelineContent>, limit: Int = DEFAULT_ITEMS_LIMIT) {
         val cs: ArrayList<TimelineContent> = ArrayList()
 
-        Observable.fromIterable(contents)
-                .flatMap { shouldMute(it).toObservable() }
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+        Observable.concat(contents.map { shouldMute(it).toObservable() })
                 .subscribe({ (c, b) ->
                     if (!b) {
                         cs.add(c)

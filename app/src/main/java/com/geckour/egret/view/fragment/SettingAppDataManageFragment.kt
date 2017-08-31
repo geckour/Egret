@@ -7,7 +7,9 @@ import android.support.v4.app.Fragment
 import android.support.v7.preference.PreferenceFragmentCompat
 import android.support.v7.preference.PreferenceManager
 import android.support.v7.preference.PreferenceScreen
+import com.geckour.egret.App
 import com.geckour.egret.R
+import com.geckour.egret.util.Common
 import com.geckour.egret.util.OrmaProvider
 import com.geckour.egret.view.activity.SettingActivity
 import io.reactivex.Observable
@@ -26,6 +28,7 @@ class SettingAppDataManageFragment: PreferenceFragmentCompat(), PreferenceFragme
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences_app_data, rootKey)
 
+        preferenceScreen.findPreference("clear_tl_cache").setOnPreferenceClickListener { clearTlCache() }
         preferenceScreen.findPreference("clear_all_preference").setOnPreferenceClickListener { clearAllPreference() }
         preferenceScreen.findPreference("clear_all_draft").setOnPreferenceClickListener { clearAllDraft() }
         preferenceScreen.findPreference("clear_all_restriction").setOnPreferenceClickListener { clearAllRestriction() }
@@ -37,6 +40,23 @@ class SettingAppDataManageFragment: PreferenceFragmentCompat(), PreferenceFragme
 
     override fun onPreferenceStartScreen(caller: PreferenceFragmentCompat?, pref: PreferenceScreen?): Boolean {
         caller?.preferenceScreen = pref
+        return true
+    }
+
+    private fun clearTlCache(): Boolean {
+        val sharedPref = PreferenceManager.getDefaultSharedPreferences(activity)
+        sharedPref.edit()
+                .apply {
+                    if (sharedPref.contains(App.STATE_KEY_CATEGORY)) remove(App.STATE_KEY_CATEGORY)
+                    if (sharedPref.contains(TimelineFragment.STATE_KEY_HASH_TAG)) remove(TimelineFragment.STATE_KEY_HASH_TAG)
+                    TimelineFragment.Category.values()
+                            .forEach {
+                                val key = Common.getStoreContentsKey(it)
+                                if (sharedPref.contains(key)) remove(key)
+                            }
+                }
+                .apply()
+        Snackbar.make((activity as SettingActivity).binding.root, R.string.message_complete_clear_tl_cache, Snackbar.LENGTH_SHORT).show()
         return true
     }
 
