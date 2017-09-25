@@ -38,7 +38,7 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/prompt_password"
                     android:imeActionId="@+id/login"
-                    android:imeActionLabel="@string/action_sign_in_short"
+                    android:imeActionLabel="@string/action_sign_in"
                     android:imeOptions="actionUnspecified"
                     android:inputType="textPassword"
                     android:maxLines="1"
@@ -54,7 +54,7 @@
                 android:layout_marginTop="16dp"
                 android:paddingLeft="30sp"
                 android:paddingRight="30sp"
-                android:text="@string/action_sign_in_short"
+                android:text="@string/action_sign_in"
                 android:textStyle="bold"/>
 
         </LinearLayout>

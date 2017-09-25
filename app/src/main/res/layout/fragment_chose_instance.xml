@@ -29,7 +29,7 @@
             android:layout_marginTop="16dp"
             android:paddingLeft="30sp"
             android:paddingRight="30sp"
-            android:text="@string/action_chose_instance"
+            android:text="@string/action_choose_instance"
             android:textStyle="bold"/>
 
     </LinearLayout>
